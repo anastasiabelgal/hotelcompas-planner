@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelCompas · Доска</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f3f5f8; --panel: #ffffff; --panel-soft: #f7f9fc; --border: #e1e6ee;
+    --navy: #0d3b66; --navy-deep: #082744; --sky: #2f8fd1; --amber: #ef9b3d;
+    --red: #dd5c56; --green: #3fae7f; --text: #17212b; --muted: #6b7684;
+    --radius: 10px;
+  }
+  [data-theme="dark"]{
+    --bg:#10161d; --panel:#1a2029; --panel-soft:#212936; --border:#2b3542;
+    --navy:#3f7fc4; --navy-deep:#0a2540; --sky:#4fb3d9; --amber:#f2a93b;
+    --red:#e6685c; --green:#4fd1a5; --text:#e7ecf1; --muted:#8592a1;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;transition:background .2s,color .2s;}
+  ::selection{background:var(--amber);color:#20130a;}
+  button,input,select{font-family:inherit;}
+
+  .app{max-width:1320px;margin:0 auto;padding:22px 18px 70px;}
+  .hidden{display:none !important;}
+
+  /* header */
+  .board-header{background:linear-gradient(135deg,var(--navy),var(--navy-deep));border-radius:var(--radius);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;color:#fff;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-text .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;display:block;margin-bottom:2px;}
+  .brand-text h1{font-family:'Space Grotesk',sans-serif;font-size:21px;margin:0;color:#fff;}
+  .user-block{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .theme-toggle{display:flex;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:2px;}
+  .theme-toggle button{background:none;border:none;color:rgba(255,255,255,.6);font-size:13px;padding:5px 9px;border-radius:6px;cursor:pointer;}
+  .theme-toggle button.active{background:rgba(255,255,255,.18);color:#fff;}
+  .who{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:10px;}
+  .who .email{font-size:12px;font-weight:600;color:#fff;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .switch-btn{background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85);font-size:11px;padding:6px 10px;border-radius:6px;cursor:pointer;}
+  .switch-btn:hover{border-color:var(--amber);color:var(--amber);}
+
+  /* tabs */
+  .tab-bar{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);}
+  .tab-btn{background:none;border:none;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;}
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--navy);}
+  [data-theme="dark"] .tab-btn.active{color:var(--sky);border-bottom-color:var(--sky);}
+
+  /* shared: add-column bar, kanban row, column, card list */
+  .add-block-bar{display:flex;gap:10px;margin-bottom:16px;}
+  .add-block-bar input,.add-block-bar select{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 13px;font-size:13.5px;}
+  .btn-primary{background:var(--navy);color:#fff;border:none;font-weight:600;font-size:13px;padding:0 16px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+  .btn-primary:hover{background:var(--navy-deep);}
+  [data-theme="dark"] .btn-primary{background:var(--sky);color:#0a1620;}
+  [data-theme="dark"] .btn-primary:hover{filter:brightness(1.1);}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--sky);outline-offset:2px;}
+
+  .kanban-row{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;align-items:flex-start;}
+  .column{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);min-width:270px;max-width:270px;flex:0 0 auto;display:flex;flex-direction:column;max-height:calc(100vh - 250px);}
+  .column.drag-over{border-color:var(--sky);box-shadow:0 0 0 2px rgba(47,143,209,.18) inset;}
+  .column-head{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid var(--border);background:var(--panel-soft);border-radius:var(--radius) var(--radius) 0 0;gap:8px;}
+  .column-title{font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:600;background:none;border:none;color:var(--text);width:100%;min-width:0;}
+  .column-title[readonly]{cursor:default;}
+  .column-title:focus{outline:none;}
+  .count-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1px 7px;flex:0 0 auto;}
+  .icon-btn{background:none;border:1px solid var(--border);color:var(--muted);width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .icon-btn:hover{color:var(--red);border-color:var(--red);}
+
+  .card-list{padding:10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;min-height:40px;}
+  .empty-col{padding:14px 6px;text-align:center;color:var(--muted);font-size:11.5px;}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--muted);border-radius:8px;padding:10px 11px;cursor:grab;}
+  .card.dragging{opacity:.4;}
+  .card.done{opacity:.55;}
+  .card.done .card-title{text-decoration:line-through;}
+  .card-top{display:flex;align-items:flex-start;gap:8px;}
+  .card-check{width:16px;height:16px;margin-top:2px;accent-color:var(--sky);cursor:pointer;flex:0 0 auto;}
+  .card-title{font-size:13px;font-weight:500;line-height:1.35;overflow-wrap:break-word;flex:1;}
+  .card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .card-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;flex:0 0 auto;padding:0 2px;}
+  .card-del:hover{color:var(--red);}
+  .card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;padding:3px 7px;border-radius:5px;white-space:nowrap;}
+  .tag-low{background:rgba(63,174,127,.14);color:var(--green);}
+  .tag-medium{background:rgba(47,143,209,.14);color:var(--sky);}
+  .tag-high{background:rgba(239,155,61,.16);color:#b9711c;}
+  [data-theme="dark"] .tag-high{color:var(--amber);}
+  .tag-critical{background:rgba(221,92,86,.16);color:var(--red);}
+  .tag-muted{background:var(--panel-soft);color:var(--muted);border:1px solid var(--border);}
+  .tag-late{background:rgba(221,92,86,.14);color:var(--red);border:1px solid rgba(221,92,86,.3);}
+  .tag-soon{background:rgba(239,155,61,.16);color:#b9711c;border:1px solid rgba(239,155,61,.3);}
+  [data-theme="dark"] .tag-soon{color:var(--amber);}
+  .tag-contact{background:#eef4fb;color:var(--navy);border:1px solid #d7e6f5;font-family:'Inter',sans-serif;font-weight:500;}
+  [data-theme="dark"] .tag-contact{background:rgba(63,127,196,.16);color:var(--sky);border:1px solid rgba(63,127,196,.3);}
+  .tag-budget{background:rgba(63,174,127,.14);color:var(--green);font-family:'Inter',sans-serif;font-weight:600;}
+  .tag-contract{background:rgba(239,155,61,.16);color:#b9711c;font-family:'Inter',sans-serif;font-weight:600;}
+  [data-theme="dark"] .tag-contract{color:var(--amber);}
+
+  .card-move{margin-top:8px;width:100%;font-size:11px;background:var(--panel-soft);border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:5px 6px;}
+
+  .add-card-box{padding:10px;border-top:1px solid var(--border);background:var(--panel-soft);border-radius:0 0 var(--radius) var(--radius);}
+  .add-card-box input,.add-card-box select{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 9px;font-size:12px;margin-bottom:6px;}
+  .add-card-box .row2{display:flex;gap:6px;}
+  .add-card-box .row2>*{flex:1;min-width:0;}
+  .add-card-box label.chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-bottom:6px;}
+  .add-card-toggle{width:100%;background:none;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:12px;padding:7px;cursor:pointer;}
+  .add-card-toggle:hover{border-color:var(--sky);color:var(--sky);}
+  .add-card-submit{width:100%;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;padding:8px;cursor:pointer;}
+  [data-theme="dark"] .add-card-submit{background:var(--sky);color:#0a1620;}
+  .add-card-fields{display:none;}
+  .add-card-fields.open{display:block;}
+
+  .empty-board{text-align:center;padding:50px 20px;color:var(--muted);border:1px dashed var(--border);border-radius:var(--radius);background:var(--panel);}
+  .empty-board .big{font-family:'Space Grotesk',sans-serif;font-size:16px;color:var(--text);margin-bottom:6px;}
+
+  /* auth screens */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:34px 30px;max-width:380px;width:100%;box-shadow:0 10px 30px rgba(13,59,102,.08);}
+  .login-card .top-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .login-card .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--sky);text-transform:uppercase;}
+  .login-card h1{font-family:'Space Grotesk',sans-serif;font-size:21px;margin:0 0 8px;}
+  .login-card p{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 18px;}
+  .login-card input{width:100%;background:var(--panel-soft);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 13px;font-size:14px;margin-bottom:10px;}
+  .login-card .btn-primary{width:100%;padding:11px;font-size:13.5px;margin-top:4px;}
+  .login-switch{text-align:center;margin-top:14px;font-size:12.5px;color:var(--muted);}
+  .login-switch button{background:none;border:none;color:var(--sky);cursor:pointer;font-size:12.5px;text-decoration:underline;padding:0;}
+  .form-error{background:rgba(221,92,86,.1);color:var(--red);border:1px solid rgba(221,92,86,.3);border-radius:7px;padding:9px 11px;font-size:12px;margin-bottom:10px;}
+  .form-note{background:rgba(47,143,209,.08);color:var(--sky);border:1px solid rgba(47,143,209,.25);border-radius:7px;padding:9px 11px;font-size:12px;margin-bottom:10px;line-height:1.5;}
+  .note-line{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.5;border-top:1px solid var(--border);padding-top:12px;}
+
+  @media (max-width:640px){
+    .board-header{flex-direction:column;align-items:flex-start;}
+    .user-block{width:100%;justify-content:space-between;}
+    .column{min-width:82vw;max-width:82vw;max-height:none;}
+    .card-list{overflow-y:visible;}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN / REGISTER -->
+<div id="auth-screen" class="login-wrap hidden">
+  <div class="login-card">
+    <div class="top-row">
+      <svg width="26" height="26" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#0d3b66" stroke-width="2.4"/><path d="M20 9 L23.5 20 L20 31 L16.5 20 Z" fill="#ef9b3d"/><circle cx="20" cy="20" r="2.4" fill="#0d3b66"/></svg>
+      <span class="eyebrow">HotelCompas · Доска</span>
+    </div>
+    <h1 id="auth-title">Вход</h1>
+    <div id="auth-error" class="form-error hidden"></div>
+    <div id="auth-note" class="form-note hidden"></div>
+    <input id="auth-email" type="email" placeholder="имя@hotelcompas.com" autocomplete="username">
+    <input id="auth-password" type="password" placeholder="Пароль" autocomplete="current-password">
+    <button class="btn-primary" id="auth-submit-btn">Войти</button>
+    <div class="login-switch">
+      <span id="auth-switch-text">Нет аккаунта?</span>
+      <button id="auth-switch-btn">Зарегистрироваться</button>
+    </div>
+    <div class="note-line">Только для адресов @hotelcompas.com. После регистрации придёт письмо с подтверждением — без перехода по ссылке доступ к доске не откроется.</div>
+  </div>
+</div>
+
+<!-- VERIFY EMAIL WAIT -->
+<div id="verify-screen" class="login-wrap hidden">
+  <div class="login-card">
+    <div class="top-row">
+      <svg width="26" height="26" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#0d3b66" stroke-width="2.4"/><path d="M20 9 L23.5 20 L20 31 L16.5 20 Z" fill="#ef9b3d"/><circle cx="20" cy="20" r="2.4" fill="#0d3b66"/></svg>
+      <span class="eyebrow">Подтверждение почты</span>
+    </div>
+    <h1>Проверьте почту</h1>
+    <p>Мы отправили письмо на <strong id="verify-email-addr"></strong>. Перейдите по ссылке в письме, потом нажмите кнопку ниже.</p>
+    <button class="btn-primary" id="verify-refresh-btn">Я подтвердил(а), обновить</button>
+    <div class="login-switch">
+      <button id="verify-signout-btn">Выйти и войти другим аккаунтом</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOARD -->
+<div id="board-screen" class="app hidden">
+  <div class="board-header">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="2.2"/><path d="M20 9 L23.5 20 L20 31 L16.5 20 Z" fill="#ef9b3d"/><circle cx="20" cy="20" r="2.2" fill="#fff"/></svg>
+      <div class="brand-text"><span class="eyebrow">Team board</span><h1>HotelCompas</h1></div>
+    </div>
+    <div class="user-block">
+      <div class="theme-toggle" id="theme-toggle">
+        <button data-theme-choice="light">Свет</button>
+        <button data-theme-choice="dark">Тёмная</button>
+        <button data-theme-choice="system">Авто</button>
+      </div>
+      <div class="who"><span class="email" id="current-email">—</span></div>
+      <button class="switch-btn" id="signout-btn">Выйти</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="tasks">Задачи</button>
+    <button class="tab-btn" data-tab="leads">Лиды</button>
+  </div>
+
+  <!-- TASKS TAB -->
+  <div id="tab-tasks">
+    <div class="add-block-bar">
+      <input id="new-column-input" type="text" placeholder="Название колонки, например «Букинг», «Личное»" maxlength="60">
+      <button class="btn-primary" id="add-column-btn">+ Колонка</button>
+    </div>
+    <div id="tasks-container"></div>
+  </div>
+
+  <!-- LEADS TAB -->
+  <div id="tab-leads" class="hidden">
+    <div id="leads-container"></div>
+  </div>
+
+  <div class="note-line">Задачи — личные, видны только вам. Лиды — общие для команды @hotelcompas.com, изменения видны всем в реальном времени.</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendEmailVerification, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, where, serverTimestamp, setDoc
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCNllF-829_5wKylE1_EU9gZFlM-pvuSI0",
+  authDomain: "hotelcompas-880d9.firebaseapp.com",
+  projectId: "hotelcompas-880d9",
+  storageBucket: "hotelcompas-880d9.firebasestorage.app",
+  messagingSenderId: "47724626160",
+  appId: "1:47724626160:web:7fd5d98a9d34fa79740235"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const ALLOWED_DOMAIN = "@hotelcompas.com";
+
+const PRIORITIES = [
+  { key:'low', label:'Низкий' }, { key:'medium', label:'Средний' },
+  { key:'high', label:'Высокий' }, { key:'critical', label:'Критично' }
+];
+const SOURCES = ['LinkedIn','Email','Referral','Website','Conference','Cold outreach','Inbound'];
+const SEGMENTS = ['Regional','Charter-ACMI','Cargo','Leisure-LCC','Major','Other'];
+const ICP_TIERS = ['A','B','C','Exclude','Watchlist'];
+const STAGES = ['Новый','Связались','Квалификация','Предложение отправлено','Договор отправлен','Подписан','Отказ'];
+
+let authMode = 'login';
+let currentUser = null;
+let taskColumns = [];
+let tasks = [];
+let leads = [];
+let unsubTaskCols = null, unsubTasks = null, unsubLeads = null;
+
+function el(id){ return document.getElementById(id); }
+function uid(){ return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8); }
+
+/* ---------- THEME ---------- */
+function applyTheme(pref){
+  if(pref === 'system'){
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', pref);
+  }
+  try{ localStorage.setItem('theme-pref', pref); }catch(e){}
+  document.querySelectorAll('#theme-toggle button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.themeChoice === pref);
+  });
+}
+function initTheme(){
+  var stored = 'system';
+  try{ stored = localStorage.getItem('theme-pref') || 'system'; }catch(e){}
+  applyTheme(stored);
+  el('theme-toggle').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-theme-choice]');
+    if(btn) applyTheme(btn.dataset.themeChoice);
+  });
+}
+
+/* ---------- AUTH ---------- */
+function showAuthScreen(){
+  el('auth-screen').classList.remove('hidden');
+  el('verify-screen').classList.add('hidden');
+  el('board-screen').classList.add('hidden');
+}
+function showVerifyScreen(email){
+  el('auth-screen').classList.add('hidden');
+  el('verify-screen').classList.remove('hidden');
+  el('board-screen').classList.add('hidden');
+  el('verify-email-addr').textContent = email;
+}
+function showBoard(){
+  el('auth-screen').classList.add('hidden');
+  el('verify-screen').classList.add('hidden');
+  el('board-screen').classList.remove('hidden');
+}
+function setAuthError(msg){
+  var e = el('auth-error');
+  if(!msg){ e.classList.add('hidden'); e.textContent=''; return; }
+  e.textContent = msg; e.classList.remove('hidden');
+}
+function setAuthMode(mode){
+  authMode = mode;
+  setAuthError(null);
+  if(mode === 'login'){
+    el('auth-title').textContent = 'Вход';
+    el('auth-submit-btn').textContent = 'Войти';
+    el('auth-switch-text').textContent = 'Нет аккаунта?';
+    el('auth-switch-btn').textContent = 'Зарегистрироваться';
+  } else {
+    el('auth-title').textContent = 'Регистрация';
+    el('auth-submit-btn').textContent = 'Создать аккаунт';
+    el('auth-switch-text').textContent = 'Уже есть аккаунт?';
+    el('auth-switch-btn').textContent = 'Войти';
+  }
+}
+
+async function handleAuthSubmit(){
+  var email = el('auth-email').value.trim();
+  var password = el('auth-password').value;
+  setAuthError(null);
+  if(!email || !password){ setAuthError('Введите email и пароль'); return; }
+  if(!email.toLowerCase().endsWith(ALLOWED_DOMAIN)){
+    setAuthError('Только адреса ' + ALLOWED_DOMAIN);
+    return;
+  }
+  try{
+    if(authMode === 'login'){
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      var cred = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(cred.user);
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        email: cred.user.email, createdAt: serverTimestamp()
+      }, { merge: true });
+      showVerifyScreen(email);
+    }
+  }catch(err){
+    setAuthError(translateAuthError(err));
+  }
+}
+function translateAuthError(err){
+  var code = err && err.code || '';
+  if(code.indexOf('email-already-in-use') !== -1) return 'Этот email уже зарегистрирован — попробуйте войти';
+  if(code.indexOf('wrong-password') !== -1 || code.indexOf('invalid-credential') !== -1) return 'Неверный email или пароль';
+  if(code.indexOf('user-not-found') !== -1) return 'Аккаунт не найден — зарегистрируйтесь';
+  if(code.indexOf('weak-password') !== -1) return 'Пароль слишком короткий (минимум 6 символов)';
+  if(code.indexOf('invalid-email') !== -1) return 'Некорректный email';
+  return 'Ошибка: ' + (err && err.message ? err.message : 'неизвестная');
+}
+
+async function handleVerifyRefresh(){
+  if(!auth.currentUser) return;
+  await auth.currentUser.reload();
+  if(auth.currentUser.emailVerified){
+    currentUser = auth.currentUser;
+    startBoard();
+  } else {
+    var note = el('auth-note');
+  }
+}
+
+onAuthStateChanged(auth, function(user){
+  teardownListeners();
+  if(!user){
+    currentUser = null;
+    showAuthScreen();
+    return;
+  }
+  if(!user.email || !user.email.toLowerCase().endsWith(ALLOWED_DOMAIN)){
+    signOut(auth);
+    return;
+  }
+  if(!user.emailVerified){
+    showVerifyScreen(user.email);
+    return;
+  }
+  currentUser = user;
+  startBoard();
+});
+
+function teardownListeners(){
+  if(unsubTaskCols){ unsubTaskCols(); unsubTaskCols = null; }
+  if(unsubTasks){ unsubTasks(); unsubTasks = null; }
+  if(unsubLeads){ unsubLeads(); unsubLeads = null; }
+}
+
+function startBoard(){
+  showBoard();
+  el('current-email').textContent = currentUser.email;
+  subscribeTaskColumns();
+  subscribeTasks();
+  subscribeLeads();
+}
+
+/* ---------- TASKS (личные, Firestore, realtime) ---------- */
+function subscribeTaskColumns(){
+  var q = query(collection(db,'taskColumns'), where('ownerId','==',currentUser.uid));
+  unsubTaskCols = onSnapshot(q, function(snap){
+    taskColumns = [];
+    snap.forEach(function(d){ taskColumns.push(Object.assign({id:d.id}, d.data())); });
+    taskColumns.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    renderTasksTab();
+  });
+}
+function subscribeTasks(){
+  var q = query(collection(db,'tasks'), where('ownerId','==',currentUser.uid));
+  unsubTasks = onSnapshot(q, function(snap){
+    tasks = [];
+    snap.forEach(function(d){ tasks.push(Object.assign({id:d.id}, d.data())); });
+    renderTasksTab();
+  });
+}
+
+function deadlineTag(task){
+  if(!task.deadline) return null;
+  var due = new Date(task.deadline).getTime();
+  var diff = due - Date.now();
+  var pad = n => String(n).padStart(2,'0');
+  var d = new Date(task.deadline);
+  var label = pad(d.getDate())+'.'+pad(d.getMonth()+1)+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+  if(diff < 0) return { cls:'tag-late', label: label + ' · просрочено' };
+  if(diff < 3*3600*1000) return { cls:'tag-soon', label: label + ' · скоро' };
+  return { cls:'tag-muted', label: label };
+}
+
+function renderTasksTab(){
+  var container = el('tasks-container');
+  container.innerHTML = '';
+  if(taskColumns.length === 0){
+    var e = document.createElement('div');
+    e.className = 'empty-board';
+    e.innerHTML = '<div class="big">Пока пусто</div>Добавьте первую колонку выше.';
+    container.appendChild(e);
+    return;
+  }
+  var row = document.createElement('div');
+  row.className = 'kanban-row';
+  taskColumns.forEach(function(col){ row.appendChild(renderTaskColumn(col)); });
+  container.appendChild(row);
+}
+
+function renderTaskColumn(col){
+  var colTasks = tasks.filter(function(t){ return t.columnId === col.id; });
+  var wrap = document.createElement('div');
+  wrap.className = 'column';
+
+  var head = document.createElement('div');
+  head.className = 'column-head';
+  var titleInput = document.createElement('input');
+  titleInput.className = 'column-title';
+  titleInput.value = col.title;
+  titleInput.addEventListener('change', function(){
+    var v = titleInput.value.trim() || 'Без названия';
+    updateDoc(doc(db,'taskColumns',col.id), { title: v });
+  });
+  var count = document.createElement('span');
+  count.className = 'count-badge';
+  count.textContent = colTasks.length;
+  var del = document.createElement('button');
+  del.className = 'icon-btn'; del.textContent = '✕';
+  del.addEventListener('click', function(){
+    if(confirm('Удалить колонку «'+col.title+'» вместе со всеми задачами?')){
+      colTasks.forEach(function(t){ deleteDoc(doc(db,'tasks',t.id)); });
+      deleteDoc(doc(db,'taskColumns',col.id));
+    }
+  });
+  head.appendChild(titleInput); head.appendChild(count); head.appendChild(del);
+  wrap.appendChild(head);
+
+  var list = document.createElement('div');
+  list.className = 'card-list';
+  if(colTasks.length === 0){
+    var er = document.createElement('div'); er.className='empty-col'; er.textContent='Карточек нет';
+    list.appendChild(er);
+  } else {
+    colTasks.forEach(function(t){ list.appendChild(renderTaskCard(t)); });
+  }
+  list.addEventListener('dragover', function(e){ e.preventDefault(); wrap.classList.add('drag-over'); });
+  list.addEventListener('dragleave', function(){ wrap.classList.remove('drag-over'); });
+  list.addEventListener('drop', function(e){
+    e.preventDefault(); wrap.classList.remove('drag-over');
+    var raw = e.dataTransfer.getData('text/plain');
+    if(!raw) return;
+    try{
+      var data = JSON.parse(raw);
+      if(data.type === 'task' && data.columnId !== col.id){
+        updateDoc(doc(db,'tasks',data.id), { columnId: col.id });
+      }
+    }catch(err){}
+  });
+  wrap.appendChild(list);
+  wrap.appendChild(renderAddTaskBox(col));
+  return wrap;
+}
+
+function renderTaskCard(task){
+  var card = document.createElement('div');
+  card.className = 'card' + (task.done ? ' done' : '');
+  card.style.borderLeftColor = task.priority==='low'?'var(--green)':task.priority==='high'?'var(--amber)':task.priority==='critical'?'var(--red)':'var(--sky)';
+  card.draggable = true;
+  card.addEventListener('dragstart', function(e){
+    e.dataTransfer.setData('text/plain', JSON.stringify({type:'task', id:task.id, columnId:task.columnId}));
+    card.classList.add('dragging');
+  });
+  card.addEventListener('dragend', function(){ card.classList.remove('dragging'); });
+
+  var top = document.createElement('div'); top.className='card-top';
+  var chk = document.createElement('input'); chk.type='checkbox'; chk.className='card-check'; chk.checked=!!task.done;
+  chk.addEventListener('change', function(){ updateDoc(doc(db,'tasks',task.id), { done: chk.checked }); });
+  var title = document.createElement('div'); title.className='card-title'; title.textContent = task.title;
+  var del = document.createElement('button'); del.className='card-del'; del.textContent='✕';
+  del.addEventListener('click', function(){ deleteDoc(doc(db,'tasks',task.id)); });
+  top.appendChild(chk); top.appendChild(title); top.appendChild(del);
+  card.appendChild(top);
+
+  var meta = document.createElement('div'); meta.className='card-meta';
+  var p = document.createElement('span'); p.className='tag tag-'+task.priority;
+  p.textContent = (PRIORITIES.filter(x=>x.key===task.priority)[0]||{}).label || 'Средний';
+  meta.appendChild(p);
+  var dl = deadlineTag(task);
+  if(dl){ var dlt=document.createElement('span'); dlt.className='tag '+dl.cls; dlt.textContent=dl.label; meta.appendChild(dlt); }
+  if(task.timeEstimate){ var te=document.createElement('span'); te.className='tag tag-muted'; te.textContent='⏱ '+task.timeEstimate; meta.appendChild(te); }
+  if(task.contact){ var ct=document.createElement('span'); ct.className='tag tag-contact'; ct.textContent='Связаться: '+task.contact; meta.appendChild(ct); }
+  card.appendChild(meta);
+
+  if(taskColumns.length > 1){
+    var sel = document.createElement('select'); sel.className='card-move';
+    var ph = document.createElement('option'); ph.textContent='Переместить в…'; ph.value=''; sel.appendChild(ph);
+    taskColumns.forEach(function(c){
+      if(c.id===task.columnId) return;
+      var o=document.createElement('option'); o.value=c.id; o.textContent=c.title; sel.appendChild(o);
+    });
+    sel.addEventListener('change', function(){
+      if(sel.value) updateDoc(doc(db,'tasks',task.id), { columnId: sel.value });
+    });
+    card.appendChild(sel);
+  }
+  return card;
+}
+
+function renderAddTaskBox(col){
+  var box = document.createElement('div'); box.className='add-card-box';
+  var toggle = document.createElement('button'); toggle.className='add-card-toggle'; toggle.textContent='+ Добавить карточку';
+  var fields = document.createElement('div'); fields.className='add-card-fields';
+
+  var titleInput = document.createElement('input'); titleInput.type='text'; titleInput.placeholder='Что нужно сделать';
+  var row2 = document.createElement('div'); row2.className='row2';
+  var prioSelect = document.createElement('select');
+  PRIORITIES.forEach(function(p){ var o=document.createElement('option'); o.value=p.key; o.textContent=p.label; if(p.key==='medium')o.selected=true; prioSelect.appendChild(o); });
+  var dlInput = document.createElement('input'); dlInput.type='datetime-local';
+  row2.appendChild(prioSelect); row2.appendChild(dlInput);
+
+  var row3 = document.createElement('div'); row3.className='row2';
+  var timeInput = document.createElement('input'); timeInput.type='text'; timeInput.placeholder='Оценка времени, напр. 30 мин';
+  var contactInput = document.createElement('input'); contactInput.type='text'; contactInput.placeholder='С кем связаться';
+  row3.appendChild(timeInput); row3.appendChild(contactInput);
+
+  var submit = document.createElement('button'); submit.className='add-card-submit'; submit.textContent='Добавить';
+  function doSubmit(){
+    var t = titleInput.value.trim();
+    if(!t){ titleInput.focus(); return; }
+    addDoc(collection(db,'tasks'), {
+      ownerId: currentUser.uid, columnId: col.id, title: t,
+      priority: prioSelect.value||'medium',
+      deadline: dlInput.value ? new Date(dlInput.value).toISOString() : null,
+      timeEstimate: timeInput.value.trim(), contact: contactInput.value.trim(),
+      done:false, createdAt: serverTimestamp()
+    });
+    titleInput.value=''; dlInput.value=''; timeInput.value=''; contactInput.value=''; prioSelect.value='medium';
+    fields.classList.remove('open');
+  }
+  submit.addEventListener('click', doSubmit);
+  titleInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doSubmit(); });
+  toggle.addEventListener('click', function(){ fields.classList.toggle('open'); if(fields.classList.contains('open')) titleInput.focus(); });
+
+  fields.appendChild(titleInput); fields.appendChild(row2); fields.appendChild(row3); fields.appendChild(submit);
+  box.appendChild(toggle); box.appendChild(fields);
+  return box;
+}
+
+/* ---------- LEADS (общие, Firestore, realtime) ---------- */
+function subscribeLeads(){
+  unsubLeads = onSnapshot(collection(db,'leads'), function(snap){
+    leads = [];
+    snap.forEach(function(d){ leads.push(Object.assign({id:d.id}, d.data())); });
+    renderLeadsTab();
+  });
+}
+
+function renderLeadsTab(){
+  var container = el('leads-container');
+  container.innerHTML = '';
+  var row = document.createElement('div'); row.className='kanban-row';
+  STAGES.forEach(function(stage){ row.appendChild(renderLeadColumn(stage)); });
+  container.appendChild(row);
+}
+
+function renderLeadColumn(stage){
+  var stageLeads = leads.filter(function(l){ return l.stage === stage; });
+  var wrap = document.createElement('div'); wrap.className='column';
+
+  var head = document.createElement('div'); head.className='column-head';
+  var titleInput = document.createElement('input');
+  titleInput.className='column-title'; titleInput.value=stage; titleInput.readOnly = true;
+  var count = document.createElement('span'); count.className='count-badge'; count.textContent=stageLeads.length;
+  head.appendChild(titleInput); head.appendChild(count);
+  wrap.appendChild(head);
+
+  var list = document.createElement('div'); list.className='card-list';
+  if(stageLeads.length===0){
+    var er=document.createElement('div'); er.className='empty-col'; er.textContent='Лидов нет';
+    list.appendChild(er);
+  } else {
+    stageLeads.forEach(function(l){ list.appendChild(renderLeadCard(l)); });
+  }
+  list.addEventListener('dragover', function(e){ e.preventDefault(); wrap.classList.add('drag-over'); });
+  list.addEventListener('dragleave', function(){ wrap.classList.remove('drag-over'); });
+  list.addEventListener('drop', function(e){
+    e.preventDefault(); wrap.classList.remove('drag-over');
+    var raw = e.dataTransfer.getData('text/plain');
+    if(!raw) return;
+    try{
+      var data = JSON.parse(raw);
+      if(data.type==='lead' && data.stage !== stage){
+        updateDoc(doc(db,'leads',data.id), { stage: stage });
+      }
+    }catch(err){}
+  });
+  wrap.appendChild(list);
+  wrap.appendChild(renderAddLeadBox(stage));
+  return wrap;
+}
+
+function renderLeadCard(lead){
+  var card = document.createElement('div'); card.className='card';
+  card.style.borderLeftColor = lead.icpTier==='A'?'var(--green)':lead.icpTier==='B'?'var(--sky)':lead.icpTier==='C'?'var(--amber)':'var(--muted)';
+  card.draggable = true;
+  card.addEventListener('dragstart', function(e){
+    e.dataTransfer.setData('text/plain', JSON.stringify({type:'lead', id:lead.id, stage:lead.stage}));
+    card.classList.add('dragging');
+  });
+  card.addEventListener('dragend', function(){ card.classList.remove('dragging'); });
+
+  var top = document.createElement('div'); top.className='card-top';
+  var title = document.createElement('div'); title.className='card-main';
+  var t1 = document.createElement('div'); t1.className='card-title'; t1.textContent = lead.companyName || '(без названия)';
+  title.appendChild(t1);
+  if(lead.contactName || lead.position){
+    var sub = document.createElement('div'); sub.className='card-sub';
+    sub.textContent = [lead.contactName, lead.position].filter(Boolean).join(' · ');
+    title.appendChild(sub);
+  }
+  var del = document.createElement('button'); del.className='card-del'; del.textContent='✕';
+  del.addEventListener('click', function(){ if(confirm('Удалить лид «'+(lead.companyName||'')+'»?')) deleteDoc(doc(db,'leads',lead.id)); });
+  top.appendChild(title); top.appendChild(del);
+  card.appendChild(top);
+
+  var meta = document.createElement('div'); meta.className='card-meta';
+  if(lead.icpTier){ var it=document.createElement('span'); it.className='tag tag-muted'; it.textContent='ICP '+lead.icpTier; meta.appendChild(it); }
+  if(lead.segment){ var sg=document.createElement('span'); sg.className='tag tag-muted'; sg.textContent=lead.segment; meta.appendChild(sg); }
+  if(lead.source){ var sc=document.createElement('span'); sc.className='tag tag-contact'; sc.textContent=lead.source; meta.appendChild(sc); }
+  if(lead.owner){ var ow=document.createElement('span'); ow.className='tag tag-contact'; ow.textContent='Ответств.: '+lead.owner; meta.appendChild(ow); }
+  if(lead.budget){ var bg=document.createElement('span'); bg.className='tag tag-budget'; bg.textContent='Бюджет: '+lead.budget; meta.appendChild(bg); }
+  if(lead.contractSent){ var cs=document.createElement('span'); cs.className='tag tag-contract'; cs.textContent='Договор отправлен'; meta.appendChild(cs); }
+  card.appendChild(meta);
+
+  var sel = document.createElement('select'); sel.className='card-move';
+  var ph = document.createElement('option'); ph.textContent='Переместить в…'; ph.value=''; sel.appendChild(ph);
+  STAGES.forEach(function(s){
+    if(s===lead.stage) return;
+    var o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o);
+  });
+  sel.addEventListener('change', function(){
+    if(sel.value) updateDoc(doc(db,'leads',lead.id), { stage: sel.value });
+  });
+  card.appendChild(sel);
+
+  return card;
+}
+
+function renderAddLeadBox(stage){
+  var box = document.createElement('div'); box.className='add-card-box';
+  var toggle = document.createElement('button'); toggle.className='add-card-toggle'; toggle.textContent='+ Добавить лид';
+  var fields = document.createElement('div'); fields.className='add-card-fields';
+
+  var companyInput = document.createElement('input'); companyInput.type='text'; companyInput.placeholder='Компания';
+  var contactInput = document.createElement('input'); contactInput.type='text'; contactInput.placeholder='Контакт (имя)';
+  var positionInput = document.createElement('input'); positionInput.type='text'; positionInput.placeholder='Должность';
+
+  var row1 = document.createElement('div'); row1.className='row2';
+  var sourceSelect = document.createElement('select');
+  var phS=document.createElement('option'); phS.textContent='Источник'; phS.value=''; sourceSelect.appendChild(phS);
+  SOURCES.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; sourceSelect.appendChild(o); });
+  var ownerInput = document.createElement('input'); ownerInput.type='text'; ownerInput.placeholder='Ответственный';
+  row1.appendChild(sourceSelect); row1.appendChild(ownerInput);
+
+  var row2 = document.createElement('div'); row2.className='row2';
+  var segmentSelect = document.createElement('select');
+  var phSeg=document.createElement('option'); phSeg.textContent='Сегмент'; phSeg.value=''; segmentSelect.appendChild(phSeg);
+  SEGMENTS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; segmentSelect.appendChild(o); });
+  var icpSelect = document.createElement('select');
+  var phIcp=document.createElement('option'); phIcp.textContent='ICP tier'; phIcp.value=''; icpSelect.appendChild(phIcp);
+  ICP_TIERS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; icpSelect.appendChild(o); });
+  row2.appendChild(segmentSelect); row2.appendChild(icpSelect);
+
+  var row3 = document.createElement('div'); row3.className='row2';
+  var budgetInput = document.createElement('input'); budgetInput.type='text'; budgetInput.placeholder='Бюджет';
+  row3.appendChild(budgetInput);
+
+  var contractLabel = document.createElement('label'); contractLabel.className='chk';
+  var contractChk = document.createElement('input'); contractChk.type='checkbox';
+  contractLabel.appendChild(contractChk);
+  contractLabel.appendChild(document.createTextNode('Договор отправлен'));
+
+  var submit = document.createElement('button'); submit.className='add-card-submit'; submit.textContent='Добавить';
+  function doSubmit(){
+    var company = companyInput.value.trim();
+    if(!company){ companyInput.focus(); return; }
+    addDoc(collection(db,'leads'), {
+      companyName: company, contactName: contactInput.value.trim(), position: positionInput.value.trim(),
+      source: sourceSelect.value, owner: ownerInput.value.trim(),
+      segment: segmentSelect.value, icpTier: icpSelect.value,
+      budget: budgetInput.value.trim(), contractSent: contractChk.checked,
+      stage: stage, createdAt: serverTimestamp(), createdBy: currentUser.email
+    });
+    companyInput.value=''; contactInput.value=''; positionInput.value='';
+    sourceSelect.value=''; ownerInput.value=''; segmentSelect.value=''; icpSelect.value='';
+    budgetInput.value=''; contractChk.checked=false;
+    fields.classList.remove('open');
+  }
+  submit.addEventListener('click', doSubmit);
+  companyInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doSubmit(); });
+  toggle.addEventListener('click', function(){ fields.classList.toggle('open'); if(fields.classList.contains('open')) companyInput.focus(); });
+
+  [companyInput,contactInput,positionInput,row1,row2,row3,contractLabel,submit].forEach(function(elm){ fields.appendChild(elm); });
+  box.appendChild(toggle); box.appendChild(fields);
+  return box;
+}
+
+/* ---------- WIRING ---------- */
+function initAuthUI(){
+  el('auth-submit-btn').addEventListener('click', handleAuthSubmit);
+  el('auth-password').addEventListener('keydown', function(e){ if(e.key==='Enter') handleAuthSubmit(); });
+  el('auth-switch-btn').addEventListener('click', function(){ setAuthMode(authMode==='login'?'register':'login'); });
+  el('verify-refresh-btn').addEventListener('click', handleVerifyRefresh);
+  el('verify-signout-btn').addEventListener('click', function(){ signOut(auth); });
+  el('signout-btn').addEventListener('click', function(){ signOut(auth); });
+  setAuthMode('login');
+}
+
+function initTabs(){
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      var tab = btn.dataset.tab;
+      el('tab-tasks').classList.toggle('hidden', tab!=='tasks');
+      el('tab-leads').classList.toggle('hidden', tab!=='leads');
+    });
+  });
+}
+
+function initTaskColumnAdd(){
+  el('add-column-btn').addEventListener('click', function(){
+    var input = el('new-column-input');
+    var title = input.value.trim();
+    if(!title){ input.focus(); return; }
+    addDoc(collection(db,'taskColumns'), { ownerId: currentUser.uid, title: title, order: Date.now() });
+    input.value = '';
+  });
+  el('new-column-input').addEventListener('keydown', function(e){ if(e.key==='Enter') el('add-column-btn').click(); });
+}
+
+initTheme();
+initAuthUI();
+initTabs();
+initTaskColumnAdd();
+</script>
+</body>
+</html>
