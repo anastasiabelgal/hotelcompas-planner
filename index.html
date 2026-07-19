@@ -1,0 +1,3134 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelCompas · Доска</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230d3b66'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23ef9b3d'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0d3b66">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HotelCompas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>/* cyrillic-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("2a31593d-9d91-4f0f-9368-dff2a37fca42") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("8e8acaf4-e86a-4270-9922-68abca415b4b") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("df72b3ce-1192-4364-bce0-d0f62eff9477") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("5b409c5a-1d50-419e-a6ea-5e6e0cdc14e0") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("ee365962-9b3d-48f5-a8fe-d96f74cb9cdc") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("567e5c12-790e-457d-aa2f-5199438f07bd") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("2a31593d-9d91-4f0f-9368-dff2a37fca42") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("8e8acaf4-e86a-4270-9922-68abca415b4b") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("df72b3ce-1192-4364-bce0-d0f62eff9477") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("5b409c5a-1d50-419e-a6ea-5e6e0cdc14e0") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("ee365962-9b3d-48f5-a8fe-d96f74cb9cdc") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("567e5c12-790e-457d-aa2f-5199438f07bd") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("553f9b28-be0b-428c-b011-d662a9d72020") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("3359023a-9eb5-42a9-899d-e7ac741e5ea4") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("e0aaf98d-f354-4515-92c2-ea958ee2d5bd") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("44542601-adf3-46ca-b324-fa75a2879904") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("553f9b28-be0b-428c-b011-d662a9d72020") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("3359023a-9eb5-42a9-899d-e7ac741e5ea4") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("e0aaf98d-f354-4515-92c2-ea958ee2d5bd") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("44542601-adf3-46ca-b324-fa75a2879904") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("553f9b28-be0b-428c-b011-d662a9d72020") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("3359023a-9eb5-42a9-899d-e7ac741e5ea4") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("e0aaf98d-f354-4515-92c2-ea958ee2d5bd") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("44542601-adf3-46ca-b324-fa75a2879904") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("553f9b28-be0b-428c-b011-d662a9d72020") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("3359023a-9eb5-42a9-899d-e7ac741e5ea4") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("e0aaf98d-f354-4515-92c2-ea958ee2d5bd") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("44542601-adf3-46ca-b324-fa75a2879904") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("553f9b28-be0b-428c-b011-d662a9d72020") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("3359023a-9eb5-42a9-899d-e7ac741e5ea4") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("e0aaf98d-f354-4515-92c2-ea958ee2d5bd") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("44542601-adf3-46ca-b324-fa75a2879904") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+
+<style>
+  :root{
+    --bg: #eef1f6; --panel: #ffffff; --panel-soft: #f7f9fc; --border: #e6ebf2;
+    --navy: #0d3b66; --navy-deep: #082744; --sky: #2f8fd1; --amber: #ef9b3d;
+    --red: #dd5c56; --green: #3fae7f; --text: #17212b; --muted: #6b7684;
+    --radius: 16px; --radius-sm: 12px; --radius-pill: 999px;
+    --shadow-1: 0 1px 1px rgba(13,59,102,.04), 0 3px 8px -3px rgba(13,59,102,.08);
+    --shadow-2: 0 1px 1px rgba(13,59,102,.04), 0 6px 16px -4px rgba(13,59,102,.10), 0 20px 42px -18px rgba(13,59,102,.20);
+    --shadow-hover: 0 1px 1px rgba(13,59,102,.05), 0 10px 22px -5px rgba(13,59,102,.14), 0 28px 56px -18px rgba(13,59,102,.26);
+  }
+  [data-theme="dark"]{
+    --bg:#10161d; --panel:#1a2029; --panel-soft:#212936; --border:#2b3542;
+    --navy:#3f7fc4; --navy-deep:#0a2540; --sky:#4fb3d9; --amber:#f2a93b;
+    --red:#e6685c; --green:#4fd1a5; --text:#e7ecf1; --muted:#8592a1;
+    --shadow-1: 0 1px 1px rgba(0,0,0,.2), 0 3px 8px -3px rgba(0,0,0,.3);
+    --shadow-2: 0 1px 1px rgba(0,0,0,.2), 0 6px 16px -4px rgba(0,0,0,.32), 0 20px 42px -18px rgba(0,0,0,.5);
+    --shadow-hover: 0 1px 1px rgba(0,0,0,.22), 0 10px 22px -5px rgba(0,0,0,.36), 0 28px 56px -18px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;transition:background .2s,color .2s;}
+  ::selection{background:var(--amber);color:#20130a;}
+  button,input,select{font-family:inherit;}
+
+  .app{max-width:1320px;margin:0 auto;padding:26px 20px 70px;}
+  .hidden{display:none !important;}
+
+  /* header */
+  .board-header{background:var(--panel);border-radius:22px;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;color:var(--text);box-shadow:var(--shadow-2);border:1px solid var(--border);}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-text .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--sky);text-transform:uppercase;display:block;margin-bottom:2px;}
+  .brand-text h1{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:21px;margin:0;color:var(--navy);}
+  [data-theme="dark"] .brand-text h1{color:#fff;}
+  .user-block{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .theme-toggle{display:flex;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);padding:3px;box-shadow:inset 0 1px 2px rgba(13,59,102,.05);}
+  .theme-toggle button{background:none;border:none;color:var(--muted);font-size:12.5px;padding:6px 12px;border-radius:var(--radius-pill);cursor:pointer;transition:background .15s,color .15s;display:flex;align-items:center;gap:5px;}
+  .theme-toggle button svg{flex:0 0 auto;}
+  .theme-toggle button.active{background:var(--sky);color:#fff;box-shadow:0 1px 3px rgba(47,143,209,.35);}
+  [data-theme="dark"] .theme-toggle button.active{background:var(--sky);color:#0a1620;}
+  .who{background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);padding:8px 14px;display:flex;align-items:center;gap:10px;}
+  .who .email{font-size:12px;font-weight:600;color:var(--text);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .switch-btn{background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:7px 13px;border-radius:var(--radius-pill);cursor:pointer;transition:border-color .15s,color .15s;}
+  .switch-btn:hover{border-color:var(--red);color:var(--red);}
+
+  /* tabs */
+  .tab-bar{display:flex;gap:6px;margin-bottom:18px;background:var(--panel);border-radius:var(--radius-pill);padding:5px;box-shadow:var(--shadow-1);width:fit-content;}
+  .tab-btn{background:none;border:none;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:600;padding:9px 18px;cursor:pointer;border-radius:var(--radius-pill);transition:background .15s,color .15s;}
+  .tab-btn.active{color:#fff;background:linear-gradient(150deg,var(--navy),var(--navy-deep));box-shadow:0 2px 8px -2px rgba(13,59,102,.4);}
+  [data-theme="dark"] .tab-btn.active{color:#0a1620;background:linear-gradient(150deg,var(--sky),#3a8fc0);}
+
+  /* shared: add-column bar, kanban row, column, card list */
+  .add-block-bar{display:flex;gap:10px;margin-bottom:18px;background:var(--panel);padding:8px;border-radius:var(--radius);box-shadow:var(--shadow-1);}
+  .add-block-bar input,.add-block-bar select{flex:1;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);color:var(--text);padding:11px 16px;font-size:13.5px;box-shadow:inset 0 1px 2px rgba(13,59,102,.04);transition:border-color .15s;}
+  .add-block-bar input:focus,.add-block-bar select:focus{border-color:var(--sky);}
+  .add-block-bar .btn-primary{border-radius:var(--radius-pill);}
+  .btn-primary{background:linear-gradient(150deg,var(--navy),var(--navy-deep));color:#fff;border:none;font-weight:600;font-size:13px;padding:0 18px;border-radius:var(--radius-sm);cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px -2px rgba(13,59,102,.35);transition:transform .15s,box-shadow .15s;}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px -3px rgba(13,59,102,.45);}
+  [data-theme="dark"] .btn-primary{background:linear-gradient(150deg,var(--sky),#3a8fc0);color:#0a1620;}
+  [data-theme="dark"] .btn-primary:hover{filter:brightness(1.08);}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--sky);outline-offset:2px;}
+
+  .kanban-row{display:flex;gap:16px;overflow-x:auto;padding:4px 4px 14px;align-items:flex-start;}
+  .column{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);min-width:278px;max-width:278px;flex:0 0 auto;display:flex;flex-direction:column;max-height:calc(100vh - 260px);box-shadow:var(--shadow-1);position:relative;transition:box-shadow .2s ease,transform .2s ease,min-width .25s ease,max-width .25s ease,max-height .25s ease;}
+  .column:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px);}
+  .column::before{content:"";position:absolute;left:14px;right:14px;top:0;height:4px;border-radius:0 0 4px 4px;background:var(--col-color, transparent);}
+  .column.drag-over{box-shadow:0 0 0 2.5px var(--sky), var(--shadow-hover);transform:translateY(-2px) scale(1.01);}
+  .column.col-dragging{opacity:.4;}
+  .column.collapsed{min-width:48px;max-width:48px;max-height:280px;background:var(--panel-soft);}
+  .column.collapsed .card-list,.column.collapsed .add-card-box{display:none;}
+  .column.collapsed .column-title{writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;padding:6px 0;font-weight:700;}
+  .column.collapsed .column-head{flex-direction:column;height:100%;padding:14px 8px;gap:12px;border-radius:var(--radius);background:none;}
+  .column.collapsed .count-badge{writing-mode:horizontal-tb;}
+  .column.collapsed:hover{box-shadow:var(--shadow-hover);}
+  .column-head{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:var(--panel-soft);border-radius:var(--radius) var(--radius) 0 0;gap:8px;cursor:grab;}
+  .column-head:active{cursor:grabbing;}
+  .color-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;display:inline-block;}
+  .color-select{width:auto !important;flex:0 0 auto !important;padding:8px 12px !important;border-radius:var(--radius-pill) !important;cursor:pointer;}
+  .column-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:600;background:none;border:none;color:var(--text);width:100%;min-width:0;animation:titleFade .2s ease;}
+  @keyframes titleFade{from{opacity:0;}to{opacity:1;}}
+  .column-title[readonly]{cursor:default;font-weight:700;letter-spacing:.01em;}
+  .column-title:focus{outline:none;}
+  .count-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-pill);padding:2px 9px;flex:0 0 auto;}
+  .icon-btn{background:var(--panel);border:1px solid var(--border);color:var(--muted);width:25px;height:25px;border-radius:var(--radius-pill);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:var(--shadow-1);transition:color .15s,border-color .15s,transform .15s,box-shadow .15s;}
+  .icon-btn:hover{color:var(--red);border-color:var(--red);transform:translateY(-1px) scale(1.06);box-shadow:0 3px 8px -2px rgba(221,92,86,.3);}
+  .icon-btn:active{transform:scale(.95);}
+
+  .card-list{padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex:1;min-height:40px;}
+  .empty-col{padding:22px 6px;text-align:center;color:var(--muted);font-size:11.5px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);background:var(--panel);}
+
+  .card{background:linear-gradient(180deg,var(--panel) 0%, var(--panel) 100%);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px 12px;cursor:grab;position:relative;overflow:hidden;box-shadow:var(--shadow-1);transition:box-shadow .2s ease,transform .2s ease;animation:cardIn .28s ease backwards;}
+  @keyframes cardIn{from{opacity:0;transform:translateY(6px) scale(.98);}to{opacity:1;transform:none;}}
+  .card:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px);}
+  .card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--accent, var(--muted));}
+  .card.dragging{opacity:.4;}
+  .card.done{opacity:.6;}
+  .card.done .card-title{text-decoration:line-through;}
+  .card-top{display:flex;align-items:flex-start;gap:10px;padding-left:6px;}
+  .card-main{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+  .card-check{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin-top:1px;border-radius:6px;border:1.5px solid #ccd5e1;background:var(--panel);cursor:pointer;flex:0 0 auto;position:relative;box-shadow:inset 0 1px 2px rgba(13,59,102,.07);transition:background .15s,border-color .15s;}
+  .card-check:checked{background:linear-gradient(150deg,#42c193,#2f9c70);border-color:#2f9c70;box-shadow:0 1px 3px rgba(47,156,112,.4);}
+  .card-check:checked::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:solid white;border-width:0 1.8px 1.8px 0;transform:rotate(38deg);}
+  [data-theme="dark"] .card-check{border-color:#3a4656;}
+  .card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:600;line-height:1.4;overflow-wrap:break-word;flex:1;letter-spacing:-.005em;}
+  .card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .card-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;flex:0 0 auto;padding:0 2px;border-radius:6px;transition:color .15s;}
+  .card-del:hover{color:var(--red);}
+  .card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-left:6px;}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.02em;padding:5px 10px;border-radius:var(--radius-pill);white-space:nowrap;}
+  .tag-low{background:rgba(63,174,127,.15);color:#1f7a51;border:1px solid rgba(63,174,127,.32);}
+  [data-theme="dark"] .tag-low{background:rgba(79,209,165,.16);color:var(--green);border-color:rgba(79,209,165,.32);}
+  .tag-medium{background:rgba(47,143,209,.15);color:#1a628f;border:1px solid rgba(47,143,209,.32);}
+  [data-theme="dark"] .tag-medium{background:rgba(79,179,217,.16);color:var(--sky);border-color:rgba(79,179,217,.32);}
+  .tag-high{background:rgba(239,155,61,.17);color:#96591a;border:1px solid rgba(239,155,61,.36);}
+  [data-theme="dark"] .tag-high{background:rgba(242,169,59,.16);color:var(--amber);border-color:rgba(242,169,59,.34);}
+  .tag-critical{background:rgba(221,92,86,.17);color:#a3352f;border:1px solid rgba(221,92,86,.34);}
+  [data-theme="dark"] .tag-critical{background:rgba(230,104,92,.18);color:var(--red);border-color:rgba(230,104,92,.34);}
+  .tag-muted{background:var(--panel-soft);color:var(--muted);border:1px solid var(--border);}
+  .tag-icp{font-weight:700;}
+  .tag-icp-a{background:rgba(63,174,127,.15);color:#1f7a51;border:1px solid rgba(63,174,127,.32);}
+  [data-theme="dark"] .tag-icp-a{background:rgba(79,209,165,.16);color:var(--green);border-color:rgba(79,209,165,.32);}
+  .tag-icp-b{background:rgba(47,143,209,.15);color:#1a628f;border:1px solid rgba(47,143,209,.32);}
+  [data-theme="dark"] .tag-icp-b{background:rgba(79,179,217,.16);color:var(--sky);border-color:rgba(79,179,217,.32);}
+  .tag-icp-c{background:rgba(239,155,61,.17);color:#96591a;border:1px solid rgba(239,155,61,.36);}
+  [data-theme="dark"] .tag-icp-c{background:rgba(242,169,59,.16);color:var(--amber);border-color:rgba(242,169,59,.34);}
+  .tag-icp-exclude{background:rgba(221,92,86,.15);color:#a3352f;border:1px solid rgba(221,92,86,.32);}
+  [data-theme="dark"] .tag-icp-exclude{background:rgba(230,104,92,.16);color:var(--red);border-color:rgba(230,104,92,.32);}
+  .tag-icp-watchlist{background:var(--panel-soft);color:var(--muted);border:1px dashed var(--border);}
+  .tag-leadprio-high{background:rgba(221,92,86,.17);color:#a3352f;border:1px solid rgba(221,92,86,.34);}
+  [data-theme="dark"] .tag-leadprio-high{background:rgba(230,104,92,.18);color:var(--red);border-color:rgba(230,104,92,.34);}
+  .tag-leadprio-medium{background:rgba(239,155,61,.17);color:#96591a;border:1px solid rgba(239,155,61,.36);}
+  [data-theme="dark"] .tag-leadprio-medium{background:rgba(242,169,59,.16);color:var(--amber);border-color:rgba(242,169,59,.34);}
+  .tag-leadprio-low{background:rgba(63,174,127,.15);color:#1f7a51;border:1px solid rgba(63,174,127,.32);}
+  [data-theme="dark"] .tag-leadprio-low{background:rgba(79,209,165,.16);color:var(--green);border-color:rgba(79,209,165,.32);}
+  .tag-flag{background:var(--panel);color:var(--navy);border:1px dashed var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;}
+  [data-theme="dark"] .tag-flag{color:var(--sky);}
+  .tag-segment{background:var(--panel);color:var(--text);border:1px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;}
+  [data-theme="dark"] .tag-segment{background:var(--panel-soft);}
+  .tag-late{background:rgba(221,92,86,.15);color:#a3352f;border:1px solid rgba(221,92,86,.38);}
+  [data-theme="dark"] .tag-late{background:rgba(230,104,92,.16);color:var(--red);border-color:rgba(230,104,92,.36);}
+  .tag-soon{background:rgba(239,155,61,.17);color:#96591a;border:1px solid rgba(239,155,61,.38);}
+  [data-theme="dark"] .tag-soon{background:rgba(242,169,59,.16);color:var(--amber);border-color:rgba(242,169,59,.36);}
+  .tag-contact{background:rgba(47,143,209,.12);color:var(--navy);border:1px solid rgba(47,143,209,.26);font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;}
+  [data-theme="dark"] .tag-contact{background:rgba(63,127,196,.18);color:var(--sky);border-color:rgba(63,127,196,.34);}
+  .tag-budget{background:rgba(63,174,127,.15);color:#1f7a51;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;border:1px solid rgba(63,174,127,.32);}
+  [data-theme="dark"] .tag-budget{background:rgba(79,209,165,.16);color:var(--green);border-color:rgba(79,209,165,.32);}
+  .tag-contract{background:rgba(239,155,61,.17);color:#96591a;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;border:1px solid rgba(239,155,61,.36);}
+  [data-theme="dark"] .tag-contract{background:rgba(242,169,59,.16);color:var(--amber);border-color:rgba(242,169,59,.34);}
+
+  .card-move{margin-top:10px;margin-left:6px;width:calc(100% - 6px);font-size:11px;font-weight:600;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);color:var(--muted);padding:6px 12px;cursor:pointer;box-shadow:inset 0 1px 2px rgba(13,59,102,.04);transition:border-color .15s,color .15s,background .15s;}
+  .card-move:hover{border-color:var(--sky);color:var(--sky);background:var(--panel);}
+  .card-move:focus-visible{outline:2px solid var(--sky);outline-offset:1px;}
+
+  .add-card-box{padding:13px;background:var(--panel-soft);border-radius:0 0 var(--radius) var(--radius);}
+  .add-card-box input,.add-card-box select{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-pill);color:var(--text);padding:9px 14px;font-size:12px;margin-bottom:8px;box-shadow:inset 0 1px 2px rgba(13,59,102,.04);transition:border-color .15s,box-shadow .15s;}
+  .add-card-box input:focus,.add-card-box select:focus{border-color:var(--sky);}
+  .add-card-box select{border-radius:var(--radius-sm);}
+  .add-card-box .row2{display:flex;gap:8px;}
+  .add-card-box .row2>*{flex:1;min-width:0;}
+  .prio-select,.swatch-select{border-left-width:3px !important;border-left-color:var(--sel-color, var(--border)) !important;font-weight:600;cursor:pointer;}
+  .add-card-box label.chk{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);margin-bottom:8px;padding-left:2px;}
+  .dl-input{position:relative;color-scheme:light;}
+  [data-theme="dark"] .dl-input{color-scheme:dark;}
+  .dl-input::-webkit-calendar-picker-indicator{cursor:pointer;border-radius:4px;padding:2px;opacity:.7;transition:opacity .15s;}
+  .dl-input::-webkit-calendar-picker-indicator:hover{opacity:1;}
+  .add-card-toggle{width:100%;background:var(--panel);border:1.5px dashed var(--border);border-radius:var(--radius-pill);color:var(--muted);font-size:12px;font-weight:600;padding:10px;cursor:pointer;transition:border-color .15s,color .15s,transform .15s;}
+  .add-card-toggle:hover{border-color:var(--sky);color:var(--sky);transform:translateY(-1px);}
+  .add-card-submit{width:100%;background:linear-gradient(150deg,var(--navy),var(--navy-deep));color:#fff;border:none;border-radius:var(--radius-pill);font-size:12px;font-weight:700;padding:10px;cursor:pointer;box-shadow:0 3px 10px -3px rgba(13,59,102,.4);transition:transform .15s,box-shadow .15s;}
+  .add-card-submit:hover{transform:translateY(-1px);box-shadow:0 5px 14px -3px rgba(13,59,102,.5);}
+  [data-theme="dark"] .add-card-submit{background:linear-gradient(150deg,var(--sky),#3a8fc0);color:#0a1620;}
+  .add-card-fields{display:none;}
+  .add-card-fields.open{display:block;animation:fieldsIn .18s ease;}
+  @keyframes fieldsIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+
+  .empty-board{text-align:center;padding:60px 20px;color:var(--muted);border:1.5px dashed var(--border);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow-1);}
+  .empty-board .big{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:17px;color:var(--text);margin-bottom:8px;}
+
+  .lead-table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-1);overflow-x:auto;}
+  .lead-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:900px;}
+  .lead-table th{text-align:left;padding:11px 12px;background:var(--panel-soft);border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);white-space:nowrap;}
+  .lead-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  .lead-table tr:last-child td{border-bottom:none;}
+  .lead-table tr.lead-row{cursor:default;transition:background .5s ease;}
+  .lead-table tr.lead-row:hover{background:var(--panel-soft);}
+  .lead-table tr.lead-row.highlight{background:rgba(47,143,209,.16);}
+  .lead-table .company-cell{font-weight:700;}
+  .lead-table .muted-cell{color:var(--muted);}
+
+  .notif-banner{background:linear-gradient(150deg,var(--amber),#d98226);color:#3a2408;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;box-shadow:0 3px 10px -3px rgba(239,155,61,.4);animation:fieldsIn .2s ease;}
+  .notif-banner:hover{filter:brightness(1.04);}
+  .notif-banner .close-x{background:rgba(0,0,0,.1);border:none;color:inherit;width:22px;height:22px;border-radius:50%;cursor:pointer;flex:0 0 auto;}
+
+  .chat-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-1);display:flex;flex-direction:column;height:calc(100vh - 260px);min-height:400px;}
+  .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+  .chat-msg{max-width:78%;background:var(--panel-soft);border:1px solid var(--border);border-radius:14px;padding:9px 13px;align-self:flex-start;}
+  .chat-msg.own{align-self:flex-end;background:linear-gradient(150deg,var(--navy),var(--navy-deep));color:#fff;border:none;}
+  [data-theme="dark"] .chat-msg.own{background:linear-gradient(150deg,var(--sky),#3a8fc0);color:#0a1620;}
+  .chat-msg .chat-author{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:3px;}
+  .chat-msg.own .chat-author{color:rgba(255,255,255,.7);}
+  [data-theme="dark"] .chat-msg.own .chat-author{color:rgba(10,22,32,.6);}
+  .chat-msg .chat-text{font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:break-word;}
+  .chat-mention{background:rgba(239,155,61,.25);color:#96591a;border-radius:5px;padding:0 4px;font-weight:700;}
+  [data-theme="dark"] .chat-mention{background:rgba(242,169,59,.28);color:#3a2408;}
+  .chat-hint{font-size:11px;color:var(--muted);padding:0 16px;}
+  .chat-input-row{display:flex;gap:10px;padding:13px 16px;border-top:1px solid var(--border);}
+  .chat-input-row textarea{flex:1;resize:none;height:44px;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;font-family:inherit;color:var(--text);}
+  .chat-input-row textarea:focus{outline:none;border-color:var(--sky);}
+  .chat-input-row .btn-primary{align-self:flex-end;padding:0 20px;height:44px;}
+
+  .report-links-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .report-link-pill{display:flex;align-items:center;gap:7px;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);padding:8px 12px;font-size:12.5px;flex:1;min-width:150px;}
+  .report-link-pill a{color:var(--sky);font-weight:600;text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .report-link-pill .no-link{color:var(--muted);flex:1;font-style:italic;}
+  .report-link-pill .icon-btn{width:22px;height:22px;font-size:11px;flex:0 0 auto;}
+
+  .access-row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:8px;box-shadow:var(--shadow-1);}
+  .access-row .access-main{flex:1;min-width:0;}
+  .access-row .access-name{font-weight:700;font-size:13px;}
+  .access-row .access-note{font-size:11px;color:var(--muted);margin-top:2px;}
+  .access-row a{color:var(--sky);font-weight:600;font-size:12px;text-decoration:none;white-space:nowrap;}
+
+  .week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px;}
+  .week-col{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px;box-shadow:var(--shadow-1);min-height:120px;display:flex;flex-direction:column;}
+  .week-col-title{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;text-align:center;letter-spacing:.04em;}
+  .week-task{display:flex;align-items:center;gap:4px;font-size:11.5px;background:var(--panel-soft);border-radius:6px;padding:5px 7px;margin-bottom:5px;}
+  .week-task span{flex:1;overflow-wrap:break-word;}
+  .week-task button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;flex:0 0 auto;}
+  .week-task button:hover{color:var(--red);}
+  .week-add-row{display:flex;gap:3px;margin-top:auto;}
+  .week-add-row input{flex:1;min-width:0;font-size:11px;padding:5px 6px;background:var(--panel-soft);border:1px solid var(--border);border-radius:6px;color:var(--text);}
+  .week-add-row button{flex:0 0 auto;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:12px;padding:0 8px;cursor:pointer;}
+  [data-theme="dark"] .week-add-row button{background:var(--sky);color:#0a1620;}
+
+  .calc-limit-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .calc-limit-row input{width:90px;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);padding:8px 14px;font-size:13px;color:var(--text);font-weight:700;}
+  .calc-senders{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .calc-sender-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;box-shadow:var(--shadow-1);}
+  .calc-sender-name{font-weight:700;font-size:12.5px;margin-bottom:8px;}
+  .calc-list-row{display:flex;flex-direction:column;gap:3px;background:var(--panel-soft);border-radius:7px;padding:7px 8px;margin-bottom:6px;}
+  .calc-list-row input.calc-name{background:none;border:none;font-size:11.5px;font-weight:600;color:var(--text);padding:0;margin-bottom:2px;}
+  .calc-list-row .calc-nums{display:flex;align-items:center;gap:6px;}
+  .calc-list-row input.calc-leads{width:52px;font-size:11.5px;padding:3px 5px;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);}
+  .calc-add-label{font-size:10.5px;color:var(--muted);}
+  .calc-add-value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;}
+  .calc-add-value.zero{color:var(--green);}
+  .calc-add-value.pos{color:var(--red);}
+  .calc-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+  .mention-dropdown{position:absolute;bottom:100%;left:16px;margin-bottom:6px;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-hover);max-height:180px;overflow-y:auto;min-width:180px;z-index:50;}
+  .mention-dropdown-item{padding:8px 14px;font-size:13px;cursor:pointer;}
+  .mention-dropdown-item:hover, .mention-dropdown-item.active{background:var(--panel-soft);}
+
+  /* calendar icon + overlay */
+  .calendar-icon-btn{background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);}
+  .calendar-icon-btn:hover{border-color:var(--sky);color:var(--sky);}
+  .cal-overlay{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px;}
+  .cal-overlay.hidden{display:none;}
+  .cal-panel{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow-hover);width:100%;max-width:640px;padding:20px;max-height:80vh;overflow-y:auto;}
+  .cal-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-panel-head h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;margin:0;}
+  .cal-nav{display:flex;gap:6px;align-items:center;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-dow{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);text-align:center;padding:4px 0;text-transform:uppercase;}
+  .cal-day{aspect-ratio:1;border-radius:8px;border:1px solid var(--border);background:var(--panel-soft);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:12px;position:relative;gap:2px;}
+  .cal-day:hover{border-color:var(--sky);}
+  .cal-day.empty{visibility:hidden;pointer-events:none;}
+  .cal-day.today{border-color:var(--navy);font-weight:800;}
+  .cal-day .dot{width:5px;height:5px;border-radius:50%;background:var(--red);}
+  .cal-day-detail{margin-top:16px;border-top:1px solid var(--border);padding-top:14px;}
+  .cal-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;background:var(--panel-soft);margin-bottom:6px;cursor:pointer;font-size:12.5px;}
+  .cal-item:hover{background:var(--border);}
+  .cal-item .cal-item-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);}
+
+  /* Личное sub-tabs (Канбан / Долги) */
+  .subtab-bar{display:flex;gap:6px;margin-bottom:14px;}
+  .subtab-btn{background:var(--panel-soft);border:1px solid var(--border);color:var(--muted);font-size:12.5px;font-weight:600;padding:7px 15px;border-radius:var(--radius-pill);cursor:pointer;}
+  .subtab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  [data-theme="dark"] .subtab-btn.active{background:var(--sky);color:#0a1620;border-color:var(--sky);}
+
+  /* debts */
+  .debts-totals{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .debt-total-pill{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-pill);padding:8px 16px;font-weight:700;font-size:13px;box-shadow:var(--shadow-1);}
+  .debts-section-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 10px;}
+  .debt-row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:8px;box-shadow:var(--shadow-1);}
+  .debt-row.paid{opacity:.5;}
+  .debt-row.paid .debt-cat{text-decoration:line-through;}
+  .debt-check{width:18px;height:18px;flex:0 0 auto;cursor:pointer;}
+  .debt-main{flex:1;min-width:0;}
+  .debt-cat{font-weight:700;font-size:13px;}
+  .debt-due{font-size:11px;color:var(--muted);}
+  .debt-amount{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;white-space:nowrap;}
+  .debt-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+  .debt-del:hover{color:var(--red);}
+  .add-debt-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-1);margin-top:16px;}
+  .add-debt-box .row2{display:flex;gap:8px;margin-bottom:8px;}
+  .add-debt-box input,.add-debt-box select{background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);padding:9px 14px;font-size:12.5px;color:var(--text);flex:1;min-width:0;}
+  .add-debt-box label.chk{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-bottom:8px;}
+
+  /* task deadline banner (отдельно от чат-баннера) */
+  .notif-banner.deadline-banner{background:linear-gradient(150deg,var(--red),#a3352f);color:#fff;}
+
+  /* excel import preview */
+  .import-panel{max-width:820px;}
+  .import-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .import-pill{border-radius:var(--radius-pill);padding:7px 14px;font-size:12px;font-weight:700;}
+  .import-pill.new{background:rgba(63,174,127,.15);color:#1f7a51;}
+  [data-theme="dark"] .import-pill.new{background:rgba(79,209,165,.16);color:var(--green);}
+  .import-pill.dup{background:rgba(239,155,61,.17);color:#96591a;}
+  [data-theme="dark"] .import-pill.dup{background:rgba(242,169,59,.16);color:var(--amber);}
+  .import-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:var(--panel-soft);margin-bottom:6px;font-size:12.5px;}
+  .import-row.dup{opacity:.5;}
+  .import-row .imp-status{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border-radius:var(--radius-pill);flex:0 0 auto;}
+  .import-row.dup .imp-status{background:rgba(239,155,61,.17);color:#96591a;}
+  [data-theme="dark"] .import-row.dup .imp-status{color:var(--amber);}
+  .import-row:not(.dup) .imp-status{background:rgba(63,174,127,.15);color:#1f7a51;}
+  [data-theme="dark"] .import-row:not(.dup) .imp-status{color:var(--green);}
+  .import-row .imp-main{flex:1;min-width:0;}
+  .import-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+  .btn-secondary{background:var(--panel-soft);border:1px solid var(--border);color:var(--text);font-weight:600;font-size:13px;padding:0 18px;height:38px;border-radius:var(--radius-sm);cursor:pointer;}
+
+  /* lead detail modal */
+  .detail-panel{max-width:600px;}
+  .detail-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .detail-field{font-size:12px;}
+  .detail-field .lbl{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:2px;}
+  .detail-field .val{font-weight:600;word-break:break-word;}
+  .comment-list{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+  .comment-item{background:var(--panel-soft);border-radius:10px;padding:10px 13px;}
+  .comment-item .c-author{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px;}
+  .comment-item .c-text{font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:break-word;}
+  .comment-add-box textarea{width:100%;height:60px;resize:none;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;font-size:13px;font-family:inherit;color:var(--text);margin-bottom:8px;}
+  .comment-add-row{display:flex;gap:8px;align-items:center;}
+
+  .skel-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;box-shadow:var(--shadow-1);}
+  .skel-line{height:9px;border-radius:5px;margin-bottom:8px;background:linear-gradient(90deg,var(--border) 25%,var(--panel-soft) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;}
+  .skel-line.w90{width:90%;} .skel-line.w60{width:60%;} .skel-line.w50{width:50%;}
+  .skel-pill{width:44px;height:16px;border-radius:var(--radius-pill);background:linear-gradient(90deg,var(--border) 25%,var(--panel-soft) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;}
+  @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+  /* auth screens */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 20% 0%, #eef2f8 0%, #e4e9f1 100%);}
+  [data-theme="dark"] .login-wrap{background:var(--bg);}
+  .login-card{background:var(--panel);border:1px solid var(--border);border-radius:22px;padding:36px 32px;max-width:380px;width:100%;box-shadow:var(--shadow-hover);text-align:center;}
+  .login-card .top-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
+  .login-card .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--sky);text-transform:uppercase;}
+  .login-card h1{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;margin:0 0 8px;}
+  .login-card p{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 18px;}
+  .login-card input{width:100%;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);color:var(--text);padding:13px 18px;font-size:14px;margin-bottom:11px;box-shadow:inset 0 1px 2px rgba(13,59,102,.05);transition:border-color .15s;}
+  .login-card input:focus{border-color:var(--sky);}
+  .login-card .btn-primary{width:100%;padding:12px;font-size:13.5px;margin-top:4px;border-radius:var(--radius-pill);}
+  .login-switch{text-align:center;margin-top:18px;font-size:12.5px;color:var(--muted);}
+  .login-switch button{background:none;border:none;color:var(--sky);cursor:pointer;font-size:12.5px;font-weight:600;text-decoration:none;padding:0;}
+  .login-switch button:hover{text-decoration:underline;}
+  .form-error{background:linear-gradient(180deg,rgba(221,92,86,.12),rgba(221,92,86,.06));color:#b23c36;border:1px solid rgba(221,92,86,.22);border-radius:var(--radius-sm);padding:11px 15px;font-size:12px;margin-bottom:11px;}
+  [data-theme="dark"] .form-error{color:var(--red);}
+  .form-note{background:linear-gradient(180deg,rgba(47,143,209,.1),rgba(47,143,209,.05));color:#1f6ea3;border:1px solid rgba(47,143,209,.2);border-radius:var(--radius-sm);padding:11px 15px;font-size:12px;margin-bottom:11px;line-height:1.5;}
+  [data-theme="dark"] .form-note{color:var(--sky);}
+  .note-line{font-size:11px;color:var(--muted);margin-top:20px;line-height:1.5;border-top:1px solid var(--border);padding-top:16px;}
+
+  @media (max-width:640px){
+    .board-header{flex-direction:column;align-items:flex-start;}
+    .user-block{width:100%;justify-content:space-between;}
+    .column{min-width:82vw;max-width:82vw;max-height:none;}
+    .card-list{overflow-y:visible;}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN / REGISTER -->
+<div id="auth-screen" class="login-wrap hidden">
+  <div class="login-card">
+    <div class="top-row">
+      <span style="font-family: 'Plus Jakarta Sans',sans-serif; font-weight: 800; font-size: 20px; color: #0d3b66; overflow: hidden">Hotel<span style="color:#0d3b66;">C</span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2f8fd1;margin:0 1px;"></span>mpas</span>
+    </div>
+    <h1 id="auth-title">Вход</h1>
+    <div id="auth-error" class="form-error hidden"></div>
+    <div id="auth-note" class="form-note hidden"></div>
+    <input id="auth-name" type="text" placeholder="Ваше имя (для тегов в чате)" class="hidden">
+    <input id="auth-email" type="email" placeholder="имя@hotelcompas.com" autocomplete="username">
+    <input id="auth-password" type="password" placeholder="Пароль" autocomplete="current-password">
+    <button class="btn-primary" id="auth-submit-btn">Войти</button>
+    <div class="login-switch">
+      <span id="auth-switch-text">Нет аккаунта?</span>
+      <button id="auth-switch-btn">Зарегистрироваться</button>
+    </div>
+    <div class="note-line" style="font-style: normal; color: #5B6066">Только для адресов @hotelcompas.com. После регистрации придёт письмо с подтверждением — без перехода по ссылке доступ к доске не откроется.</div>
+  </div>
+</div>
+
+<!-- VERIFY EMAIL WAIT -->
+<div id="verify-screen" class="login-wrap hidden">
+  <div class="login-card">
+    <div class="top-row">
+      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#0d3b66;">Hotel<span style="color:#0d3b66;">C</span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2f8fd1;margin:0 1px;"></span>mpas</span>
+      <span class="eyebrow">Подтверждение почты</span>
+    </div>
+    <h1>Проверьте почту</h1>
+    <p>Мы отправили письмо на <strong id="verify-email-addr"></strong>. Перейдите по ссылке в письме, потом нажмите кнопку ниже.</p>
+    <button class="btn-primary" id="verify-refresh-btn">Я подтвердил(а), обновить</button>
+    <div class="login-switch">
+      <button id="verify-signout-btn">Выйти и войти другим аккаунтом</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOARD -->
+<div id="board-screen" class="app hidden">
+  <div class="board-header">
+    <div class="brand">
+      <div class="brand-text">
+        <span class="eyebrow">Team board</span>
+        <h1><span>Hotel</span><span>C</span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2f8fd1;margin:0 1px;"></span><span>mpas</span></h1>
+      </div>
+    </div>
+    <div class="user-block">
+      <button class="calendar-icon-btn" id="calendar-open-btn" title="Календарь" aria-label="Открыть календарь">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18"></path></svg>
+      </button>
+      <button class="calendar-icon-btn" id="reports-open-btn" title="Отчётность" aria-label="Открыть отчётность">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"></path><path d="M14 3v6h6"></path><path d="M9 13h6M9 17h6"></path></svg>
+      </button>
+      <button class="calendar-icon-btn" id="access-open-btn" title="Доступы" aria-label="Открыть доступы">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"></circle><path d="M10.6 12.4 19 4M17 6l2 2M14 9l2 2"></path></svg>
+      </button>
+      <button class="calendar-icon-btn hidden" id="install-app-btn" title="Установить приложение" aria-label="Установить приложение" style="width:auto;padding:0 12px;gap:6px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 11l5 5 5-5M5 21h14"></path></svg>
+        <span style="font-size:11.5px;font-weight:600;">Установить</span>
+      </button>
+      <div class="theme-toggle" id="theme-toggle">
+        <button data-theme-choice="light"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"></path></svg>Свет</button>
+        <button data-theme-choice="dark"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"></path></svg>Тёмная</button>
+        <button data-theme-choice="system"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>Авто</button>
+      </div>
+      <div class="who">
+        <span class="email" id="current-email">—</span>
+        <button class="icon-btn" id="edit-name-btn" title="Изменить имя" aria-label="Изменить имя">✎</button>
+      </div>
+      <button class="switch-btn" id="signout-btn">Выйти</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="personal">Личное</button>
+    <button class="tab-btn" data-tab="work">Рабочее</button>
+    <button class="tab-btn" data-tab="leads">Лиды</button>
+    <button class="tab-btn" data-tab="leadlist">Список</button>
+    <button class="tab-btn" data-tab="chat">Чат</button>
+  </div>
+
+  <div id="notif-banner" class="notif-banner hidden"></div>
+  <div id="deadline-banner" class="notif-banner deadline-banner hidden"></div>
+
+  <div id="cal-overlay" class="cal-overlay hidden">
+    <div class="cal-panel">
+      <div class="cal-panel-head">
+        <h2 id="cal-month-label">—</h2>
+        <div class="cal-nav">
+          <button class="icon-btn" id="cal-prev-btn">‹</button>
+          <button class="icon-btn" id="cal-next-btn">›</button>
+          <button class="icon-btn" id="cal-close-btn">✕</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div id="cal-day-detail" class="cal-day-detail hidden"></div>
+    </div>
+  </div>
+
+  <input type="file" id="import-file-input" accept=".xlsx,.xls" class="hidden">
+  <div id="import-overlay" class="cal-overlay hidden">
+    <div class="cal-panel import-panel">
+      <div class="cal-panel-head">
+        <h2>Импорт лидов из Excel</h2>
+        <button class="icon-btn" id="import-close-btn">✕</button>
+      </div>
+      <div class="import-summary" id="import-summary"></div>
+      <div id="import-rows"></div>
+      <div class="import-actions">
+        <button class="btn-secondary" id="import-cancel-btn">Отмена</button>
+        <button class="btn-primary" id="import-confirm-btn">Добавить новые</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lead-detail-overlay" class="cal-overlay hidden">
+    <div class="cal-panel detail-panel">
+      <div class="cal-panel-head">
+        <h2 id="detail-company-name">—</h2>
+        <button class="icon-btn" id="detail-close-btn">✕</button>
+      </div>
+      <div class="detail-fields" id="detail-fields"></div>
+      <div class="comment-list" id="comment-list"></div>
+      <div class="comment-add-box">
+        <textarea id="comment-text" placeholder="Комментарий: о чём договорились, что обсудили с контактом…"></textarea>
+        <div class="comment-add-row">
+          <button class="btn-primary" id="comment-submit-btn">Добавить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="lead-edit-overlay" class="cal-overlay hidden">
+    <div class="cal-panel import-panel">
+      <div class="cal-panel-head">
+        <h2>Редактировать лид</h2>
+        <button class="icon-btn" id="edit-close-btn">✕</button>
+      </div>
+      <div id="edit-fields-container"></div>
+      <div class="import-actions">
+        <button class="btn-secondary" id="edit-cancel-btn">Отмена</button>
+        <button class="btn-primary" id="edit-save-btn">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reports-overlay" class="cal-overlay hidden">
+    <div class="cal-panel detail-panel" style="max-width:820px;">
+      <div class="cal-panel-head">
+        <h2>Отчётность</h2>
+        <button class="icon-btn" id="reports-close-btn">✕</button>
+      </div>
+      <div class="report-links-row" id="report-links-row"></div>
+
+      <div class="debts-section-title">Постоянные задачи (Пн–Пт)</div>
+      <div class="week-grid" id="week-grid"></div>
+
+      <div class="debts-section-title">Калькулятор лидов на неделю</div>
+      <div id="lead-calc-box"></div>
+
+      <div class="debts-section-title">Лента отчётов</div>
+      <div class="comment-list" id="reports-list" style="max-height:280px;"></div>
+      <div class="comment-add-box">
+        <textarea id="report-text" placeholder="Апдейт для команды: активность по аккаунтам, статистика, что заметили…"></textarea>
+        <div class="comment-add-row">
+          <button class="btn-primary" id="report-submit-btn">Опубликовать</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="access-overlay" class="cal-overlay hidden">
+    <div class="cal-panel detail-panel">
+      <div class="cal-panel-head">
+        <h2>Доступы</h2>
+        <button class="icon-btn" id="access-close-btn">✕</button>
+      </div>
+      <div id="access-list" style="max-height:340px;overflow-y:auto;margin-bottom:14px;"></div>
+      <div class="add-debt-box">
+        <div class="row2">
+          <input id="access-name-input" type="text" placeholder="Название инструмента, напр. GetSales">
+          <input id="access-url-input" type="text" placeholder="Ссылка (https://...)">
+        </div>
+        <input id="access-note-input" type="text" placeholder="Заметка (необязательно)" style="width:100%;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-pill);padding:9px 14px;font-size:12.5px;color:var(--text);margin-bottom:8px;">
+        <button class="add-card-submit" id="access-add-btn">Добавить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS TAB (общая разметка для Личное и Рабочее, переключается по currentBoard) -->
+  <div id="tab-tasks">
+    <div class="subtab-bar" id="personal-subtabs">
+      <button class="subtab-btn active" data-subtab="kanban">Канбан</button>
+      <button class="subtab-btn" data-subtab="debts" id="debts-subtab-label">Долги</button>
+    </div>
+    <div id="personal-kanban-view">
+      <div class="add-block-bar">
+        <input id="new-column-input" type="text" placeholder="Название колонки, например «Букинг», «Личное»" maxlength="60">
+        <select id="new-column-color" class="color-select"></select>
+        <button class="btn-primary" id="add-column-btn">+ Колонка</button>
+      </div>
+      <div id="tasks-container"></div>
+    </div>
+    <div id="debts-view" class="hidden">
+      <div class="debts-totals" id="debts-totals"></div>
+      <div class="debts-section-title">Постоянные</div>
+      <div id="debts-recurring-list"></div>
+      <div class="debts-section-title" id="debts-onetime-title">Текущий месяц</div>
+      <div id="debts-onetime-list"></div>
+      <div class="add-debt-box">
+        <div class="row2">
+          <select id="debt-category-select"></select>
+          <input id="debt-category-custom" type="text" placeholder="Своя категория" class="hidden">
+        </div>
+        <div class="row2">
+          <input id="debt-amount" type="number" placeholder="Сумма" min="0" step="0.01">
+          <select id="debt-currency"><option value="RUB">₽ RUB</option><option value="USD">$ USD</option></select>
+        </div>
+        <label class="chk"><input type="checkbox" id="debt-recurring-chk"> Ежемесячный платёж (постоянный)</label>
+        <div class="row2">
+          <input id="debt-day" type="number" min="1" max="31" placeholder="День месяца (1-31)" class="hidden">
+          <input id="debt-date" type="date" class="dl-input">
+        </div>
+        <button class="add-card-submit" id="debt-add-btn">Добавить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADS TAB -->
+  <div id="tab-leads" class="hidden">
+    <div id="leads-container"></div>
+  </div>
+
+  <!-- LEAD LIST TAB -->
+  <div id="tab-leadlist" class="hidden">
+    <div id="leadlist-container"></div>
+  </div>
+
+  <!-- CHAT TAB -->
+  <div id="tab-chat" class="hidden">
+    <div class="chat-wrap">
+      <div id="chat-messages" class="chat-messages"></div>
+      <div class="chat-hint" id="chat-hint">Коллеги: —</div>
+      <div class="chat-input-row" style="position:relative;">
+        <div id="mention-dropdown" class="mention-dropdown hidden"></div>
+        <textarea id="chat-input" placeholder="Написать в общий чат… наберите @имя, чтобы тегнуть коллегу"></textarea>
+        <button class="btn-primary" id="chat-send-btn">Отправить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="note-line">Личное и Рабочее — видны только вам. Лиды, Список и Чат — общие для команды @hotelcompas.com, изменения видны всем в реальном времени.</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendEmailVerification, onAuthStateChanged, signOut, updateProfile
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, where, serverTimestamp, setDoc, getDocs, getDoc,
+  arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCNllF-829_5wKylE1_EU9gZFlM-pvuSI0",
+  authDomain: "hotelcompas-880d9.firebaseapp.com",
+  projectId: "hotelcompas-880d9",
+  storageBucket: "hotelcompas-880d9.firebasestorage.app",
+  messagingSenderId: "47724626160",
+  appId: "1:47724626160:web:7fd5d98a9d34fa79740235"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const ALLOWED_DOMAIN = "@hotelcompas.com";
+
+const PRIORITIES = [
+  { key:'low', label:'Низкий' }, { key:'medium', label:'Средний' },
+  { key:'high', label:'Высокий' }, { key:'critical', label:'Критично' }
+];
+const SEGMENTS = ['Regional','Charter-ACMI','Cargo','Leisure-LCC','Major','Other'];
+const LEAD_PRIORITIES = [{key:'high',label:'High'},{key:'medium',label:'Medium'},{key:'low',label:'Low'}];
+const SENDERS = ['Leonid Khlibov','Maria Khlibova','Noel Boeva'];
+const FLAGS = ['VERIFY_STATUS','PILOT_FRIENDLY','STRATEGIC_LONG_CYCLE','HIGH_URGENCY'];
+const STAGES = ['Research','Outreach','Nurture','Verify','Exclude'];
+const COLORS = [
+  { key:'', label:'Без цвета', hex:'' },
+  { key:'blue', label:'Синий', hex:'#2f8fd1' },
+  { key:'green', label:'Зелёный', hex:'#3fae7f' },
+  { key:'amber', label:'Жёлтый', hex:'#ef9b3d' },
+  { key:'red', label:'Красный', hex:'#dd5c56' },
+  { key:'purple', label:'Фиолетовый', hex:'#8a6fd8' }
+];
+const PRIORITY_RANK = { critical:3, high:2, medium:1, low:0 };
+const PERSONAL_DEBT_CATEGORIES = ['Яндекс Маркет','Альфа кредитка','Домашний интернет','Claude'];
+const WORK_DEBT_CATEGORIES = ['Sales Navigator','GetSales','GoLogin','LinkedIn Premium'];
+
+let authMode = 'login';
+let currentUser = null;
+let currentBoard = 'personal';
+let personalSubtab = 'kanban';
+let taskColumns = [];
+let tasks = [];
+let leads = [];
+let chatMessages = [];
+let knownUsers = [];
+let debts = [];
+let currentDetailLeadId = null;
+let leadComments = [];
+let unsubComments = null;
+let reports = [];
+let unsubReports = null;
+let unsubReportLinks = null;
+var REPORT_LINK_DEFS = [
+  { key:'sheets', label:'Google Sheets', icon:'📊' },
+  { key:'doc', label:'Google Doc', icon:'📄' },
+  { key:'drive', label:'Google Drive', icon:'📁' }
+];
+let unsubTaskCols = null, unsubTasks = null, unsubLeads = null, unsubChat = null, unsubUsers = null, unsubDebts = null;
+let lastSeenChatAt = 0;
+let calDate = new Date();
+let deadlineBannerTimer = null;
+
+function colorHex(key){ var c = COLORS.filter(function(c){return c.key===key;})[0]; return c ? c.hex : ''; }
+function stageColor(stage){
+  var map = { 'Research':'var(--muted)', 'Outreach':'var(--sky)', 'Nurture':'var(--amber)', 'Verify':'var(--amber)', 'Exclude':'var(--red)' };
+  return map[stage] || 'var(--muted)';
+}
+function leadPriorityColor(p){
+  return p==='high' ? 'var(--red)' : p==='medium' ? 'var(--amber)' : p==='low' ? 'var(--green)' : 'var(--muted)';
+}
+function deadlineLikeStatus(dateStr, days){
+  if(!dateStr) return null;
+  var diffDays = (Date.now() - new Date(dateStr).getTime()) / (1000*3600*24);
+  return diffDays > days;
+}
+function fillColorSelect(sel){
+  COLORS.forEach(function(c){ var o=document.createElement('option'); o.value=c.key; o.textContent=c.label; sel.appendChild(o); });
+}
+function tintPrioSelect(sel){
+  var c = sel.value==='low'?'var(--green)':sel.value==='high'?'var(--amber)':sel.value==='critical'?'var(--red)':'var(--sky)';
+  sel.style.setProperty('--sel-color', c);
+}
+function tintSwatchSelect(sel){
+  sel.style.setProperty('--sel-color', sel.value ? colorHex(sel.value) : 'var(--muted)');
+}
+
+function el(id){ return document.getElementById(id); }
+function uid(){ return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8); }
+
+/* ---------- THEME ---------- */
+function applyTheme(pref){
+  if(pref === 'system'){
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', pref);
+  }
+  try{ localStorage.setItem('theme-pref', pref); }catch(e){}
+  document.querySelectorAll('#theme-toggle button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.themeChoice === pref);
+  });
+}
+function initTheme(){
+  var stored = 'system';
+  try{ stored = localStorage.getItem('theme-pref') || 'system'; }catch(e){}
+  applyTheme(stored);
+  el('theme-toggle').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-theme-choice]');
+    if(btn) applyTheme(btn.dataset.themeChoice);
+  });
+}
+
+/* ---------- AUTH ---------- */
+function showAuthScreen(){
+  el('auth-screen').classList.remove('hidden');
+  el('verify-screen').classList.add('hidden');
+  el('board-screen').classList.add('hidden');
+}
+function showVerifyScreen(email){
+  el('auth-screen').classList.add('hidden');
+  el('verify-screen').classList.remove('hidden');
+  el('board-screen').classList.add('hidden');
+  el('verify-email-addr').textContent = email;
+}
+function showBoard(){
+  el('auth-screen').classList.add('hidden');
+  el('verify-screen').classList.add('hidden');
+  el('board-screen').classList.remove('hidden');
+}
+function setAuthError(msg){
+  var e = el('auth-error');
+  if(!msg){ e.classList.add('hidden'); e.textContent=''; return; }
+  e.textContent = msg; e.classList.remove('hidden');
+}
+function setAuthMode(mode){
+  authMode = mode;
+  setAuthError(null);
+  if(mode === 'login'){
+    el('auth-title').textContent = 'Вход';
+    el('auth-submit-btn').textContent = 'Войти';
+    el('auth-switch-text').textContent = 'Нет аккаунта?';
+    el('auth-switch-btn').textContent = 'Зарегистрироваться';
+    el('auth-name').classList.add('hidden');
+  } else {
+    el('auth-title').textContent = 'Регистрация';
+    el('auth-submit-btn').textContent = 'Создать аккаунт';
+    el('auth-switch-text').textContent = 'Уже есть аккаунт?';
+    el('auth-switch-btn').textContent = 'Войти';
+    el('auth-name').classList.remove('hidden');
+  }
+}
+
+function normalizeName(n){ return n.trim().toLowerCase(); }
+function validNameFormat(n){ return /^[A-Za-zА-Яа-яЁё0-9_-]{2,30}$/.test(n); }
+
+// Вызывается один раз после первого подтверждённого входа: проверяет дубли имени
+// среди уже зарегистрированных коллег и, если нужно, добавляет " 2", " 3" и т.д.
+async function ensureUserProfile(user){
+  var existing = await getDoc(doc(db,'users',user.uid));
+  if(existing.exists() && existing.data().displayName) return; // уже настроено раньше
+
+  var baseName = (user.displayName || user.email.split('@')[0] || 'User').trim();
+  var snap = await getDocs(collection(db,'users'));
+  var takenLower = {};
+  snap.forEach(function(d){
+    if(d.id === user.uid) return;
+    var dn = d.data().displayNameLower;
+    if(dn) takenLower[dn] = true;
+  });
+
+  var finalName = baseName;
+  var n = 2;
+  while(takenLower[normalizeName(finalName)]){
+    finalName = baseName + ' ' + n;
+    n++;
+  }
+
+  await setDoc(doc(db,'users',user.uid), {
+    email: user.email, displayName: finalName, displayNameLower: normalizeName(finalName),
+    createdAt: serverTimestamp()
+  }, { merge: true });
+
+  if(finalName !== baseName){
+    try{ await updateProfile(user, { displayName: finalName }); }catch(e){}
+  }
+}
+
+async function handleAuthSubmit(){
+  var email = el('auth-email').value.trim();
+  var password = el('auth-password').value;
+  var name = el('auth-name').value.trim();
+  setAuthError(null);
+  if(!email || !password){ setAuthError('Введите email и пароль'); return; }
+  if(!email.toLowerCase().endsWith(ALLOWED_DOMAIN)){
+    setAuthError('Только адреса ' + ALLOWED_DOMAIN);
+    return;
+  }
+  try{
+    if(authMode === 'login'){
+      await signInWithEmailAndPassword(auth, email, password);
+      return;
+    }
+    // регистрация
+    if(!name){ setAuthError('Укажите имя — оно нужно для тегов в чате'); return; }
+    if(!validNameFormat(name)){ setAuthError('Имя: только буквы/цифры, без пробелов, 2-30 символов'); return; }
+
+    var cred = await createUserWithEmailAndPassword(auth, email, password);
+    // Имя пока сохраняем только в Auth-профиль — Firestore-проверку на дубли
+    // делаем позже, после подтверждения почты (до этого читать /users нельзя по правилам).
+    await updateProfile(cred.user, { displayName: name });
+    await sendEmailVerification(cred.user);
+    showVerifyScreen(email);
+  }catch(err){
+    setAuthError(translateAuthError(err));
+  }
+}
+function translateAuthError(err){
+  var code = err && err.code || '';
+  if(code.indexOf('email-already-in-use') !== -1) return 'Этот email уже зарегистрирован — попробуйте войти';
+  if(code.indexOf('wrong-password') !== -1 || code.indexOf('invalid-credential') !== -1) return 'Неверный email или пароль';
+  if(code.indexOf('user-not-found') !== -1) return 'Аккаунт не найден — зарегистрируйтесь';
+  if(code.indexOf('weak-password') !== -1) return 'Пароль слишком короткий (минимум 6 символов)';
+  if(code.indexOf('invalid-email') !== -1) return 'Некорректный email';
+  return 'Ошибка: ' + (err && err.message ? err.message : 'неизвестная');
+}
+
+async function handleVerifyRefresh(){
+  if(!auth.currentUser) return;
+  await auth.currentUser.reload();
+  if(auth.currentUser.emailVerified){
+    currentUser = auth.currentUser;
+    await ensureUserProfile(currentUser);
+    startBoard();
+  } else {
+    var note = el('auth-note');
+  }
+}
+
+onAuthStateChanged(auth, async function(user){
+  teardownListeners();
+  if(!user){
+    currentUser = null;
+    showAuthScreen();
+    return;
+  }
+  if(!user.email || !user.email.toLowerCase().endsWith(ALLOWED_DOMAIN)){
+    signOut(auth);
+    return;
+  }
+  if(!user.emailVerified){
+    showVerifyScreen(user.email);
+    return;
+  }
+  currentUser = user;
+  await ensureUserProfile(user);
+  startBoard();
+});
+
+function teardownListeners(){
+  if(unsubTaskCols){ unsubTaskCols(); unsubTaskCols = null; }
+  if(unsubTasks){ unsubTasks(); unsubTasks = null; }
+  if(unsubLeads){ unsubLeads(); unsubLeads = null; }
+  if(unsubChat){ unsubChat(); unsubChat = null; }
+  if(unsubUsers){ unsubUsers(); unsubUsers = null; }
+  if(unsubDebts){ unsubDebts(); unsubDebts = null; }
+  if(unsubComments){ unsubComments(); unsubComments = null; }
+  if(unsubReports){ unsubReports(); unsubReports = null; }
+}
+
+function skeletonBoard(){
+  var cols = [1,2,3].map(function(){
+    var cards = [1,2].map(function(){
+      return '<div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w90"></div><div class="skel-pill"></div></div>';
+    }).join('');
+    return '<div class="column"><div class="column-head"><div class="skel-line w50" style="height:14px;margin:0;"></div></div><div class="card-list">'+cards+'</div></div>';
+  }).join('');
+  return '<div class="kanban-row">'+cols+'</div>';
+}
+
+function startBoard(){
+  showBoard();
+  el('current-email').textContent = currentUser.email;
+  el('tasks-container').innerHTML = skeletonBoard();
+  el('leads-container').innerHTML = skeletonBoard();
+  try{ lastSeenChatAt = Number(localStorage.getItem('lastSeenChat:'+currentUser.uid)) || 0; }catch(e){ lastSeenChatAt = 0; }
+  subscribeTaskColumns();
+  subscribeTasks();
+  subscribeLeads();
+  subscribeChat();
+  subscribeUsers();
+  subscribeDebts();
+  if(deadlineBannerTimer) clearInterval(deadlineBannerTimer);
+  deadlineBannerTimer = setInterval(updateDeadlineBanner, 60000);
+}
+
+/* ---------- TASKS (личные, Firestore, realtime) ---------- */
+function showLoadError(containerId, title, err){
+  var container = el(containerId);
+  container.innerHTML = '';
+  var e = document.createElement('div'); e.className = 'empty-board';
+  var big = document.createElement('div'); big.className = 'big'; big.textContent = title;
+  var msg = document.createElement('div');
+  msg.textContent = (err && err.code ? '[' + err.code + '] ' : '') + (err && err.message ? err.message : String(err));
+  e.appendChild(big); e.appendChild(msg);
+  container.appendChild(e);
+}
+
+function subscribeTaskColumns(){
+  var q = query(collection(db,'taskColumns'), where('ownerId','==',currentUser.uid));
+  unsubTaskCols = onSnapshot(q, function(snap){
+    taskColumns = [];
+    snap.forEach(function(d){ taskColumns.push(Object.assign({id:d.id}, d.data())); });
+    taskColumns.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    renderTasksTab();
+  }, function(err){
+    showLoadError('tasks-container', 'Не удалось загрузить задачи', err);
+  });
+}
+function subscribeTasks(){
+  var q = query(collection(db,'tasks'), where('ownerId','==',currentUser.uid));
+  unsubTasks = onSnapshot(q, function(snap){
+    tasks = [];
+    snap.forEach(function(d){ tasks.push(Object.assign({id:d.id}, d.data())); });
+    renderTasksTab();
+    updateDeadlineBanner();
+  }, function(err){
+    showLoadError('tasks-container', 'Не удалось загрузить задачи', err);
+  });
+}
+
+function deadlineTag(task){
+  if(!task.deadline) return null;
+  var due = new Date(task.deadline).getTime();
+  var diff = due - Date.now();
+  var pad = n => String(n).padStart(2,'0');
+  var d = new Date(task.deadline);
+  var label = pad(d.getDate())+'.'+pad(d.getMonth()+1)+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+  if(diff < 0) return { cls:'tag-late', label: label + ' · просрочено' };
+  if(diff < 3*3600*1000) return { cls:'tag-soon', label: label + ' · скоро' };
+  return { cls:'tag-muted', label: label };
+}
+
+function renderTasksTab(){
+  var container = el('tasks-container');
+  container.innerHTML = '';
+  var boardColumns = taskColumns.filter(function(c){ return (c.board||'work') === currentBoard; });
+  if(boardColumns.length === 0){
+    var e = document.createElement('div');
+    e.className = 'empty-board';
+    e.innerHTML = '<div class="big">Пока пусто</div>Добавьте первую колонку выше.';
+    container.appendChild(e);
+    return;
+  }
+  var row = document.createElement('div');
+  row.className = 'kanban-row';
+  boardColumns.forEach(function(col){ row.appendChild(renderTaskColumn(col)); });
+  container.appendChild(row);
+}
+
+function reorderColumns(draggedId, targetId){
+  if(draggedId === targetId) return;
+  var a = taskColumns.filter(function(c){return c.id===draggedId;})[0];
+  var b = taskColumns.filter(function(c){return c.id===targetId;})[0];
+  if(!a || !b) return;
+  var aOrder = a.order || 0, bOrder = b.order || 0;
+  updateDoc(doc(db,'taskColumns',a.id), { order: bOrder });
+  updateDoc(doc(db,'taskColumns',b.id), { order: aOrder });
+}
+
+function renderTaskColumn(col){
+  var colTasks = tasks.filter(function(t){ return t.columnId === col.id; });
+  colTasks.sort(function(a,b){
+    var pr = (PRIORITY_RANK[b.priority]||1) - (PRIORITY_RANK[a.priority]||1);
+    if(pr !== 0) return pr;
+    var ad = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+    var bd = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+    return ad - bd;
+  });
+
+  var wrap = document.createElement('div');
+  wrap.className = 'column' + (col.collapsed ? ' collapsed' : '');
+  if(col.color) wrap.style.setProperty('--col-color', colorHex(col.color));
+
+  var head = document.createElement('div');
+  head.className = 'column-head';
+  head.draggable = true;
+  head.addEventListener('dragstart', function(e){
+    e.dataTransfer.setData('text/plain', JSON.stringify({type:'column', id:col.id}));
+    wrap.classList.add('col-dragging');
+  });
+  head.addEventListener('dragend', function(){ wrap.classList.remove('col-dragging'); });
+
+  var titleInput = document.createElement('input');
+  titleInput.className = 'column-title';
+  titleInput.value = col.title;
+  titleInput.addEventListener('click', function(e){ e.stopPropagation(); });
+  titleInput.addEventListener('change', function(){
+    var v = titleInput.value.trim() || 'Без названия';
+    updateDoc(doc(db,'taskColumns',col.id), { title: v });
+  });
+  var count = document.createElement('span');
+  count.className = 'count-badge';
+  count.textContent = colTasks.length;
+
+  var collapseBtn = document.createElement('button');
+  collapseBtn.className = 'icon-btn'; collapseBtn.textContent = col.collapsed ? '▸' : '▾';
+  collapseBtn.title = col.collapsed ? 'Развернуть' : 'Свернуть';
+  collapseBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    updateDoc(doc(db,'taskColumns',col.id), { collapsed: !col.collapsed });
+  });
+
+  var del = document.createElement('button');
+  del.className = 'icon-btn'; del.textContent = '✕';
+  del.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(confirm('Удалить колонку «'+col.title+'» вместе со всеми задачами?')){
+      colTasks.forEach(function(t){ deleteDoc(doc(db,'tasks',t.id)); });
+      deleteDoc(doc(db,'taskColumns',col.id));
+    }
+  });
+  head.appendChild(titleInput); head.appendChild(count); head.appendChild(collapseBtn); head.appendChild(del);
+  wrap.appendChild(head);
+
+  // column-level drop target = reorder columns
+  wrap.addEventListener('dragover', function(e){ e.preventDefault(); });
+  wrap.addEventListener('drop', function(e){
+    e.preventDefault();
+    var raw = e.dataTransfer.getData('text/plain');
+    if(!raw) return;
+    try{
+      var data = JSON.parse(raw);
+      if(data.type === 'column'){ reorderColumns(data.id, col.id); }
+    }catch(err){}
+  });
+
+  var list = document.createElement('div');
+  list.className = 'card-list';
+  if(colTasks.length === 0){
+    var er = document.createElement('div'); er.className='empty-col'; er.textContent='Карточек нет';
+    list.appendChild(er);
+  } else {
+    colTasks.forEach(function(t){ list.appendChild(renderTaskCard(t)); });
+  }
+  list.addEventListener('dragover', function(e){ e.preventDefault(); e.stopPropagation(); wrap.classList.add('drag-over'); });
+  list.addEventListener('dragleave', function(){ wrap.classList.remove('drag-over'); });
+  list.addEventListener('drop', function(e){
+    e.preventDefault(); e.stopPropagation(); wrap.classList.remove('drag-over');
+    var raw = e.dataTransfer.getData('text/plain');
+    if(!raw) return;
+    try{
+      var data = JSON.parse(raw);
+      if(data.type === 'task' && data.columnId !== col.id){
+        updateDoc(doc(db,'tasks',data.id), { columnId: col.id });
+      }
+    }catch(err){}
+  });
+  wrap.appendChild(list);
+  wrap.appendChild(renderAddTaskBox(col));
+  return wrap;
+}
+
+function renderTaskCard(task){
+  var card = document.createElement('div');
+  card.className = 'card' + (task.done ? ' done' : '');
+  card.style.setProperty('--accent', task.priority==='low'?'var(--green)':task.priority==='high'?'var(--amber)':task.priority==='critical'?'var(--red)':'var(--sky)');
+  card.draggable = true;
+  card.addEventListener('dragstart', function(e){
+    e.dataTransfer.setData('text/plain', JSON.stringify({type:'task', id:task.id, columnId:task.columnId}));
+    card.classList.add('dragging');
+  });
+  card.addEventListener('dragend', function(){ card.classList.remove('dragging'); });
+
+  var top = document.createElement('div'); top.className='card-top';
+  var chk = document.createElement('input'); chk.type='checkbox'; chk.className='card-check'; chk.checked=!!task.done;
+  chk.addEventListener('change', function(){ updateDoc(doc(db,'tasks',task.id), { done: chk.checked }); });
+  var title = document.createElement('div'); title.className='card-title'; title.textContent = task.title;
+  if(task.color){
+    var dot = document.createElement('span'); dot.className='color-dot'; dot.style.background = colorHex(task.color);
+    title.prepend(dot); title.style.display='flex'; title.style.alignItems='center'; title.style.gap='6px';
+  }
+  var del = document.createElement('button'); del.className='card-del'; del.textContent='✕';
+  del.addEventListener('click', function(){ deleteDoc(doc(db,'tasks',task.id)); });
+  top.appendChild(chk); top.appendChild(title); top.appendChild(del);
+  card.appendChild(top);
+
+  var meta = document.createElement('div'); meta.className='card-meta';
+  var p = document.createElement('span'); p.className='tag tag-'+task.priority;
+  p.textContent = (PRIORITIES.filter(x=>x.key===task.priority)[0]||{}).label || 'Средний';
+  meta.appendChild(p);
+  var dl = deadlineTag(task);
+  if(dl){ var dlt=document.createElement('span'); dlt.className='tag '+dl.cls; dlt.textContent=dl.label; meta.appendChild(dlt); }
+  if(task.timeEstimate){ var te=document.createElement('span'); te.className='tag tag-muted'; te.textContent='⏱ '+task.timeEstimate; meta.appendChild(te); }
+  if(task.contact){ var ct=document.createElement('span'); ct.className='tag tag-contact'; ct.textContent='Связаться: '+task.contact; meta.appendChild(ct); }
+  card.appendChild(meta);
+
+  if(taskColumns.length > 1){
+    var sel = document.createElement('select'); sel.className='card-move';
+    var ph = document.createElement('option'); ph.textContent='Переместить в…'; ph.value=''; sel.appendChild(ph);
+    taskColumns.forEach(function(c){
+      if(c.id===task.columnId) return;
+      var o=document.createElement('option'); o.value=c.id; o.textContent=c.title; sel.appendChild(o);
+    });
+    sel.addEventListener('change', function(){
+      if(sel.value) updateDoc(doc(db,'tasks',task.id), { columnId: sel.value });
+    });
+    card.appendChild(sel);
+  }
+  return card;
+}
+
+function renderAddTaskBox(col){
+  var box = document.createElement('div'); box.className='add-card-box';
+  var toggle = document.createElement('button'); toggle.className='add-card-toggle'; toggle.textContent='+ Добавить карточку';
+  var fields = document.createElement('div'); fields.className='add-card-fields';
+
+  var titleInput = document.createElement('input'); titleInput.type='text'; titleInput.placeholder='Что нужно сделать';
+  var row2 = document.createElement('div'); row2.className='row2';
+  var prioSelect = document.createElement('select'); prioSelect.className='prio-select';
+  PRIORITIES.forEach(function(p){ var o=document.createElement('option'); o.value=p.key; o.textContent=p.label; if(p.key==='medium')o.selected=true; prioSelect.appendChild(o); });
+  tintPrioSelect(prioSelect);
+  prioSelect.addEventListener('change', function(){ tintPrioSelect(prioSelect); });
+  var dlInput = document.createElement('input'); dlInput.type='datetime-local'; dlInput.className='dl-input';
+  row2.appendChild(prioSelect); row2.appendChild(dlInput);
+
+  var row3 = document.createElement('div'); row3.className='row2';
+  var timeInput = document.createElement('input'); timeInput.type='text'; timeInput.placeholder='Оценка времени, напр. 30 мин';
+  var contactInput = document.createElement('input'); contactInput.type='text'; contactInput.placeholder='С кем связаться';
+  row3.appendChild(timeInput); row3.appendChild(contactInput);
+
+  var row4 = document.createElement('div'); row4.className='row2';
+  var colorSelect = document.createElement('select'); colorSelect.className='swatch-select'; fillColorSelect(colorSelect); tintSwatchSelect(colorSelect);
+  colorSelect.addEventListener('change', function(){ tintSwatchSelect(colorSelect); });
+  row4.appendChild(colorSelect);
+
+  var submit = document.createElement('button'); submit.className='add-card-submit'; submit.textContent='Добавить';
+  function doSubmit(){
+    var t = titleInput.value.trim();
+    if(!t){ titleInput.focus(); return; }
+    addDoc(collection(db,'tasks'), {
+      ownerId: currentUser.uid, columnId: col.id, title: t,
+      priority: prioSelect.value||'medium', color: colorSelect.value||'',
+      deadline: dlInput.value ? new Date(dlInput.value).toISOString() : null,
+      timeEstimate: timeInput.value.trim(), contact: contactInput.value.trim(),
+      done:false, createdAt: serverTimestamp()
+    });
+    titleInput.value=''; dlInput.value=''; timeInput.value=''; contactInput.value=''; prioSelect.value='medium'; colorSelect.value=''; tintPrioSelect(prioSelect); tintSwatchSelect(colorSelect);
+    fields.classList.remove('open');
+  }
+  submit.addEventListener('click', doSubmit);
+  titleInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doSubmit(); });
+  toggle.addEventListener('click', function(){ fields.classList.toggle('open'); if(fields.classList.contains('open')) titleInput.focus(); });
+
+  fields.appendChild(titleInput); fields.appendChild(row2); fields.appendChild(row3); fields.appendChild(row4); fields.appendChild(submit);
+  box.appendChild(toggle); box.appendChild(fields);
+  return box;
+}
+
+/* ---------- LEADS (общие, Firestore, realtime) ---------- */
+function subscribeLeads(){
+  unsubLeads = onSnapshot(collection(db,'leads'), function(snap){
+    leads = [];
+    snap.forEach(function(d){ leads.push(Object.assign({id:d.id}, d.data())); });
+    renderLeadsTab();
+  }, function(err){
+    showLoadError('leads-container', 'Не удалось загрузить лиды', err);
+  });
+}
+
+function renderLeadsTab(){
+  var container = el('leads-container');
+  container.innerHTML = '';
+  var row = document.createElement('div'); row.className='kanban-row';
+  STAGES.forEach(function(stage){ row.appendChild(renderLeadColumn(stage)); });
+  container.appendChild(row);
+}
+
+function renderLeadColumn(stage){
+  var stageLeads = leads.filter(function(l){ return l.stage === stage; });
+  var wrap = document.createElement('div'); wrap.className='column';
+  wrap.style.setProperty('--col-color', stageColor(stage));
+
+  var head = document.createElement('div'); head.className='column-head';
+  var titleInput = document.createElement('input');
+  titleInput.className='column-title'; titleInput.value=stage; titleInput.readOnly = true;
+  var count = document.createElement('span'); count.className='count-badge'; count.textContent=stageLeads.length;
+  head.appendChild(titleInput); head.appendChild(count);
+  wrap.appendChild(head);
+
+  var list = document.createElement('div'); list.className='card-list';
+  if(stageLeads.length===0){
+    var er=document.createElement('div'); er.className='empty-col'; er.textContent='Лидов нет';
+    list.appendChild(er);
+  } else {
+    stageLeads.forEach(function(l){ list.appendChild(renderLeadCard(l)); });
+  }
+  list.addEventListener('dragover', function(e){ e.preventDefault(); wrap.classList.add('drag-over'); });
+  list.addEventListener('dragleave', function(){ wrap.classList.remove('drag-over'); });
+  list.addEventListener('drop', function(e){
+    e.preventDefault(); wrap.classList.remove('drag-over');
+    var raw = e.dataTransfer.getData('text/plain');
+    if(!raw) return;
+    try{
+      var data = JSON.parse(raw);
+      if(data.type==='lead' && data.stage !== stage){
+        updateDoc(doc(db,'leads',data.id), { stage: stage });
+      }
+    }catch(err){}
+  });
+  wrap.appendChild(list);
+  wrap.appendChild(renderAddLeadBox(stage));
+  return wrap;
+}
+
+function renderLeadCard(lead){
+  var card = document.createElement('div'); card.className='card';
+  card.style.setProperty('--accent', leadPriorityColor(lead.priority));
+  card.draggable = true;
+  card.addEventListener('dragstart', function(e){
+    e.dataTransfer.setData('text/plain', JSON.stringify({type:'lead', id:lead.id, stage:lead.stage}));
+    card.classList.add('dragging');
+  });
+  card.addEventListener('dragend', function(){ card.classList.remove('dragging'); });
+
+  var top = document.createElement('div'); top.className='card-top';
+  var title = document.createElement('div'); title.className='card-main';
+  title.style.cursor = 'pointer';
+  var t1 = document.createElement('div'); t1.className='card-title'; t1.textContent = lead.companyName || '(без названия)';
+  title.appendChild(t1);
+  if(lead.contactName || lead.position){
+    var sub = document.createElement('div'); sub.className='card-sub';
+    sub.textContent = [lead.contactName, lead.position].filter(Boolean).join(' · ');
+    title.appendChild(sub);
+  }
+  title.title = 'Открыть детали, комментарии, скриншоты';
+  title.addEventListener('click', function(){ openLeadDetail(lead.id); });
+  var listBtn = document.createElement('button'); listBtn.className='icon-btn'; listBtn.textContent='☰';
+  listBtn.title = 'Открыть в списке';
+  listBtn.addEventListener('click', function(e){ e.stopPropagation(); goToLeadInList(lead.id); });
+  var del = document.createElement('button'); del.className='card-del'; del.textContent='✕';
+  del.addEventListener('click', function(){ if(confirm('Удалить лид «'+(lead.companyName||'')+'»?')) deleteDoc(doc(db,'leads',lead.id)); });
+  top.appendChild(title); top.appendChild(listBtn); top.appendChild(del);
+  card.appendChild(top);
+
+  var meta = document.createElement('div'); meta.className='card-meta';
+  if(lead.priority){ var pr=document.createElement('span'); pr.className='tag tag-leadprio-'+lead.priority; pr.textContent=(LEAD_PRIORITIES.filter(function(p){return p.key===lead.priority;})[0]||{}).label||lead.priority; meta.appendChild(pr); }
+  if(lead.leadScore!=null && lead.leadScore!==''){ var sc2=document.createElement('span'); sc2.className='tag tag-muted'; sc2.textContent='Score '+lead.leadScore; meta.appendChild(sc2); }
+  if(lead.segment){ var sg=document.createElement('span'); sg.className='tag tag-segment'; sg.textContent=lead.segment; meta.appendChild(sg); }
+  if(lead.assignedSender){ var as=document.createElement('span'); as.className='tag tag-contact'; as.textContent=lead.assignedSender; meta.appendChild(as); }
+  if(lead.flag){ var fl=document.createElement('span'); fl.className='tag tag-flag'; fl.textContent=lead.flag; meta.appendChild(fl); }
+  if(deadlineLikeStatus(lead.lastVerified, 90)){ var lv=document.createElement('span'); lv.className='tag tag-late'; lv.textContent='Проверить статус · >90 дней'; meta.appendChild(lv); }
+  card.appendChild(meta);
+
+  var sel = document.createElement('select'); sel.className='card-move';
+  var ph = document.createElement('option'); ph.textContent='Переместить в…'; ph.value=''; sel.appendChild(ph);
+  STAGES.forEach(function(s){
+    if(s===lead.stage) return;
+    var o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o);
+  });
+  sel.addEventListener('change', function(){
+    if(sel.value) updateDoc(doc(db,'leads',lead.id), { stage: sel.value });
+  });
+  card.appendChild(sel);
+
+  return card;
+}
+
+function goToLeadInList(leadId){
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('.tab-btn[data-tab="leadlist"]').classList.add('active');
+  el('tab-tasks').classList.add('hidden');
+  el('tab-leads').classList.add('hidden');
+  el('tab-chat').classList.add('hidden');
+  el('tab-leadlist').classList.remove('hidden');
+  renderLeadListTab(leadId);
+}
+
+function renderAddLeadBox(stage){
+  var box = document.createElement('div'); box.className='add-card-box';
+  var toggle = document.createElement('button'); toggle.className='add-card-toggle'; toggle.textContent='+ Добавить лид';
+  var fields = document.createElement('div'); fields.className='add-card-fields';
+
+  var companyInput = document.createElement('input'); companyInput.type='text'; companyInput.placeholder='Компания *';
+  var websiteInput = document.createElement('input'); websiteInput.type='text'; websiteInput.placeholder='Website *';
+  var countryInput = document.createElement('input'); countryInput.type='text'; countryInput.placeholder='Country / HQ';
+
+  var row1 = document.createElement('div'); row1.className='row2';
+  var segmentSelect = document.createElement('select');
+  var phSeg=document.createElement('option'); phSeg.textContent='Сегмент *'; phSeg.value=''; segmentSelect.appendChild(phSeg);
+  SEGMENTS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; segmentSelect.appendChild(o); });
+  var prioSelect = document.createElement('select');
+  var phP=document.createElement('option'); phP.textContent='Priority *'; phP.value=''; prioSelect.appendChild(phP);
+  LEAD_PRIORITIES.forEach(function(p){ var o=document.createElement('option'); o.value=p.key; o.textContent=p.label; prioSelect.appendChild(o); });
+  row1.appendChild(segmentSelect); row1.appendChild(prioSelect);
+
+  var row2 = document.createElement('div'); row2.className='row2';
+  var scoreInput = document.createElement('input'); scoreInput.type='number'; scoreInput.min='0'; scoreInput.max='100'; scoreInput.placeholder='Lead score 0-100 *';
+  var scoreReasonInput = document.createElement('input'); scoreReasonInput.type='text'; scoreReasonInput.placeholder='Score reason *';
+  row2.appendChild(scoreInput); row2.appendChild(scoreReasonInput);
+
+  var painInput = document.createElement('input'); painInput.type='text'; painInput.placeholder='Pain hypothesis';
+
+  var contactInput = document.createElement('input'); contactInput.type='text'; contactInput.placeholder='Contact name *';
+  var row3 = document.createElement('div'); row3.className='row2';
+  var positionInput = document.createElement('input'); positionInput.type='text'; positionInput.placeholder='Position / Department *';
+  var emailInput = document.createElement('input'); emailInput.type='text'; emailInput.placeholder='Email';
+  row3.appendChild(positionInput); row3.appendChild(emailInput);
+
+  var linkedinInput = document.createElement('input'); linkedinInput.type='text'; linkedinInput.placeholder='LinkedIn URL *';
+
+  var row4 = document.createElement('div'); row4.className='row2';
+  var listInput = document.createElement('input'); listInput.type='text'; listInput.placeholder='List (GetSales) *';
+  var senderSelect = document.createElement('select');
+  var phSnd=document.createElement('option'); phSnd.textContent='Assigned sender *'; phSnd.value=''; senderSelect.appendChild(phSnd);
+  SENDERS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; senderSelect.appendChild(o); });
+  row4.appendChild(listInput); row4.appendChild(senderSelect);
+
+  var row5 = document.createElement('div'); row5.className='row2';
+  var lastVerifiedInput = document.createElement('input'); lastVerifiedInput.type='date'; lastVerifiedInput.className='dl-input';
+  var flagSelect = document.createElement('select');
+  var phFlag=document.createElement('option'); phFlag.textContent='Flag'; phFlag.value=''; flagSelect.appendChild(phFlag);
+  FLAGS.forEach(function(f){ var o=document.createElement('option'); o.value=f; o.textContent=f; flagSelect.appendChild(o); });
+  row5.appendChild(lastVerifiedInput); row5.appendChild(flagSelect);
+
+  var sourceUrlInput = document.createElement('input'); sourceUrlInput.type='text'; sourceUrlInput.placeholder='Source URL';
+
+  var submit = document.createElement('button'); submit.className='add-card-submit'; submit.textContent='Добавить';
+  function doSubmit(){
+    var company = companyInput.value.trim();
+    var required = [company, websiteInput.value.trim(), segmentSelect.value, prioSelect.value, scoreInput.value, scoreReasonInput.value.trim(), contactInput.value.trim(), positionInput.value.trim(), linkedinInput.value.trim(), listInput.value.trim(), senderSelect.value, lastVerifiedInput.value];
+    if(!company){ companyInput.focus(); return; }
+    if(required.some(function(v){ return !v; })){
+      if(!confirm('Часть обязательных полей (*) не заполнена — лид не будет считаться outreach-ready. Добавить всё равно как черновик?')) return;
+    }
+    addDoc(collection(db,'leads'), {
+      companyName: company, website: websiteInput.value.trim(), countryHQ: countryInput.value.trim(),
+      segment: segmentSelect.value, priority: prioSelect.value,
+      leadScore: scoreInput.value ? Number(scoreInput.value) : null, scoreReason: scoreReasonInput.value.trim(),
+      painHypothesis: painInput.value.trim(),
+      contactName: contactInput.value.trim(), position: positionInput.value.trim(), email: emailInput.value.trim(),
+      linkedinUrl: linkedinInput.value.trim(),
+      listGetSales: listInput.value.trim(), assignedSender: senderSelect.value,
+      lastVerified: lastVerifiedInput.value || null, flag: flagSelect.value,
+      sourceUrl: sourceUrlInput.value.trim(),
+      stage: stage, createdAt: serverTimestamp(), createdBy: currentUser.email
+    });
+    [companyInput,websiteInput,countryInput,scoreInput,scoreReasonInput,painInput,contactInput,positionInput,emailInput,linkedinInput,listInput,lastVerifiedInput,sourceUrlInput].forEach(function(i){ i.value=''; });
+    segmentSelect.value=''; prioSelect.value=''; senderSelect.value=''; flagSelect.value='';
+    fields.classList.remove('open');
+  }
+  submit.addEventListener('click', doSubmit);
+  companyInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doSubmit(); });
+  toggle.addEventListener('click', function(){ fields.classList.toggle('open'); if(fields.classList.contains('open')) companyInput.focus(); });
+
+  [companyInput,websiteInput,countryInput,row1,row2,painInput,contactInput,row3,linkedinInput,row4,row5,sourceUrlInput,submit].forEach(function(elm){ fields.appendChild(elm); });
+  box.appendChild(toggle); box.appendChild(fields);
+  return box;
+}
+
+/* ---------- LEAD LIST (таблица, та же коллекция leads) ---------- */
+function renderLeadListTab(highlightId){
+  var container = el('leadlist-container');
+  container.innerHTML = '';
+
+  var toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex;justify-content:flex-end;gap:10px;margin-bottom:10px;';
+  var importBtn = document.createElement('button');
+  importBtn.className = 'btn-secondary';
+  importBtn.textContent = '⬆ Загрузить Excel';
+  importBtn.addEventListener('click', function(){ el('import-file-input').click(); });
+  var exportBtn = document.createElement('button');
+  exportBtn.className = 'btn-primary';
+  exportBtn.textContent = '⬇ Скачать Excel';
+  exportBtn.addEventListener('click', exportLeadsToExcel);
+  toolbar.appendChild(importBtn);
+  if(leads.length > 0) toolbar.appendChild(exportBtn);
+  container.appendChild(toolbar);
+
+  if(leads.length === 0){
+    var e = document.createElement('div'); e.className='empty-board';
+    e.innerHTML = '<div class="big">Лидов пока нет</div>Добавь первый лид во вкладке «Лиды» или загрузи Excel.';
+    container.appendChild(e);
+    return;
+  }
+
+  var wrap = document.createElement('div'); wrap.className='lead-table-wrap';
+  var table = document.createElement('table'); table.className='lead-table';
+  var thead = document.createElement('thead');
+  var headRow = document.createElement('tr');
+  ['Компания','Контакт','Сегмент','Priority','Score','Next action','Sender','Verified','LinkedIn',''].forEach(function(h){
+    var th = document.createElement('th'); th.textContent = h; headRow.appendChild(th);
+  });
+  thead.appendChild(headRow); table.appendChild(thead);
+
+  var tbody = document.createElement('tbody');
+  leads.slice().sort(function(a,b){ return (a.companyName||'').localeCompare(b.companyName||''); }).forEach(function(lead){
+    var tr = document.createElement('tr'); tr.className = 'lead-row'; tr.id = 'leadrow-'+lead.id;
+    function td(text){ var c=document.createElement('td'); c.textContent = text || '—'; return c; }
+    var companyTd = td(lead.companyName); companyTd.className='company-cell'; companyTd.style.cursor='pointer'; companyTd.style.color='var(--sky)';
+    companyTd.title = 'Открыть детали, комментарии, скриншоты';
+    companyTd.addEventListener('click', function(leadId){ return function(){ openLeadDetail(leadId); }; }(lead.id));
+    tr.appendChild(companyTd);
+    tr.appendChild(td([lead.contactName, lead.position].filter(Boolean).join(' · ')));
+    tr.appendChild(td(lead.segment));
+    var prTd = document.createElement('td');
+    if(lead.priority){ var prTag=document.createElement('span'); prTag.className='tag tag-leadprio-'+lead.priority; prTag.textContent=(LEAD_PRIORITIES.filter(function(p){return p.key===lead.priority;})[0]||{}).label||lead.priority; prTd.appendChild(prTag); } else { prTd.textContent='—'; }
+    tr.appendChild(prTd);
+    tr.appendChild(td(lead.leadScore!=null ? String(lead.leadScore) : ''));
+    tr.appendChild(td(lead.stage));
+    tr.appendChild(td(lead.assignedSender));
+    tr.appendChild(td(lead.lastVerified));
+    var liTd = document.createElement('td');
+    if(lead.linkedinUrl){ var a=document.createElement('a'); a.href=lead.linkedinUrl; a.target='_blank'; a.rel='noopener'; a.textContent='Открыть'; a.style.color='var(--sky)'; liTd.appendChild(a); } else { liTd.textContent='—'; liTd.className='muted-cell'; }
+    tr.appendChild(liTd);
+    var actionsTd = document.createElement('td');
+    actionsTd.style.whiteSpace = 'nowrap';
+    var editBtn = document.createElement('button'); editBtn.className='icon-btn'; editBtn.textContent='✎'; editBtn.title='Редактировать';
+    editBtn.style.marginRight = '6px';
+    editBtn.addEventListener('click', function(leadId){ return function(){ openLeadEdit(leadId); }; }(lead.id));
+    var delBtn = document.createElement('button'); delBtn.className='icon-btn'; delBtn.textContent='✕'; delBtn.title='Удалить';
+    delBtn.addEventListener('click', function(leadId, name){ return function(){ if(confirm('Удалить лид «'+(name||'')+'» из списка?')) deleteDoc(doc(db,'leads',leadId)); }; }(lead.id, lead.companyName));
+    actionsTd.appendChild(editBtn); actionsTd.appendChild(delBtn);
+    tr.appendChild(actionsTd);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  container.appendChild(wrap);
+
+  if(highlightId){
+    var row = el('leadrow-'+highlightId);
+    if(row){
+      row.scrollIntoView({behavior:'smooth', block:'center'});
+      row.classList.add('highlight');
+      setTimeout(function(){ row.classList.remove('highlight'); }, 2500);
+    }
+  }
+}
+
+function exportLeadsToExcel(){
+  if(typeof XLSX === 'undefined'){ alert('Библиотека экспорта не загрузилась — проверь соединение и обнови страницу'); return; }
+  var priorityLabel = function(p){ return (LEAD_PRIORITIES.filter(function(x){return x.key===p;})[0]||{}).label || ''; };
+  var header = ['Company name','Website','Country / HQ','Segment','Priority (H/M/L)','Lead score (0-100)','Score reason','Pain hypothesis','Contact name','Position / Department','LinkedIn URL','Email','List (GetSales)','Assigned sender','Flag','Last verified','Next action','Source URL'];
+  var rows = leads.slice().sort(function(a,b){ return (a.companyName||'').localeCompare(b.companyName||''); }).map(function(l){
+    return [
+      l.companyName||'', l.website||'', l.countryHQ||'', l.segment||'', priorityLabel(l.priority),
+      l.leadScore!=null?l.leadScore:'', l.scoreReason||'', l.painHypothesis||'',
+      l.contactName||'', l.position||'', l.linkedinUrl||'', l.email||'',
+      l.listGetSales||'', l.assignedSender||'', l.flag||'', l.lastVerified||'', l.stage||'', l.sourceUrl||''
+    ];
+  });
+  var ws = XLSX.utils.aoa_to_sheet([header].concat(rows));
+  ws['!cols'] = header.map(function(){ return { wch: 18 }; });
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var d = new Date();
+  var filename = 'HotelCompas_Leads_' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '.xlsx';
+  XLSX.writeFile(wb, filename);
+}
+
+/* ---------- EXCEL IMPORT (с предпросмотром) ---------- */
+var pendingImportRows = [];
+
+var IMPORT_COLUMN_MAP = {
+  'company name': 'companyName', 'website': 'website', 'country / hq': 'countryHQ',
+  'segment': 'segment', 'priority (h/m/l)': 'priority', 'lead score (0-100)': 'leadScore',
+  'score reason': 'scoreReason', 'pain hypothesis': 'painHypothesis', 'contact name': 'contactName',
+  'position / department': 'position', 'linkedin url': 'linkedinUrl', 'email': 'email',
+  'list (getsales)': 'listGetSales', 'assigned sender': 'assignedSender', 'flag': 'flag',
+  'last verified': 'lastVerified', 'next action': 'stage', 'source url': 'sourceUrl'
+};
+
+function normalizePriorityValue(v){
+  if(!v) return '';
+  var s = String(v).trim().toLowerCase();
+  if(s==='high'||s==='h') return 'high';
+  if(s==='medium'||s==='m') return 'medium';
+  if(s==='low'||s==='l') return 'low';
+  return '';
+}
+
+function initImport(){
+  el('import-file-input').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var wb = XLSX.read(ev.target.result, { type:'array' });
+        var sheet = wb.Sheets[wb.SheetNames[0]];
+        var aoa = XLSX.utils.sheet_to_json(sheet, { header:1, raw:false, defval:'' });
+        parseImportRows(aoa);
+      }catch(err){
+        alert('Не удалось прочитать файл: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  });
+  el('import-close-btn').addEventListener('click', closeImportOverlay);
+  el('import-cancel-btn').addEventListener('click', closeImportOverlay);
+  el('import-confirm-btn').addEventListener('click', confirmImport);
+}
+
+function parseImportRows(aoa){
+  if(aoa.length < 2){ alert('В файле не найдено строк с данными'); return; }
+  var headerRow = aoa[0].map(function(h){ return String(h||'').trim().toLowerCase(); });
+  var fieldByCol = headerRow.map(function(h){ return IMPORT_COLUMN_MAP[h] || null; });
+
+  var existingKeys = {};
+  leads.forEach(function(l){
+    var k = (l.companyName||'').trim().toLowerCase() + '|' + (l.contactName||'').trim().toLowerCase();
+    existingKeys[k] = true;
+  });
+
+  pendingImportRows = [];
+  for(var r=1; r<aoa.length; r++){
+    var row = aoa[r];
+    if(!row || row.every(function(c){ return !c; })) continue;
+    var obj = {};
+    fieldByCol.forEach(function(field, idx){
+      if(field) obj[field] = row[idx] !== undefined ? String(row[idx]).trim() : '';
+    });
+    if(!obj.companyName) continue;
+    obj.priority = normalizePriorityValue(obj.priority);
+    if(obj.leadScore !== undefined && obj.leadScore !== ''){ obj.leadScore = Number(obj.leadScore); }
+    if(!obj.stage || STAGES.indexOf(obj.stage) === -1) obj.stage = 'Research';
+    var key = (obj.companyName||'').trim().toLowerCase() + '|' + (obj.contactName||'').trim().toLowerCase();
+    obj.__dup = !!existingKeys[key];
+    pendingImportRows.push(obj);
+  }
+  renderImportPreview();
+  el('import-overlay').classList.remove('hidden');
+}
+
+function renderImportPreview(){
+  var newCount = pendingImportRows.filter(function(r){ return !r.__dup; }).length;
+  var dupCount = pendingImportRows.length - newCount;
+  var summary = el('import-summary');
+  summary.innerHTML = '';
+  var p1 = document.createElement('div'); p1.className='import-pill new'; p1.textContent = 'Новых: ' + newCount;
+  var p2 = document.createElement('div'); p2.className='import-pill dup'; p2.textContent = 'Дублей (пропускаются): ' + dupCount;
+  summary.appendChild(p1); summary.appendChild(p2);
+
+  var list = el('import-rows'); list.innerHTML = '';
+  pendingImportRows.forEach(function(r){
+    var row = document.createElement('div'); row.className = 'import-row' + (r.__dup ? ' dup' : '');
+    var status = document.createElement('span'); status.className='imp-status'; status.textContent = r.__dup ? 'ДУБЛЬ' : 'НОВЫЙ';
+    var main = document.createElement('div'); main.className='imp-main';
+    main.textContent = (r.companyName||'') + (r.contactName ? ' · ' + r.contactName : '') + (r.position ? ' · ' + r.position : '');
+    row.appendChild(status); row.appendChild(main);
+    list.appendChild(row);
+  });
+  el('import-confirm-btn').textContent = 'Добавить новые (' + newCount + ')';
+  el('import-confirm-btn').disabled = newCount === 0;
+}
+
+function closeImportOverlay(){
+  el('import-overlay').classList.add('hidden');
+  pendingImportRows = [];
+}
+
+function confirmImport(){
+  var toAdd = pendingImportRows.filter(function(r){ return !r.__dup; });
+  toAdd.forEach(function(r){
+    var payload = {};
+    Object.keys(r).forEach(function(k){ if(k !== '__dup') payload[k] = r[k]; });
+    payload.createdAt = serverTimestamp();
+    payload.createdBy = currentUser.email;
+    addDoc(collection(db,'leads'), payload);
+  });
+  closeImportOverlay();
+  alert('Добавлено лидов: ' + toAdd.length);
+}
+
+/* ---------- USERS (для @упоминаний) ---------- */
+function currentDisplayName(){
+  var me = knownUsers.filter(function(u){ return u.uid === currentUser.uid; })[0];
+  return me && me.displayName ? me.displayName : currentUser.email;
+}
+
+async function changeMyDisplayName(){
+  var current = currentDisplayName();
+  var suggestion = current === currentUser.email ? '' : current;
+  var newName = window.prompt('Введите имя — по нему коллеги смогут тегать вас в чате (буквы/цифры, без пробелов, 2-30 символов):', suggestion);
+  if(newName === null) return; // отмена
+  newName = newName.trim();
+  if(!validNameFormat(newName)){ alert('Имя: только буквы/цифры, без пробелов, 2-30 символов'); return; }
+
+  var snap = await getDocs(collection(db,'users'));
+  var takenLower = {};
+  snap.forEach(function(d){
+    if(d.id === currentUser.uid) return;
+    var dn = d.data().displayNameLower;
+    if(dn) takenLower[dn] = true;
+  });
+  if(takenLower[normalizeName(newName)]){
+    alert('Имя «' + newName + '» уже занято другим коллегой — выберите другое');
+    return;
+  }
+  await setDoc(doc(db,'users',currentUser.uid), {
+    email: currentUser.email, displayName: newName, displayNameLower: normalizeName(newName)
+  }, { merge: true });
+  try{ await updateProfile(currentUser, { displayName: newName }); }catch(e){}
+}
+
+function subscribeUsers(){
+  unsubUsers = onSnapshot(collection(db,'users'), function(snap){
+    knownUsers = [];
+    snap.forEach(function(d){
+      var data = d.data();
+      knownUsers.push({ uid: d.id, email: data.email, displayName: data.displayName || data.email });
+    });
+    var hint = el('chat-hint');
+    if(hint){
+      var others = knownUsers.filter(function(u){ return u.uid !== currentUser.uid; });
+      hint.textContent = others.length ? 'Коллеги: ' + others.map(function(u){ return '@'+u.displayName; }).join(', ') : 'Коллеги: пока никто не регистрировался';
+    }
+    var meDisplay = el('current-email');
+    if(meDisplay) meDisplay.textContent = currentDisplayName();
+  }, function(err){ console.error('users load error', err); });
+}
+
+/* ---------- CHAT (общий, Firestore, realtime) ---------- */
+function subscribeChat(){
+  unsubChat = onSnapshot(collection(db,'teamChat'), function(snap){
+    chatMessages = [];
+    snap.forEach(function(d){ chatMessages.push(Object.assign({id:d.id}, d.data())); });
+    chatMessages.sort(function(a,b){
+      var at = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+      var bt = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+      return at - bt;
+    });
+    renderChatTab();
+    updateMentionBanner();
+  }, function(err){
+    showLoadError('chat-messages', 'Не удалось загрузить чат', err);
+  });
+}
+
+var MENTION_RE = /@[A-Za-zА-Яа-яЁё0-9_-]+/g;
+
+function parseMentions(text){
+  var handles = (text.match(MENTION_RE) || []).map(function(h){ return h.slice(1).toLowerCase(); });
+  var uids = [];
+  handles.forEach(function(h){
+    knownUsers.forEach(function(u){
+      if((u.displayName||'').toLowerCase() === h && uids.indexOf(u.uid) === -1) uids.push(u.uid);
+    });
+  });
+  return uids;
+}
+
+function renderMessageText(text){
+  var span = document.createElement('div'); span.className = 'chat-text';
+  var parts = text.split(new RegExp('(' + MENTION_RE.source + ')', 'g'));
+  parts.forEach(function(part){
+    if(new RegExp('^' + MENTION_RE.source + '$').test(part)){
+      var isKnown = knownUsers.some(function(u){ return (u.displayName||'').toLowerCase() === part.slice(1).toLowerCase(); });
+      if(isKnown){
+        var m = document.createElement('span'); m.className='chat-mention'; m.textContent=part;
+        span.appendChild(m);
+        return;
+      }
+    }
+    span.appendChild(document.createTextNode(part));
+  });
+  return span;
+}
+
+function renderChatTab(){
+  var container = el('chat-messages');
+  container.innerHTML = '';
+  if(chatMessages.length === 0){
+    var e = document.createElement('div'); e.className='empty-board';
+    e.innerHTML = '<div class="big">Пока тихо</div>Напишите первое сообщение команде.';
+    container.appendChild(e);
+    return;
+  }
+  chatMessages.forEach(function(msg){
+    var row = document.createElement('div');
+    row.className = 'chat-msg' + (msg.authorUid === currentUser.uid ? ' own' : '');
+    var author = document.createElement('div'); author.className='chat-author';
+    var d = msg.createdAt && msg.createdAt.toDate ? msg.createdAt.toDate() : null;
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    var timeStr = d ? (pad(d.getDate())+'.'+pad(d.getMonth()+1)+' '+pad(d.getHours())+':'+pad(d.getMinutes())) : '';
+    author.textContent = (msg.authorName || msg.authorEmail || '—') + (timeStr ? ' · ' + timeStr : '');
+    row.appendChild(author);
+    row.appendChild(renderMessageText(msg.text || ''));
+    container.appendChild(row);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendChatMessage(){
+  var input = el('chat-input');
+  var text = input.value.trim();
+  if(!text) return;
+  addDoc(collection(db,'teamChat'), {
+    text: text, authorEmail: currentUser.email, authorUid: currentUser.uid, authorName: currentDisplayName(),
+    mentions: parseMentions(text), createdAt: serverTimestamp()
+  });
+  input.value = '';
+}
+
+function updateMentionBanner(){
+  var unseen = chatMessages.filter(function(m){
+    var t = m.createdAt && m.createdAt.toMillis ? m.createdAt.toMillis() : 0;
+    return t > lastSeenChatAt && (m.mentions||[]).indexOf(currentUser.uid) !== -1 && m.authorUid !== currentUser.uid;
+  });
+  var banner = el('notif-banner');
+  if(unseen.length === 0){ banner.classList.add('hidden'); return; }
+  banner.innerHTML = '';
+  var text = document.createElement('span');
+  text.textContent = '🔔 Вас тегнули в чате (' + unseen.length + ') — ' + (unseen[unseen.length-1].authorName || unseen[unseen.length-1].authorEmail);
+  var close = document.createElement('button'); close.className='close-x'; close.textContent='✕';
+  close.addEventListener('click', function(e){ e.stopPropagation(); markChatSeen(); });
+  banner.appendChild(text); banner.appendChild(close);
+  banner.classList.remove('hidden');
+  banner.onclick = function(){
+    markChatSeen();
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelector('.tab-btn[data-tab="chat"]').classList.add('active');
+    el('tab-tasks').classList.add('hidden'); el('tab-leads').classList.add('hidden'); el('tab-leadlist').classList.add('hidden');
+    el('tab-chat').classList.remove('hidden');
+    renderChatTab();
+  };
+}
+
+function markChatSeen(){
+  lastSeenChatAt = Date.now();
+  try{ localStorage.setItem('lastSeenChat:'+currentUser.uid, String(lastSeenChatAt)); }catch(e){}
+  el('notif-banner').classList.add('hidden');
+}
+
+/* ---------- DEBTS (личные, Firestore, realtime) ---------- */
+function currentYM(){ var d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+
+function subscribeDebts(){
+  var q = query(collection(db,'debts'), where('ownerId','==',currentUser.uid));
+  unsubDebts = onSnapshot(q, function(snap){
+    debts = [];
+    snap.forEach(function(d){ debts.push(Object.assign({id:d.id}, d.data())); });
+    if(personalSubtab === 'debts') renderDebtsView();
+    updateDeadlineBanner();
+  }, function(err){
+    console.error('debts load error', err);
+  });
+}
+
+function fillDebtCategorySelect(){
+  var sel = el('debt-category-select');
+  sel.innerHTML = '';
+  var cats = currentBoard === 'work' ? WORK_DEBT_CATEGORIES : PERSONAL_DEBT_CATEGORIES;
+  cats.forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+  var custom = document.createElement('option'); custom.value='__custom__'; custom.textContent='Другое…'; sel.appendChild(custom);
+}
+
+function renderDebtsView(){
+  var ym = currentYM();
+  var boardDebts = debts.filter(function(d){ return (d.board||'personal') === currentBoard; });
+  var recurring = boardDebts.filter(function(d){ return d.recurring; });
+  var onetime = boardDebts.filter(function(d){ return !d.recurring && !d.paid; });
+
+  var label = currentBoard === 'work' ? 'Оплата' : 'Долги';
+  el('debts-subtab-label').textContent = label;
+  el('debts-onetime-title').textContent = 'Текущий месяц';
+
+  var totals = {};
+  recurring.forEach(function(d){
+    var paidThisMonth = (d.paidMonths||[]).indexOf(ym) !== -1;
+    if(!paidThisMonth){ totals[d.currency] = (totals[d.currency]||0) + Number(d.amount||0); }
+  });
+  onetime.forEach(function(d){ totals[d.currency] = (totals[d.currency]||0) + Number(d.amount||0); });
+
+  var totalsEl = el('debts-totals');
+  totalsEl.innerHTML = '';
+  var keys = Object.keys(totals);
+  if(keys.length === 0){
+    var p = document.createElement('div'); p.className='debt-total-pill'; p.textContent = label + ' к оплате нет'; totalsEl.appendChild(p);
+  } else {
+    keys.forEach(function(cur){
+      var p = document.createElement('div'); p.className='debt-total-pill';
+      p.textContent = 'Итого ' + (cur==='USD'?'$':'₽') + ' ' + totals[cur].toFixed(2);
+      totalsEl.appendChild(p);
+    });
+  }
+
+  var recList = el('debts-recurring-list'); recList.innerHTML = '';
+  if(recurring.length === 0){ recList.innerHTML = '<div class="empty-col">Постоянных платежей нет</div>'; }
+  recurring.forEach(function(d){ recList.appendChild(renderDebtRow(d, true, ym)); });
+
+  var oneList = el('debts-onetime-list'); oneList.innerHTML = '';
+  if(onetime.length === 0){ oneList.innerHTML = '<div class="empty-col">На этот месяц записей нет</div>'; }
+  onetime.forEach(function(d){ oneList.appendChild(renderDebtRow(d, false, ym)); });
+}
+
+function renderDebtRow(d, isRecurring, ym){
+  var row = document.createElement('div'); row.className = 'debt-row';
+  var paidNow = isRecurring ? ((d.paidMonths||[]).indexOf(ym) !== -1) : !!d.paid;
+  if(paidNow) row.classList.add('paid');
+
+  var chk = document.createElement('input'); chk.type='checkbox'; chk.className='debt-check'; chk.checked = paidNow;
+  chk.addEventListener('change', function(){
+    if(isRecurring){
+      var months = (d.paidMonths||[]).slice();
+      if(chk.checked){ if(months.indexOf(ym)===-1) months.push(ym); }
+      else { months = months.filter(function(m){ return m!==ym; }); }
+      updateDoc(doc(db,'debts',d.id), { paidMonths: months });
+    } else {
+      updateDoc(doc(db,'debts',d.id), { paid: chk.checked });
+    }
+  });
+  row.appendChild(chk);
+
+  var main = document.createElement('div'); main.className='debt-main';
+  var cat = document.createElement('div'); cat.className='debt-cat'; cat.textContent = d.category || '—';
+  main.appendChild(cat);
+  var due = document.createElement('div'); due.className='debt-due';
+  due.textContent = isRecurring ? ('Каждое ' + d.dueDay + ' число') : ('Срок: ' + (d.dueDate || '—'));
+  main.appendChild(due);
+  row.appendChild(main);
+
+  var amt = document.createElement('div'); amt.className='debt-amount';
+  amt.textContent = (d.currency==='USD'?'$':'₽') + ' ' + Number(d.amount||0).toFixed(2);
+  row.appendChild(amt);
+
+  var del = document.createElement('button'); del.className='debt-del'; del.textContent='✕';
+  del.addEventListener('click', function(){ if(confirm('Удалить «'+(d.category||'')+'»?')) deleteDoc(doc(db,'debts',d.id)); });
+  row.appendChild(del);
+
+  return row;
+}
+
+function initDebts(){
+  fillDebtCategorySelect();
+  el('debt-category-select').addEventListener('change', function(){
+    el('debt-category-custom').classList.toggle('hidden', this.value !== '__custom__');
+  });
+  el('debt-recurring-chk').addEventListener('change', function(){
+    el('debt-day').classList.toggle('hidden', !this.checked);
+    el('debt-date').classList.toggle('hidden', this.checked);
+  });
+  el('debt-add-btn').addEventListener('click', function(){
+    var catSel = el('debt-category-select').value;
+    var category = catSel === '__custom__' ? el('debt-category-custom').value.trim() : catSel;
+    var amount = Number(el('debt-amount').value);
+    var currency = el('debt-currency').value;
+    var recurring = el('debt-recurring-chk').checked;
+    if(!category || !amount){ alert('Заполни категорию и сумму'); return; }
+    var payload = { ownerId: currentUser.uid, board: currentBoard, category: category, amount: amount, currency: currency, recurring: recurring, createdAt: serverTimestamp() };
+    if(recurring){
+      var day = Number(el('debt-day').value);
+      if(!day || day<1 || day>31){ alert('Укажи день месяца (1-31)'); return; }
+      payload.dueDay = day; payload.paidMonths = [];
+    } else {
+      if(!el('debt-date').value){ alert('Укажи дату'); return; }
+      payload.dueDate = el('debt-date').value; payload.paid = false;
+    }
+    addDoc(collection(db,'debts'), payload);
+    el('debt-amount').value=''; el('debt-category-custom').value=''; el('debt-day').value=''; el('debt-date').value='';
+  });
+}
+
+function initPersonalSubtabs(){
+  document.querySelectorAll('.subtab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.subtab-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      personalSubtab = btn.dataset.subtab;
+      el('personal-kanban-view').classList.toggle('hidden', personalSubtab !== 'kanban');
+      el('debts-view').classList.toggle('hidden', personalSubtab !== 'debts');
+      if(personalSubtab === 'debts'){ fillDebtCategorySelect(); renderDebtsView(); }
+    });
+  });
+}
+
+/* ---------- CALENDAR (внутренний, оверлей) ---------- */
+function openCalendar(){
+  calDate = new Date();
+  el('cal-overlay').classList.remove('hidden');
+  el('cal-day-detail').classList.add('hidden');
+  renderCalendarMonth();
+}
+function closeCalendar(){ el('cal-overlay').classList.add('hidden'); }
+
+function getItemsForDate(dateObj){
+  var y = dateObj.getFullYear(), m = dateObj.getMonth(), dd = dateObj.getDate();
+  var items = [];
+  tasks.forEach(function(t){
+    if(!t.deadline) return;
+    var td = new Date(t.deadline);
+    if(td.getFullYear()===y && td.getMonth()===m && td.getDate()===dd){
+      var col = taskColumns.filter(function(c){ return c.id===t.columnId; })[0];
+      items.push({ type:'task', label:t.title, sub:(col?col.board:'work')==='personal'?'Личное':'Рабочее', board:col?col.board:'work' });
+    }
+  });
+  var ym = y+'-'+String(m+1).padStart(2,'0');
+  debts.forEach(function(d){
+    var board = d.board || 'personal';
+    var boardLabel = board==='work' ? 'Оплата (Рабочее)' : 'Долг';
+    if(d.recurring && d.dueDay === dd){
+      var paidThisMonth = (d.paidMonths||[]).indexOf(ym) !== -1;
+      if(!paidThisMonth) items.push({ type:'debt', label:d.category, sub: boardLabel + ' · постоянный', board: board });
+    } else if(!d.recurring && d.dueDate){
+      var dd2 = new Date(d.dueDate);
+      if(dd2.getFullYear()===y && dd2.getMonth()===m && dd2.getDate()===dd && !d.paid){
+        items.push({ type:'debt', label:d.category, sub: boardLabel, board: board });
+      }
+    }
+  });
+  return items;
+}
+
+function renderCalendarMonth(){
+  var y = calDate.getFullYear(), m = calDate.getMonth();
+  var monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  el('cal-month-label').textContent = monthNames[m] + ' ' + y;
+
+  var grid = el('cal-grid'); grid.innerHTML = '';
+  ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(function(d){ var e=document.createElement('div'); e.className='cal-dow'; e.textContent=d; grid.appendChild(e); });
+
+  var firstDay = new Date(y, m, 1);
+  var startOffset = (firstDay.getDay() + 6) % 7; // понедельник = 0
+  var daysInMonth = new Date(y, m+1, 0).getDate();
+
+  for(var i=0;i<startOffset;i++){ var empty=document.createElement('div'); empty.className='cal-day empty'; grid.appendChild(empty); }
+
+  var today = new Date();
+  for(var day=1; day<=daysInMonth; day++){
+    var cell = document.createElement('div'); cell.className='cal-day';
+    if(today.getFullYear()===y && today.getMonth()===m && today.getDate()===day) cell.classList.add('today');
+    var num = document.createElement('div'); num.textContent = day; cell.appendChild(num);
+    var dateObj = new Date(y, m, day);
+    var items = getItemsForDate(dateObj);
+    if(items.length > 0){ var dot = document.createElement('div'); dot.className='dot'; cell.appendChild(dot); }
+    cell.addEventListener('click', function(dObj){ return function(){ renderDayDetail(dObj); }; }(dateObj));
+    grid.appendChild(cell);
+  }
+}
+
+function renderDayDetail(dateObj){
+  var detail = el('cal-day-detail');
+  detail.classList.remove('hidden');
+  detail.innerHTML = '';
+  var items = getItemsForDate(dateObj);
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var title = document.createElement('div'); title.style.fontWeight='700'; title.style.marginBottom='8px';
+  title.textContent = pad(dateObj.getDate())+'.'+pad(dateObj.getMonth()+1)+'.'+dateObj.getFullYear();
+  detail.appendChild(title);
+  if(items.length === 0){
+    var e = document.createElement('div'); e.className='empty-col'; e.textContent='На этот день ничего не запланировано';
+    detail.appendChild(e); return;
+  }
+  items.forEach(function(item){
+    var row = document.createElement('div'); row.className='cal-item';
+    var left = document.createElement('div');
+    var lbl = document.createElement('div'); lbl.textContent = item.label;
+    var sub = document.createElement('div'); sub.className='cal-item-tag'; sub.textContent = item.sub;
+    left.appendChild(lbl); left.appendChild(sub);
+    row.appendChild(left);
+    row.addEventListener('click', function(){
+      closeCalendar();
+      if(item.type === 'task'){
+        document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelector('.tab-btn[data-tab="'+item.board+'"]').classList.add('active');
+        el('tab-tasks').classList.remove('hidden'); el('tab-leads').classList.add('hidden'); el('tab-leadlist').classList.add('hidden'); el('tab-chat').classList.add('hidden');
+        currentBoard = item.board;
+        personalSubtab = 'kanban';
+        document.querySelectorAll('.subtab-btn').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelector('.subtab-btn[data-subtab="kanban"]').classList.add('active');
+        el('personal-kanban-view').classList.remove('hidden'); el('debts-view').classList.add('hidden');
+        renderTasksTab();
+      } else {
+        document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelector('.tab-btn[data-tab="'+item.board+'"]').classList.add('active');
+        el('tab-tasks').classList.remove('hidden'); el('tab-leads').classList.add('hidden'); el('tab-leadlist').classList.add('hidden'); el('tab-chat').classList.add('hidden');
+        currentBoard = item.board;
+        document.querySelectorAll('.subtab-btn').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelector('.subtab-btn[data-subtab="debts"]').classList.add('active');
+        personalSubtab = 'debts';
+        el('personal-kanban-view').classList.add('hidden'); el('debts-view').classList.remove('hidden');
+        fillDebtCategorySelect();
+        renderDebtsView();
+      }
+    });
+    detail.appendChild(row);
+  });
+}
+
+function initCalendar(){
+  el('calendar-open-btn').addEventListener('click', openCalendar);
+  el('cal-close-btn').addEventListener('click', closeCalendar);
+  el('cal-overlay').addEventListener('click', function(e){ if(e.target === el('cal-overlay')) closeCalendar(); });
+  el('cal-prev-btn').addEventListener('click', function(){ calDate = new Date(calDate.getFullYear(), calDate.getMonth()-1, 1); el('cal-day-detail').classList.add('hidden'); renderCalendarMonth(); });
+  el('cal-next-btn').addEventListener('click', function(){ calDate = new Date(calDate.getFullYear(), calDate.getMonth()+1, 1); el('cal-day-detail').classList.add('hidden'); renderCalendarMonth(); });
+}
+
+/* ---------- DEADLINE BANNER (задачи + долги, отдельно от чат-баннера) ---------- */
+function updateDeadlineBanner(){
+  var banner = el('deadline-banner');
+  var items = []; // { text, rankMs } rankMs — чем меньше, тем срочнее
+  var now = Date.now();
+  var today = new Date();
+
+  function isSameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+  tasks.forEach(function(t){
+    if(t.done || !t.deadline) return;
+    var dl = new Date(t.deadline);
+    var msUntil = dl.getTime() - now;
+    var label = null;
+    if(msUntil < 0) label = 'просрочено';
+    else if(msUntil <= 15*60000) label = 'через 15 мин';
+    else if(msUntil <= 60*60000) label = 'через час';
+    else if(isSameDay(dl, today)) label = 'сегодня';
+    if(label) items.push({ text: t.title + ' (' + label + ')', rankMs: msUntil });
+  });
+
+  var ym = currentYM();
+  debts.forEach(function(d){
+    var boardTag = d.board === 'work' ? ' · Оплата' : ' · Долг';
+    var dueDateObj = null, isPaid = false;
+    if(d.recurring){
+      isPaid = (d.paidMonths||[]).indexOf(ym) !== -1;
+      if(isPaid) return;
+      dueDateObj = new Date(today.getFullYear(), today.getMonth(), d.dueDay);
+    } else {
+      if(d.paid || !d.dueDate) return;
+      dueDateObj = new Date(d.dueDate);
+    }
+    var daysUntil = Math.round((new Date(dueDateObj.getFullYear(),dueDateObj.getMonth(),dueDateObj.getDate()) - new Date(today.getFullYear(),today.getMonth(),today.getDate())) / 86400000);
+    var label = null;
+    if(daysUntil < 0) label = 'просрочено';
+    else if(daysUntil === 0) label = 'сегодня';
+    else if(daysUntil <= 7) label = 'через ' + daysUntil + ' дн.';
+    if(label) items.push({ text: d.category + boardTag + ' (' + label + ')', rankMs: daysUntil*86400000 });
+  });
+
+  if(items.length === 0){ banner.classList.add('hidden'); return; }
+  items.sort(function(a,b){ return a.rankMs - b.rankMs; });
+
+  banner.innerHTML = '';
+  var text = document.createElement('span');
+  text.textContent = '⚠ Внимание (' + items.length + '): ' + items.slice(0,3).map(function(i){return i.text;}).join(', ') + (items.length>3?'…':'');
+  var close = document.createElement('button'); close.className='close-x'; close.textContent='✕';
+  close.addEventListener('click', function(e){ e.stopPropagation(); banner.classList.add('hidden'); });
+  banner.appendChild(text); banner.appendChild(close);
+  banner.classList.remove('hidden');
+}
+
+/* ---------- LEAD DETAIL (комментарии + скриншоты) ---------- */
+var DETAIL_FIELD_LIST = [
+  ['Сегмент','segment'], ['Priority','priorityLabel'], ['Score','leadScore'], ['Next action','stage'],
+  ['Website','website'], ['Country/HQ','countryHQ'], ['Assigned sender','assignedSender'],
+  ['List (GetSales)','listGetSales'], ['Last verified','lastVerified'], ['Flag','flag'],
+  ['Position','position'], ['Email','email']
+];
+
+function openLeadDetail(leadId){
+  currentDetailLeadId = leadId;
+  var lead = leads.filter(function(l){ return l.id === leadId; })[0];
+  if(!lead) return;
+  el('detail-company-name').textContent = lead.companyName || '(без названия)';
+
+  var fieldsEl = el('detail-fields'); fieldsEl.innerHTML = '';
+  DETAIL_FIELD_LIST.forEach(function(pair){
+    var label = pair[0], key = pair[1];
+    var value = key === 'priorityLabel' ? ((LEAD_PRIORITIES.filter(function(p){return p.key===lead.priority;})[0]||{}).label||'') : lead[key];
+    if(!value) return;
+    var f = document.createElement('div'); f.className='detail-field';
+    var l = document.createElement('span'); l.className='lbl'; l.textContent=label;
+    var v = document.createElement('div'); v.className='val'; v.textContent=value;
+    f.appendChild(l); f.appendChild(v);
+    fieldsEl.appendChild(f);
+  });
+  if(lead.linkedinUrl){
+    var f2 = document.createElement('div'); f2.className='detail-field';
+    var l2 = document.createElement('span'); l2.className='lbl'; l2.textContent='LinkedIn';
+    var v2 = document.createElement('a'); v2.className='val'; v2.href=lead.linkedinUrl; v2.target='_blank'; v2.rel='noopener'; v2.textContent='Открыть профиль'; v2.style.color='var(--sky)';
+    f2.appendChild(l2); f2.appendChild(v2);
+    fieldsEl.appendChild(f2);
+  }
+
+  el('lead-detail-overlay').classList.remove('hidden');
+  clearCommentForm();
+  subscribeLeadComments(leadId);
+}
+
+function closeLeadDetail(){
+  el('lead-detail-overlay').classList.add('hidden');
+  if(unsubComments){ unsubComments(); unsubComments = null; }
+  currentDetailLeadId = null;
+  leadComments = [];
+}
+
+function subscribeLeadComments(leadId){
+  if(unsubComments){ unsubComments(); unsubComments = null; }
+  unsubComments = onSnapshot(collection(db,'leads',leadId,'comments'), function(snap){
+    leadComments = [];
+    snap.forEach(function(d){ leadComments.push(Object.assign({id:d.id}, d.data())); });
+    leadComments.sort(function(a,b){
+      var at = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+      var bt = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+      return at - bt;
+    });
+    renderComments();
+  }, function(err){
+    el('comment-list').innerHTML = '';
+    var e = document.createElement('div'); e.className='empty-col'; e.textContent = 'Не удалось загрузить комментарии: ' + err.message;
+    el('comment-list').appendChild(e);
+  });
+}
+
+function renderComments(){
+  var list = el('comment-list'); list.innerHTML = '';
+  if(leadComments.length === 0){
+    var e = document.createElement('div'); e.className='empty-col'; e.textContent='Пока нет комментариев';
+    list.appendChild(e); return;
+  }
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  leadComments.forEach(function(c){
+    var item = document.createElement('div'); item.className='comment-item';
+    var author = document.createElement('div'); author.className='c-author';
+    var d = c.createdAt && c.createdAt.toDate ? c.createdAt.toDate() : null;
+    var timeStr = d ? (pad(d.getDate())+'.'+pad(d.getMonth()+1)+' '+pad(d.getHours())+':'+pad(d.getMinutes())) : '';
+    author.textContent = (c.authorName || c.authorEmail||'—') + (timeStr ? ' · ' + timeStr : '');
+    item.appendChild(author);
+    if(c.text){ var t = document.createElement('div'); t.className='c-text'; t.textContent = c.text; item.appendChild(t); }
+    list.appendChild(item);
+  });
+  list.scrollTop = list.scrollHeight;
+}
+
+function clearCommentForm(){
+  el('comment-text').value = '';
+}
+
+async function submitComment(){
+  var text = el('comment-text').value.trim();
+  if(!text){ return; }
+  if(!currentDetailLeadId) return;
+  var payload = { text: text, authorEmail: currentUser.email, authorName: currentDisplayName(), createdAt: serverTimestamp() };
+  try{
+    await addDoc(collection(db,'leads',currentDetailLeadId,'comments'), payload);
+    clearCommentForm();
+  }catch(err){
+    alert('Не удалось сохранить: ' + err.message);
+  }
+}
+
+function initLeadDetail(){
+  el('detail-close-btn').addEventListener('click', closeLeadDetail);
+  el('lead-detail-overlay').addEventListener('click', function(e){ if(e.target === el('lead-detail-overlay')) closeLeadDetail(); });
+  el('comment-submit-btn').addEventListener('click', submitComment);
+}
+
+/* ---------- REPORTS (общие, открываются по иконке в шапке) ---------- */
+function openReportsOverlay(){
+  el('reports-overlay').classList.remove('hidden');
+  el('report-text').value = '';
+  subscribeReports();
+  subscribeReportLinks();
+  subscribeWeekTasks();
+  subscribeLeadCalc();
+}
+function closeReportsOverlay(){
+  el('reports-overlay').classList.add('hidden');
+  if(unsubReports){ unsubReports(); unsubReports = null; }
+  if(unsubReportLinks){ unsubReportLinks(); unsubReportLinks = null; }
+  if(unsubWeekTasks){ unsubWeekTasks(); unsubWeekTasks = null; }
+  if(unsubLeadCalc){ unsubLeadCalc(); unsubLeadCalc = null; }
+}
+
+function subscribeReportLinks(){
+  if(unsubReportLinks){ unsubReportLinks(); unsubReportLinks = null; }
+  unsubReportLinks = onSnapshot(doc(db,'settings','reportLinks'), function(snap){
+    renderReportLinks(snap.exists() ? snap.data() : {});
+  }, function(err){
+    console.error('report links load error', err);
+    renderReportLinks({});
+  });
+}
+
+function renderReportLinks(data){
+  var row = el('report-links-row');
+  row.innerHTML = '';
+  REPORT_LINK_DEFS.forEach(function(def){
+    var url = data[def.key] || '';
+    var pill = document.createElement('div'); pill.className = 'report-link-pill';
+    var iconSpan = document.createElement('span'); iconSpan.textContent = def.icon;
+    pill.appendChild(iconSpan);
+    if(url){
+      var a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = def.label;
+      pill.appendChild(a);
+    } else {
+      var span = document.createElement('span'); span.className='no-link'; span.textContent = def.label + ' — не задано';
+      pill.appendChild(span);
+    }
+    var editBtn = document.createElement('button'); editBtn.className='icon-btn'; editBtn.textContent='✎'; editBtn.title='Изменить ссылку';
+    editBtn.addEventListener('click', function(){ editReportLink(def.key, def.label, url); });
+    pill.appendChild(editBtn);
+    row.appendChild(pill);
+  });
+}
+
+async function editReportLink(key, label, currentUrl){
+  var newUrl = window.prompt('Ссылка на ' + label + ':', currentUrl || '');
+  if(newUrl === null) return;
+  newUrl = newUrl.trim();
+  try{
+    var payload = {};
+    payload[key] = newUrl;
+    await setDoc(doc(db,'settings','reportLinks'), payload, { merge: true });
+  }catch(err){
+    alert('Не удалось сохранить ссылку: ' + err.message);
+  }
+}
+
+function subscribeReports(){
+  if(unsubReports){ unsubReports(); unsubReports = null; }
+  unsubReports = onSnapshot(collection(db,'reports'), function(snap){
+    reports = [];
+    snap.forEach(function(d){ reports.push(Object.assign({id:d.id}, d.data())); });
+    reports.sort(function(a,b){
+      var at = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+      var bt = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+      return bt - at; // новые сверху
+    });
+    renderReportsList();
+  }, function(err){
+    el('reports-list').innerHTML = '';
+    var e = document.createElement('div'); e.className='empty-col'; e.textContent = 'Не удалось загрузить отчёты: ' + err.message;
+    el('reports-list').appendChild(e);
+  });
+}
+
+function renderReportsList(){
+  var list = el('reports-list'); list.innerHTML = '';
+  if(reports.length === 0){
+    var e = document.createElement('div'); e.className='empty-col'; e.textContent='Пока нет записей';
+    list.appendChild(e); return;
+  }
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  reports.forEach(function(r){
+    var item = document.createElement('div'); item.className='comment-item';
+    var author = document.createElement('div'); author.className='c-author';
+    var d = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate() : null;
+    var timeStr = d ? (pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes())) : '';
+    author.textContent = (r.authorName || r.authorEmail||'—') + (timeStr ? ' · ' + timeStr : '');
+    item.appendChild(author);
+    if(r.text){ var t = document.createElement('div'); t.className='c-text'; t.textContent = r.text; item.appendChild(t); }
+    list.appendChild(item);
+  });
+}
+
+async function submitReport(){
+  var text = el('report-text').value.trim();
+  if(!text) return;
+  var payload = { text: text, authorEmail: currentUser.email, authorName: currentDisplayName(), createdAt: serverTimestamp() };
+  try{
+    await addDoc(collection(db,'reports'), payload);
+    el('report-text').value = '';
+  }catch(err){
+    alert('Не удалось опубликовать: ' + err.message);
+  }
+}
+
+function initReports(){
+  el('reports-open-btn').addEventListener('click', openReportsOverlay);
+  el('reports-close-btn').addEventListener('click', closeReportsOverlay);
+  el('reports-overlay').addEventListener('click', function(e){ if(e.target === el('reports-overlay')) closeReportsOverlay(); });
+  el('report-submit-btn').addEventListener('click', submitReport);
+}
+
+/* ---------- ДОСТУПЫ (общие, Firestore, realtime) ---------- */
+var accessLinks = [];
+var unsubAccess = null;
+
+function openAccessOverlay(){
+  el('access-overlay').classList.remove('hidden');
+  subscribeAccess();
+}
+function closeAccessOverlay(){
+  el('access-overlay').classList.add('hidden');
+  if(unsubAccess){ unsubAccess(); unsubAccess = null; }
+}
+
+function subscribeAccess(){
+  if(unsubAccess){ unsubAccess(); unsubAccess = null; }
+  unsubAccess = onSnapshot(collection(db,'accessLinks'), function(snap){
+    accessLinks = [];
+    snap.forEach(function(d){ accessLinks.push(Object.assign({id:d.id}, d.data())); });
+    accessLinks.sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+    renderAccessList();
+  }, function(err){
+    var list = el('access-list'); list.innerHTML = '';
+    var e = document.createElement('div'); e.className='empty-col'; e.textContent = 'Не удалось загрузить: ' + err.message;
+    list.appendChild(e);
+  });
+}
+
+function renderAccessList(){
+  var list = el('access-list'); list.innerHTML = '';
+  if(accessLinks.length === 0){
+    var e = document.createElement('div'); e.className='empty-col'; e.textContent = 'Пока ничего не добавлено';
+    list.appendChild(e); return;
+  }
+  accessLinks.forEach(function(item){
+    var row = document.createElement('div'); row.className = 'access-row';
+    var main = document.createElement('div'); main.className='access-main';
+    var name = document.createElement('div'); name.className='access-name'; name.textContent = item.name || '—';
+    main.appendChild(name);
+    if(item.note){ var note = document.createElement('div'); note.className='access-note'; note.textContent = item.note; main.appendChild(note); }
+    row.appendChild(main);
+    if(item.url){
+      var a = document.createElement('a'); a.href = item.url; a.target='_blank'; a.rel='noopener'; a.textContent = 'Открыть';
+      row.appendChild(a);
+    }
+    var del = document.createElement('button'); del.className='debt-del'; del.textContent='✕'; del.title='Удалить';
+    del.addEventListener('click', function(){ if(confirm('Удалить «'+(item.name||'')+'»?')) deleteDoc(doc(db,'accessLinks',item.id)); });
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+function initAccess(){
+  el('access-open-btn').addEventListener('click', openAccessOverlay);
+  el('access-close-btn').addEventListener('click', closeAccessOverlay);
+  el('access-overlay').addEventListener('click', function(e){ if(e.target === el('access-overlay')) closeAccessOverlay(); });
+  el('access-add-btn').addEventListener('click', function(){
+    var name = el('access-name-input').value.trim();
+    var url = el('access-url-input').value.trim();
+    var note = el('access-note-input').value.trim();
+    if(!name){ alert('Укажи название инструмента'); return; }
+    addDoc(collection(db,'accessLinks'), { name: name, url: url, note: note, createdAt: serverTimestamp(), createdBy: currentUser.email });
+    el('access-name-input').value=''; el('access-url-input').value=''; el('access-note-input').value='';
+  });
+}
+
+/* ---------- НЕДЕЛЬНАЯ СЕТКА ЗАДАЧ (Пн-Пт, общая) ---------- */
+var WEEKDAYS = [
+  { key:'monday', label:'Пн' }, { key:'tuesday', label:'Вт' }, { key:'wednesday', label:'Ср' },
+  { key:'thursday', label:'Чт' }, { key:'friday', label:'Пт' }
+];
+var weekTasksData = {};
+var unsubWeekTasks = null;
+
+function subscribeWeekTasks(){
+  if(unsubWeekTasks){ unsubWeekTasks(); unsubWeekTasks = null; }
+  unsubWeekTasks = onSnapshot(doc(db,'settings','weekTasks'), function(snap){
+    weekTasksData = snap.exists() ? snap.data() : {};
+    renderWeekGrid();
+  }, function(err){ console.error('week tasks load error', err); });
+}
+
+function renderWeekGrid(){
+  var grid = el('week-grid');
+  grid.innerHTML = '';
+  WEEKDAYS.forEach(function(day){
+    var col = document.createElement('div'); col.className = 'week-col';
+    var title = document.createElement('div'); title.className='week-col-title'; title.textContent = day.label;
+    col.appendChild(title);
+
+    var tasksWrap = document.createElement('div');
+    var tasks = weekTasksData[day.key] || [];
+    tasks.forEach(function(taskText){
+      var row = document.createElement('div'); row.className='week-task';
+      var span = document.createElement('span'); span.textContent = taskText;
+      var del = document.createElement('button'); del.textContent='✕';
+      del.addEventListener('click', function(){
+        updateDoc(doc(db,'settings','weekTasks'), { [day.key]: arrayRemove(taskText) }).catch(function(){
+          setDoc(doc(db,'settings','weekTasks'), { [day.key]: [] }, { merge:true });
+        });
+      });
+      row.appendChild(span); row.appendChild(del);
+      tasksWrap.appendChild(row);
+    });
+    col.appendChild(tasksWrap);
+
+    var addRow = document.createElement('div'); addRow.className='week-add-row';
+    var input = document.createElement('input'); input.type='text'; input.placeholder='+ задача';
+    var addBtn = document.createElement('button'); addBtn.textContent='+';
+    function submit(){
+      var v = input.value.trim();
+      if(!v) return;
+      setDoc(doc(db,'settings','weekTasks'), { [day.key]: arrayUnion(v) }, { merge:true });
+      input.value='';
+    }
+    addBtn.addEventListener('click', submit);
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+    addRow.appendChild(input); addRow.appendChild(addBtn);
+    col.appendChild(addRow);
+
+    grid.appendChild(col);
+  });
+}
+
+/* ---------- КАЛЬКУЛЯТОР ЛИДОВ (общий, Firestore) ---------- */
+var LEAD_CALC_SENDERS = ['Leonid Khlibov','Maria Khlibova','Noel Boeva'];
+var leadCalcData = null;
+var unsubLeadCalc = null;
+var leadCalcSaveTimer = null;
+
+function defaultLeadCalcData(){
+  return {
+    sharedLimit: 0,
+    senders: LEAD_CALC_SENDERS.map(function(name){
+      return { senderName: name, lists: [0,1,2,3].map(function(){ return { name:'', currentLeads: 0 }; }) };
+    })
+  };
+}
+
+function subscribeLeadCalc(){
+  if(unsubLeadCalc){ unsubLeadCalc(); unsubLeadCalc = null; }
+  unsubLeadCalc = onSnapshot(doc(db,'settings','leadCalc'), function(snap){
+    leadCalcData = snap.exists() ? snap.data() : defaultLeadCalcData();
+    if(!leadCalcData.senders || leadCalcData.senders.length !== 3) leadCalcData = defaultLeadCalcData();
+    renderLeadCalc();
+  }, function(err){ console.error('lead calc load error', err); });
+}
+
+// Дней до ближайшего воскресенья включительно (по текущему лимиту), затем +2 дня по новому лимиту.
+// Работает для любого дня недели, не только для понедельника.
+function daysUntilSundayIncl(){
+  var dow = new Date().getDay(); // 0=вс,1=пн,...,6=сб
+  return dow === 0 ? 1 : (8 - dow);
+}
+
+function computeLeadsToAdd(currentLeads, sharedLimit){
+  var daysAtCurrent = daysUntilSundayIncl();
+  var daysAtNew = 2;
+  var perDayCurrent = sharedLimit / 4;
+  var perDayNew = (sharedLimit + 3) / 4;
+  var totalNeeded = daysAtCurrent * perDayCurrent + daysAtNew * perDayNew;
+  var toAdd = Math.ceil(totalNeeded - currentLeads);
+  return { toAdd: Math.max(0, toAdd), totalNeeded: totalNeeded };
+}
+
+function saveLeadCalc(){
+  if(leadCalcSaveTimer) clearTimeout(leadCalcSaveTimer);
+  leadCalcSaveTimer = setTimeout(function(){
+    setDoc(doc(db,'settings','leadCalc'), leadCalcData, { merge: true });
+  }, 500);
+}
+
+function renderLeadCalc(){
+  var box = el('lead-calc-box');
+  box.innerHTML = '';
+
+  var limitRow = document.createElement('div'); limitRow.className = 'calc-limit-row';
+  var limitLabel = document.createElement('span'); limitLabel.textContent = 'Общий лимит коннектов на эту неделю:';
+  limitLabel.style.fontSize = '12.5px';
+  var limitInput = document.createElement('input'); limitInput.type='number'; limitInput.min='0';
+  limitInput.value = leadCalcData.sharedLimit || 0;
+  limitInput.addEventListener('input', function(){
+    leadCalcData.sharedLimit = Number(limitInput.value) || 0;
+    renderLeadCalc();
+    saveLeadCalc();
+  });
+  limitRow.appendChild(limitLabel); limitRow.appendChild(limitInput);
+  box.appendChild(limitRow);
+
+  var sendersWrap = document.createElement('div'); sendersWrap.className = 'calc-senders';
+  leadCalcData.senders.forEach(function(sender, sIdx){
+    var card = document.createElement('div'); card.className='calc-sender-card';
+    var name = document.createElement('div'); name.className='calc-sender-name'; name.textContent = sender.senderName;
+    card.appendChild(name);
+
+    sender.lists.forEach(function(listItem, lIdx){
+      var row = document.createElement('div'); row.className='calc-list-row';
+
+      var nameInput = document.createElement('input'); nameInput.className='calc-name'; nameInput.type='text';
+      nameInput.placeholder = 'Название списка ' + (lIdx+1);
+      nameInput.value = listItem.name || '';
+      nameInput.addEventListener('change', function(){
+        leadCalcData.senders[sIdx].lists[lIdx].name = nameInput.value.trim();
+        saveLeadCalc();
+      });
+      row.appendChild(nameInput);
+
+      var nums = document.createElement('div'); nums.className='calc-nums';
+      var leadsInput = document.createElement('input'); leadsInput.className='calc-leads'; leadsInput.type='number'; leadsInput.min='0';
+      leadsInput.title = 'Лидов сейчас в списке';
+      leadsInput.value = listItem.currentLeads || 0;
+      leadsInput.addEventListener('input', function(){
+        leadCalcData.senders[sIdx].lists[lIdx].currentLeads = Number(leadsInput.value) || 0;
+        var res = computeLeadsToAdd(leadCalcData.senders[sIdx].lists[lIdx].currentLeads, leadCalcData.sharedLimit);
+        addValEl.textContent = res.toAdd;
+        addValEl.className = 'calc-add-value ' + (res.toAdd > 0 ? 'pos' : 'zero');
+        saveLeadCalc();
+      });
+      nums.appendChild(leadsInput);
+
+      var addLbl = document.createElement('span'); addLbl.className='calc-add-label'; addLbl.textContent='→ добавить:';
+      nums.appendChild(addLbl);
+      var res0 = computeLeadsToAdd(listItem.currentLeads || 0, leadCalcData.sharedLimit || 0);
+      var addValEl = document.createElement('span'); addValEl.className = 'calc-add-value ' + (res0.toAdd > 0 ? 'pos' : 'zero'); addValEl.textContent = res0.toAdd;
+      nums.appendChild(addValEl);
+
+      row.appendChild(nums);
+      card.appendChild(row);
+    });
+
+    sendersWrap.appendChild(card);
+  });
+  box.appendChild(sendersWrap);
+
+  var note = document.createElement('div'); note.className='calc-note';
+  var d = daysUntilSundayIncl();
+  note.textContent = 'Расчёт: ' + d + ' дн. по текущему лимиту (' + (leadCalcData.sharedLimit||0) + ') + 2 дн. по новому (' + ((leadCalcData.sharedLimit||0)+3) + ', с ближайшего понедельника). Лимит поровну на 4 списка сендера.';
+  box.appendChild(note);
+}
+
+/* ---------- LEAD EDIT (из вкладки Список) ---------- */
+var currentEditLeadId = null;
+
+function openLeadEdit(leadId){
+  var lead = leads.filter(function(l){ return l.id === leadId; })[0];
+  if(!lead) return;
+  currentEditLeadId = leadId;
+  var c = el('edit-fields-container');
+  c.innerHTML = '';
+
+  function textField(labelText, key, type){
+    var wrap = document.createElement('div');
+    var input = document.createElement('input');
+    input.type = type || 'text';
+    input.placeholder = labelText;
+    input.id = 'edit-f-' + key;
+    input.value = lead[key] != null ? lead[key] : '';
+    wrap.appendChild(input);
+    c.appendChild(wrap);
+  }
+  function selectField(labelText, key, options){
+    var wrap = document.createElement('div');
+    var sel = document.createElement('select');
+    sel.id = 'edit-f-' + key;
+    var ph = document.createElement('option'); ph.value=''; ph.textContent = labelText; sel.appendChild(ph);
+    options.forEach(function(opt){
+      var val = typeof opt === 'object' ? opt.key : opt;
+      var lbl = typeof opt === 'object' ? opt.label : opt;
+      var o = document.createElement('option'); o.value = val; o.textContent = lbl;
+      if(lead[key] === val) o.selected = true;
+      sel.appendChild(o);
+    });
+    wrap.appendChild(sel);
+    c.appendChild(wrap);
+  }
+
+  var row1 = document.createElement('div'); row1.className='row2';
+  var ci = document.createElement('input'); ci.id='edit-f-companyName'; ci.placeholder='Компания'; ci.value=lead.companyName||''; row1.appendChild(ci);
+  var wi = document.createElement('input'); wi.id='edit-f-website'; wi.placeholder='Website'; wi.value=lead.website||''; row1.appendChild(wi);
+  c.appendChild(row1);
+
+  var row2 = document.createElement('div'); row2.className='row2';
+  var coi = document.createElement('input'); coi.id='edit-f-countryHQ'; coi.placeholder='Country/HQ'; coi.value=lead.countryHQ||''; row2.appendChild(coi);
+  var segSel = document.createElement('select'); segSel.id='edit-f-segment';
+  var segPh = document.createElement('option'); segPh.value=''; segPh.textContent='Сегмент'; segSel.appendChild(segPh);
+  SEGMENTS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; if(lead.segment===s)o.selected=true; segSel.appendChild(o); });
+  row2.appendChild(segSel);
+  c.appendChild(row2);
+
+  var row3 = document.createElement('div'); row3.className='row2';
+  var prSel = document.createElement('select'); prSel.id='edit-f-priority';
+  var prPh = document.createElement('option'); prPh.value=''; prPh.textContent='Priority'; prSel.appendChild(prPh);
+  LEAD_PRIORITIES.forEach(function(p){ var o=document.createElement('option'); o.value=p.key; o.textContent=p.label; if(lead.priority===p.key)o.selected=true; prSel.appendChild(o); });
+  row3.appendChild(prSel);
+  var scoreI = document.createElement('input'); scoreI.id='edit-f-leadScore'; scoreI.type='number'; scoreI.placeholder='Lead score'; scoreI.value = lead.leadScore!=null?lead.leadScore:''; row3.appendChild(scoreI);
+  c.appendChild(row3);
+
+  var row4 = document.createElement('div'); row4.className='row2';
+  var srI = document.createElement('input'); srI.id='edit-f-scoreReason'; srI.placeholder='Score reason'; srI.value=lead.scoreReason||''; row4.appendChild(srI);
+  var phI = document.createElement('input'); phI.id='edit-f-painHypothesis'; phI.placeholder='Pain hypothesis'; phI.value=lead.painHypothesis||''; row4.appendChild(phI);
+  c.appendChild(row4);
+
+  var row5 = document.createElement('div'); row5.className='row2';
+  var cnI = document.createElement('input'); cnI.id='edit-f-contactName'; cnI.placeholder='Contact name'; cnI.value=lead.contactName||''; row5.appendChild(cnI);
+  var posI = document.createElement('input'); posI.id='edit-f-position'; posI.placeholder='Position/Department'; posI.value=lead.position||''; row5.appendChild(posI);
+  c.appendChild(row5);
+
+  var row6 = document.createElement('div'); row6.className='row2';
+  var emI = document.createElement('input'); emI.id='edit-f-email'; emI.placeholder='Email'; emI.value=lead.email||''; row6.appendChild(emI);
+  var liI = document.createElement('input'); liI.id='edit-f-linkedinUrl'; liI.placeholder='LinkedIn URL'; liI.value=lead.linkedinUrl||''; row6.appendChild(liI);
+  c.appendChild(row6);
+
+  var row7 = document.createElement('div'); row7.className='row2';
+  var lgI = document.createElement('input'); lgI.id='edit-f-listGetSales'; lgI.placeholder='List (GetSales)'; lgI.value=lead.listGetSales||''; row7.appendChild(lgI);
+  var asSel = document.createElement('select'); asSel.id='edit-f-assignedSender';
+  var asPh = document.createElement('option'); asPh.value=''; asPh.textContent='Assigned sender'; asSel.appendChild(asPh);
+  SENDERS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; if(lead.assignedSender===s)o.selected=true; asSel.appendChild(o); });
+  row7.appendChild(asSel);
+  c.appendChild(row7);
+
+  var row8 = document.createElement('div'); row8.className='row2';
+  var lvI = document.createElement('input'); lvI.id='edit-f-lastVerified'; lvI.type='date'; lvI.value=lead.lastVerified||''; row8.appendChild(lvI);
+  var flSel = document.createElement('select'); flSel.id='edit-f-flag';
+  var flPh = document.createElement('option'); flPh.value=''; flPh.textContent='Flag'; flSel.appendChild(flPh);
+  FLAGS.forEach(function(f){ var o=document.createElement('option'); o.value=f; o.textContent=f; if(lead.flag===f)o.selected=true; flSel.appendChild(o); });
+  row8.appendChild(flSel);
+  c.appendChild(row8);
+
+  var row9 = document.createElement('div'); row9.className='row2';
+  var stSel = document.createElement('select'); stSel.id='edit-f-stage';
+  STAGES.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; if(lead.stage===s)o.selected=true; stSel.appendChild(o); });
+  row9.appendChild(stSel);
+  var suI = document.createElement('input'); suI.id='edit-f-sourceUrl'; suI.placeholder='Source URL'; suI.value=lead.sourceUrl||''; row9.appendChild(suI);
+  c.appendChild(row9);
+
+  el('lead-edit-overlay').classList.remove('hidden');
+}
+
+function closeLeadEdit(){
+  el('lead-edit-overlay').classList.add('hidden');
+  currentEditLeadId = null;
+}
+
+function saveLeadEdit(){
+  if(!currentEditLeadId) return;
+  var keys = ['companyName','website','countryHQ','segment','priority','leadScore','scoreReason','painHypothesis','contactName','position','email','linkedinUrl','listGetSales','assignedSender','lastVerified','flag','stage','sourceUrl'];
+  var payload = {};
+  keys.forEach(function(k){
+    var elm = el('edit-f-' + k);
+    if(!elm) return;
+    var v = elm.value;
+    payload[k] = (k === 'leadScore') ? (v ? Number(v) : null) : v;
+  });
+  if(!payload.companyName){ alert('Компания обязательна'); return; }
+  updateDoc(doc(db,'leads',currentEditLeadId), payload).then(function(){
+    closeLeadEdit();
+  }).catch(function(err){ alert('Не удалось сохранить: ' + err.message); });
+}
+
+function initLeadEdit(){
+  el('edit-close-btn').addEventListener('click', closeLeadEdit);
+  el('edit-cancel-btn').addEventListener('click', closeLeadEdit);
+  el('edit-save-btn').addEventListener('click', saveLeadEdit);
+}
+
+/* ---------- WIRING ---------- */
+function initAuthUI(){
+  el('auth-submit-btn').addEventListener('click', handleAuthSubmit);
+  el('auth-password').addEventListener('keydown', function(e){ if(e.key==='Enter') handleAuthSubmit(); });
+  el('auth-switch-btn').addEventListener('click', function(){ setAuthMode(authMode==='login'?'register':'login'); });
+  el('verify-refresh-btn').addEventListener('click', handleVerifyRefresh);
+  el('verify-signout-btn').addEventListener('click', function(){ signOut(auth); });
+  el('signout-btn').addEventListener('click', function(){ signOut(auth); });
+  el('edit-name-btn').addEventListener('click', changeMyDisplayName);
+  setAuthMode('login');
+}
+
+function initTabs(){
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      var tab = btn.dataset.tab;
+      el('tab-tasks').classList.add('hidden');
+      el('tab-leads').classList.add('hidden');
+      el('tab-leadlist').classList.add('hidden');
+      el('tab-chat').classList.add('hidden');
+      if(tab === 'personal' || tab === 'work'){
+        currentBoard = tab;
+        el('tab-tasks').classList.remove('hidden');
+        el('personal-kanban-view').classList.toggle('hidden', personalSubtab !== 'kanban');
+        el('debts-view').classList.toggle('hidden', personalSubtab !== 'debts');
+        if(personalSubtab === 'debts'){
+          fillDebtCategorySelect();
+          renderDebtsView();
+        } else {
+          renderTasksTab();
+        }
+      } else if(tab === 'leads'){
+        el('tab-leads').classList.remove('hidden');
+      } else if(tab === 'leadlist'){
+        el('tab-leadlist').classList.remove('hidden');
+        renderLeadListTab();
+      } else if(tab === 'chat'){
+        el('tab-chat').classList.remove('hidden');
+        markChatSeen();
+        renderChatTab();
+      }
+    });
+  });
+}
+
+var mentionActive = false;
+var mentionStartPos = -1;
+
+function updateMentionDropdown(){
+  var input = el('chat-input');
+  var dd = el('mention-dropdown');
+  var cursorPos = input.selectionStart;
+  var textBefore = input.value.slice(0, cursorPos);
+  var match = textBefore.match(new RegExp('@([A-Za-zА-Яа-яЁё0-9_-]*)$'));
+  if(!match){ dd.classList.add('hidden'); mentionActive = false; return; }
+  mentionActive = true;
+  mentionStartPos = cursorPos - match[0].length;
+  var partial = match[1].toLowerCase();
+  var matches = knownUsers.filter(function(u){
+    return u.uid !== currentUser.uid && (u.displayName||'').toLowerCase().indexOf(partial) === 0;
+  });
+  if(matches.length === 0){ dd.classList.add('hidden'); return; }
+  dd.innerHTML = '';
+  matches.forEach(function(u){
+    var item = document.createElement('div'); item.className='mention-dropdown-item'; item.textContent = u.displayName;
+    item.addEventListener('mousedown', function(e){
+      e.preventDefault();
+      var before = input.value.slice(0, mentionStartPos);
+      var after = input.value.slice(cursorPos);
+      input.value = before + '@' + u.displayName + ' ' + after;
+      dd.classList.add('hidden');
+      input.focus();
+    });
+    dd.appendChild(item);
+  });
+  dd.classList.remove('hidden');
+}
+
+function initChat(){
+  el('chat-send-btn').addEventListener('click', sendChatMessage);
+  el('chat-input').addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey && el('mention-dropdown').classList.contains('hidden')){
+      e.preventDefault(); sendChatMessage();
+    }
+  });
+  el('chat-input').addEventListener('input', updateMentionDropdown);
+  el('chat-input').addEventListener('click', updateMentionDropdown);
+  el('chat-input').addEventListener('blur', function(){
+    setTimeout(function(){ el('mention-dropdown').classList.add('hidden'); }, 150);
+  });
+}
+
+function initTaskColumnAdd(){
+  fillColorSelect(el('new-column-color'));
+  el('add-column-btn').addEventListener('click', function(){
+    var input = el('new-column-input');
+    var title = input.value.trim();
+    if(!title){ input.focus(); return; }
+    addDoc(collection(db,'taskColumns'), {
+      ownerId: currentUser.uid, title: title, order: Date.now(),
+      board: currentBoard, color: el('new-column-color').value||'', collapsed:false
+    });
+    input.value = ''; el('new-column-color').value='';
+  });
+  el('new-column-input').addEventListener('keydown', function(e){ if(e.key==='Enter') el('add-column-btn').click(); });
+}
+
+initTheme();
+initAuthUI();
+initTabs();
+initTaskColumnAdd();
+initChat();
+initDebts();
+initPersonalSubtabs();
+initCalendar();
+initImport();
+initLeadDetail();
+initReports();
+initAccess();
+initLeadEdit();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.warn('SW register failed', err); });
+  });
+}
+
+var deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  var btn = document.getElementById('install-app-btn');
+  if(btn) btn.classList.remove('hidden');
+});
+document.addEventListener('DOMContentLoaded', function(){
+  var installBtn = document.getElementById('install-app-btn');
+  if(installBtn){
+    installBtn.addEventListener('click', function(){
+      if(!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.finally(function(){
+        deferredInstallPrompt = null;
+        installBtn.classList.add('hidden');
+      });
+    });
+  }
+});
+window.addEventListener('appinstalled', function(){
+  var btn = document.getElementById('install-app-btn');
+  if(btn) btn.classList.add('hidden');
+  deferredInstallPrompt = null;
+});
+</script>
+
+
+</body></html>
