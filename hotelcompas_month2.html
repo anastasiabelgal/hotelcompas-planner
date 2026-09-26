@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelCompas — Приоритеты и Ёмкость Месяца 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#002766; --navy-deep:#001a45; --accent:#0063FF; --accent-soft:#e8f0ff;
+    --purple:#6f4fd8; --purple-soft:#efeaff;
+    --bg:#f4f6fb; --card:#ffffff; --text:#12203f; --text-soft:#5b6b8c; --border:#e3e8f2;
+    --positive:#0a9a52; --warn:#c26a00; --negative:#c22b2b;
+    --radius:14px; --shadow:0 2px 10px rgba(0,20,60,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Manrope',-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 64px;}
+
+  header.top{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);color:#fff;padding:28px 0 22px;}
+  .top-inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:18px;}
+  .logo-row{display:flex;align-items:center;gap:12px;}
+  .logo-mark{width:38px;height:38px;flex-shrink:0;}
+  .logo-word{font-size:21px;font-weight:800;letter-spacing:-0.3px;}
+  .logo-word span{color:#7fb2ff;}
+  .top-meta{text-align:right;font-size:13px;color:#b9caee;line-height:1.6;}
+  .top-title{margin-top:18px;}
+  .top-title h1{font-size:25px;font-weight:800;margin:0 0 6px;letter-spacing:-0.4px;}
+  .top-title p{margin:0;color:#c3d3f2;font-size:14.5px;max-width:700px;line-height:1.5;}
+
+  nav.subnav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 1px 0 rgba(0,20,60,0.03);}
+  .subnav-inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;gap:4px;overflow-x:auto;}
+  .subnav a{display:inline-block;white-space:nowrap;padding:13px 14px;font-size:13px;font-weight:600;color:var(--text-soft);text-decoration:none;border-bottom:2.5px solid transparent;}
+  .subnav a:hover{color:var(--navy);}
+  .subnav a.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  section{padding-top:36px;}
+  h2.section-title{font-size:19px;font-weight:800;margin:0 0 4px;letter-spacing:-0.2px;}
+  p.section-sub{margin:0 0 20px;color:var(--text-soft);font-size:14px;max-width:780px;line-height:1.55;}
+
+  /* KPI overview cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;}
+  .kpi{background:var(--card);border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .kpi-label{font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+  .kpi-value{font-size:24px;font-weight:800;color:var(--navy);line-height:1.1;}
+  .kpi-value.accent{color:var(--accent);} .kpi-value.warn{color:var(--warn);}
+  .kpi-sub{font-size:11.5px;color:var(--text-soft);margin-top:5px;}
+
+  .grid2{display:grid;grid-template-columns:1.3fr 0.7fr;gap:18px;margin-top:20px;}
+  .card{background:var(--card);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);border:1px solid var(--border);}
+  .card h3{margin:0 0 4px;font-size:15px;font-weight:700;}
+  .card .card-note{font-size:12.5px;color:var(--text-soft);margin-bottom:14px;}
+
+  .scenario{display:flex;flex-direction:column;gap:14px;}
+  .scen-row{display:flex;align-items:center;gap:12px;}
+  .scen-label{width:120px;font-size:12.5px;font-weight:700;flex-shrink:0;}
+  .scen-bar-track{flex:1;height:26px;background:#f0f1f5;border-radius:6px;overflow:hidden;position:relative;}
+  .scen-bar-fill{height:100%;border-radius:6px 0 0 6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-size:11px;font-weight:700;}
+  .scen-bar-fill.ok{background:var(--accent);} .scen-bar-fill.tight{background:var(--warn);}
+
+  /* Gantt overview */
+  .gantt{margin-top:20px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);background:var(--card);}
+  .gantt-head{display:grid;grid-template-columns:150px repeat(3,1fr) 120px;background:var(--navy);color:#fff;}
+  .gantt-head div{padding:11px 14px;font-size:11.5px;font-weight:700;}
+  .gantt-head div:first-child{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:#a9c0ec;}
+  .gantt-head .wr{display:block;font-weight:400;font-size:10.5px;color:#c3d3f2;margin-top:2px;}
+  .gantt-head .sep-col{background:rgba(255,255,255,0.08);font-style:italic;color:#9fc0f5;}
+  .grow{display:grid;grid-template-columns:150px repeat(3,1fr) 120px;border-top:1px solid var(--border);}
+  .grow .rlabel{padding:14px;background:#fafbfe;border-right:1px solid var(--border);font-weight:800;font-size:12.5px;display:flex;align-items:center;}
+  .grow .gcell{padding:8px;border-right:1px solid var(--border);display:flex;align-items:center;}
+  .grow .gcell:last-child{border-right:none;background:#fafbfe;}
+  .bar{width:100%;border-radius:7px;padding:9px 10px;font-size:11px;font-weight:700;color:#fff;line-height:1.35;}
+  .bar.core{background:var(--accent);} .bar.expo-setup{background:#c7d2e8;color:var(--text);} .bar.expo-active{background:var(--navy);}
+  .bar.jet-info{background:var(--purple);} .bar.jet-idle{background:#efeaff;color:var(--purple);border:1px dashed #c9b8f5;} .bar.jet-active{background:var(--purple);}
+  .bar.empty{background:transparent;}
+  .sep-note{font-size:10.5px;color:var(--text-soft);padding:8px 12px;}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;color:var(--text-soft);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+  /* week cards */
+  .week-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:22px 24px;margin-top:16px;}
+  .week-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+  .week-head h3{margin:0;font-size:16px;font-weight:800;}
+  .week-range{font-size:12px;color:var(--text-soft);}
+  .focus-tag{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:20px;margin-top:6px;}
+  .hour-bar-track{height:18px;background:#f0f1f5;border-radius:5px;overflow:hidden;margin:14px 0 4px;}
+  .hour-bar-fill{height:100%;background:var(--accent);border-radius:5px 0 0 5px;}
+  .hour-stats{font-size:11.5px;color:var(--text-soft);margin-bottom:14px;}
+  .hour-stats b{color:var(--text);}
+  .task-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);}
+  .task-row:last-of-type{border-bottom:none;}
+  .task-proj{flex-shrink:0;width:96px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;padding-top:2px;}
+  .task-proj.core{color:var(--accent);} .task-proj.expo{color:var(--navy);} .task-proj.jet{color:var(--purple);}
+  .task-text{font-size:13px;line-height:1.5;flex:1;}
+  .task-text b{background:#fff4e0;padding:0 4px;border-radius:4px;}
+  .openq{margin-top:16px;background:#fafbfe;border-radius:10px;padding:13px 16px;border:1px dashed var(--border);}
+  .openq b{display:block;font-size:11.5px;color:var(--warn);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;}
+  .openq ul{margin:0;padding-left:16px;}
+  .openq li{font-size:12.5px;color:var(--text);line-height:1.5;margin-bottom:4px;}
+
+  .period-divider{margin:30px 0 12px;font-size:12.5px;font-weight:800;color:var(--text-soft);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;}
+  .day-card{background:var(--card);border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);padding:16px 20px;margin-top:10px;}
+  .day-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;flex-wrap:wrap;gap:6px;}
+  .day-head h4{margin:0;font-size:14px;font-weight:800;}
+  .day-total{font-size:11.5px;color:var(--text-soft);}
+  .day-total b{color:var(--text);}
+  .day-bar-track{height:7px;background:#f0f1f5;border-radius:4px;overflow:hidden;margin-bottom:10px;}
+  .day-bar-fill{height:100%;background:var(--accent);border-radius:4px 0 0 4px;}
+  .day-bar-fill.tight{background:var(--warn);}
+  .daily-list{font-size:11.3px;color:var(--text-soft);margin-bottom:9px;line-height:1.65;padding:8px 10px;background:#fafbfe;border-radius:7px;}
+  .daily-list b{color:var(--text);font-weight:700;display:block;margin-bottom:2px;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--text-soft);}
+  .day-task{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--border);font-size:12.3px;}
+  .day-task:first-of-type{border-top:none;}
+  .day-task .dt-proj{font-size:9.5px;font-weight:800;text-transform:uppercase;width:64px;flex-shrink:0;padding-top:1px;}
+  .day-task .dt-proj.jet{color:var(--purple);} .day-task .dt-proj.expo{color:var(--navy);} .day-task .dt-proj.core{color:var(--accent);} .day-task .dt-proj.gen{color:var(--warn);}
+  .day-task .dt-text{flex:1;}
+  .day-task .dt-hrs{color:var(--text-soft);white-space:nowrap;font-weight:600;font-size:11.5px;}
+  .outfocus{background:#f7f8fb;border:1px dashed #c7d2e8;border-radius:12px;padding:16px 19px;}
+  .outfocus h4{margin:0 0 8px;font-size:13.5px;font-weight:700;color:var(--text-soft);}
+  .outfocus .day-task{border-top-color:#e3e8f2;}
+
+  /* workload accounts */
+  .workload{margin-top:20px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+  .acc{background:var(--card);border-radius:12px;padding:15px 16px;border:1px solid var(--border);box-shadow:var(--shadow);}
+  .acc.new{border-style:dashed;border-color:#a9c0ec;}
+  .acc .acc-name{font-weight:800;font-size:13px;}
+  .acc .acc-proj{font-size:11px;color:var(--text-soft);margin-top:3px;}
+  .acc .acc-note{font-size:11px;color:var(--warn);margin-top:8px;font-weight:600;}
+
+  .cr-table{margin-top:16px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);background:var(--card);}
+  .cr-row{display:grid;grid-template-columns:160px repeat(3,1fr);border-bottom:1px solid var(--border);}
+  .cr-row:last-child{border-bottom:none;}
+  .cr-row.head{background:var(--navy);color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;}
+  .cr-row.head div{padding:11px 16px;}
+  .cr-row .acc-cell{padding:13px 16px;font-weight:800;font-size:12.5px;background:#fafbfe;border-right:1px solid var(--border);}
+  .cr-row .val-cell{padding:13px 16px;border-right:1px solid var(--border);font-size:12.5px;}
+  .cr-row .val-cell:last-child{border-right:none;}
+  .cr-row .val-cell.dash{color:var(--text-soft);}
+  .note-box{margin-top:16px;background:#fff4e0;border:1px solid #ffdca8;border-radius:12px;padding:14px 18px;font-size:12.5px;color:#7a4300;line-height:1.55;}
+
+  /* general list cards */
+  .list-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px;}
+  .item{background:var(--card);border-radius:12px;padding:17px 19px;border:1px solid var(--border);box-shadow:var(--shadow);}
+  .item h4{margin:0 0 6px;font-size:14px;font-weight:700;}
+  .item p{margin:0;font-size:13px;color:var(--text-soft);line-height:1.55;}
+
+  /* KPI table */
+  .kpi-table{margin-top:20px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);background:var(--card);}
+  .kpi-row{display:grid;grid-template-columns:170px 1fr 150px;border-bottom:1px solid var(--border);}
+  .kpi-row:last-child{border-bottom:none;}
+  .kpi-row.head{background:#fafbfe;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--text-soft);}
+  .kpi-row.head div{padding:11px 18px;}
+  .kpi-row .tier{padding:13px 18px;display:flex;align-items:center;font-weight:800;font-size:12.5px;}
+  .kpi-row .metric{padding:13px 18px;border-left:1px solid var(--border);font-size:13.3px;display:flex;align-items:center;}
+  .kpi-row .status{padding:13px 18px;border-left:1px solid var(--border);font-size:11.5px;color:var(--text-soft);display:flex;align-items:center;}
+  .tier.core{color:var(--accent);} .tier.expo{color:var(--navy);} .tier.jet{color:var(--purple);}
+  .tag{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;padding:2px 8px;border-radius:20px;}
+  .tag.controlled{background:var(--accent-soft);color:var(--accent);} .tag.market{background:#f0f1f5;color:var(--text-soft);}
+
+  footer{margin-top:44px;padding:20px 0;border-top:1px solid var(--border);color:var(--text-soft);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  @media (max-width:960px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .grid2{grid-template-columns:1fr;}
+    .gantt-head,.grow{grid-template-columns:100px repeat(3,1fr);}
+    .gantt-head .sep-col,.grow .gcell:last-child{display:none;}
+    .workload{grid-template-columns:repeat(2,1fr);}
+    .cr-row{grid-template-columns:110px repeat(3,1fr);font-size:11px;}
+    .list-cards{grid-template-columns:1fr;}
+    .kpi-row{grid-template-columns:120px 1fr;}
+    .kpi-row .status{grid-column:1/-1;border-left:none;border-top:1px solid var(--border);}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div>
+      <div class="logo-row">
+        <svg class="logo-mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="22" stroke="#ffffff" stroke-width="2.4"/>
+          <circle cx="24" cy="24" r="22" stroke="#7fb2ff" stroke-width="2.4" stroke-dasharray="8 130"/>
+          <path d="M24 10L29 22L24 38L19 22L24 10Z" fill="#ffffff"/>
+          <path d="M24 10L29 22L24 24L24 10Z" fill="#7fb2ff"/>
+        </svg>
+        <div class="logo-word">Hotel<span>Compas</span></div>
+      </div>
+      <div class="top-title">
+        <h1>Приоритеты и Ёмкость — Месяц 2</h1>
+        <p>HOTAC core · Выставки (Египет + Африка) · JetCompas (MVP). Окно: 13–31 августа 2026 · 13 раб. дней · 104ч.</p>
+      </div>
+    </div>
+    <div class="top-meta">Подготовлено: 13.08.2026<br>Рабочий план — не для внешнего показа</div>
+  </div>
+</header>
+
+<nav class="subnav">
+  <div class="subnav-inner" id="subnavInner">
+    <a href="#gantt">Таймлайн</a>
+    <a href="#capacity">Ёмкость</a>
+    <a href="#weeks">По периодам</a>
+    <a href="#workload">Workload и CR</a>
+    <a href="#general">Общее</a>
+    <a href="#kpi">KPI</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section id="gantt">
+    <h2 class="section-title">Приоритетный таймлайн</h2>
+    <p class="section-sub">Три трека по периодам. Последний период — точка максимального пересечения: хвост выставочного аутрича + старт JetCompas поверх core.</p>
+    <div class="gantt">
+      <div class="gantt-head">
+        <div>Трек</div>
+        <div>Период 1<span class="wr">13–14.08</span></div>
+        <div>Период 2<span class="wr">17–21.08</span></div>
+        <div>Период 3<span class="wr">24–31.08</span></div>
+        <div class="sep-col">Сентябрь</div>
+      </div>
+      <div class="grow">
+        <div class="rlabel">HOTAC Core</div>
+        <div class="gcell"><div class="bar core">outreach, постоянно</div></div>
+        <div class="gcell"><div class="bar core">outreach, постоянно</div></div>
+        <div class="gcell"><div class="bar core">outreach, постоянно</div></div>
+        <div class="gcell"><div class="sep-note">продолжается</div></div>
+      </div>
+      <div class="grow">
+        <div class="rlabel">Выставки</div>
+        <div class="gcell"><div class="bar expo-setup">анализ данных</div></div>
+        <div class="gcell"><div class="bar expo-setup">полный фокус: списки, материалы</div></div>
+        <div class="gcell"><div class="bar expo-active">активный outreach → до конца месяца</div></div>
+        <div class="gcell"><div class="sep-note">сами выставки (с 8.09), встречи на стенде</div></div>
+      </div>
+      <div class="grow">
+        <div class="rlabel">JetCompas</div>
+        <div class="gcell"><div class="bar jet-info">блокеры: Nevsky, КП, инфо</div></div>
+        <div class="gcell"><div class="bar jet-idle">MVP-хвост: branding, LinkedIn</div></div>
+        <div class="gcell"><div class="bar jet-active">outreach стартует с 24.08</div></div>
+        <div class="gcell"><div class="sep-note">масштабирование, аналитика</div></div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>HOTAC core</span>
+      <span><i style="background:#c7d2e8"></i>Выставки — подготовка</span>
+      <span><i style="background:var(--navy)"></i>Выставки — активный outreach</span>
+      <span><i style="background:var(--purple)"></i>JetCompas — активная фаза</span>
+      <span><i style="background:#efeaff;border:1px dashed #c9b8f5"></i>JetCompas — MVP, без масштаба</span>
+    </div>
+  </section>
+
+  <section id="capacity">
+    <h2 class="section-title">Ёмкость: часы</h2>
+    <p class="section-sub">Построено на твоих оценках времени по задачам.</p>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Доступно</div><div class="kpi-value">104 ч</div><div class="kpi-sub">13 раб. дней × 8ч</div></div>
+      <div class="kpi"><div class="kpi-label">Занято (MVP-сценарий)</div><div class="kpi-value accent">89,1 ч</div><div class="kpi-sub">все блоки, JetCompas урезан</div></div>
+      <div class="kpi"><div class="kpi-label">Буфер</div><div class="kpi-value accent">~15 ч</div><div class="kpi-sub">14% — на непредвиденное</div></div>
+      <div class="kpi"><div class="kpi-label">Если JetCompas полностью</div><div class="kpi-value warn">100,6 ч</div><div class="kpi-sub">буфер 3,4ч — нереалистично</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>По блокам</h3>
+        <div class="card-note">Часы, из твоих оценок задач</div>
+        <div class="scenario">
+          <div class="scen-row"><div class="scen-label">Ежедневные HOTAC</div><div class="scen-bar-track"><div class="scen-bar-fill ok" style="width:73.4%;background:var(--accent);">20,4ч</div></div></div>
+          <div class="scen-row"><div class="scen-label">HOTAC проект</div><div class="scen-bar-track"><div class="scen-bar-fill ok" style="width:59.7%;background:var(--navy);">16,6ч</div></div></div>
+          <div class="scen-row"><div class="scen-label">Выставки</div><div class="scen-bar-track"><div class="scen-bar-fill ok" style="width:100%;background:#0a3f95;">27,8ч</div></div></div>
+          <div class="scen-row"><div class="scen-label">Общее</div><div class="scen-bar-track"><div class="scen-bar-fill ok" style="width:35.3%;background:#8a97b3;">9,8ч</div></div></div>
+          <div class="scen-row"><div class="scen-label">JetCompas MVP</div><div class="scen-bar-track"><div class="scen-bar-fill ok" style="width:51.8%;background:var(--purple);">14,4ч</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>MVP vs полный JetCompas</h3>
+        <div class="card-note">Разница — 11,5ч, переносится в сентябрь</div>
+        <div class="scenario">
+          <div class="scen-row"><div class="scen-label">MVP-сценарий</div><div class="scen-bar-track"><div class="scen-bar-fill ok" style="width:85.7%">89,1ч</div></div></div>
+          <div class="scen-row"><div class="scen-label">Полный JetCompas</div><div class="scen-bar-track"><div class="scen-bar-fill tight" style="width:96.7%">100,6ч</div></div></div>
+        </div>
+        <p style="font-size:12px;color:var(--text-soft);margin-top:14px;line-height:1.5;">Система outreach по данным (4ч), текстовые цепочки (3,5ч), аналитика (4ч) — в сентябрь.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="weeks">
+    <h2 class="section-title">По дням — от приоритетного к менее приоритетному</h2>
+    <p class="section-sub">Каждый день: ежедневные HOTAC-задачи (список из твоего трекера, компактно) + проектные задачи с часами. Ничего не сокращено — все пункты из обоих исходных документов здесь.</p>
+
+    <div class="period-divider"><span>Период 1 — JetCompas блокеры + старт выставок</span><span>13–14.08 · занято 14,2ч / 16ч · буфер 1,8ч</span></div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Чт 13.08</h4><div class="day-total">Итого: <b>7,4 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:93%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (2,04ч)</b>отчёт (25м) · отработка сообщений (5м) · ресёрч (60м) · отправка отложенным (5м) · исправление ошибок (10м) · в дашбордах проверить коннекшнз (5м) · pipeline stage (15м) · просмотр ответов (5м) · изменить имена после ресёрча (17,5м)</div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text"><b style="background:#fff4e0;padding:0 4px;border-radius:4px;">Дедлайн</b> Обратная связь по правкам Nevsky (сайт)</div><div class="dt-hrs">3 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Единый шаблон КП для fuel-услуг (запрос Максима)</div><div class="dt-hrs">0,7 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Общее</div><div class="dt-text">Единый стандарт подписи на почте (запрос Максима)</div><div class="dt-hrs">0,7 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Документ с описанием продукта</div><div class="dt-hrs">1 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Пт 14.08</h4><div class="day-total">Итого: <b>6,85 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:86%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,25ч)</b>отработка сообщений (5м) · ресёрч (60м) · в дашбордах проверить коннекшнз (5м) · просмотр ответов (5м)</div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Просмотреть чат по JetCompas в TG</div><div class="dt-hrs">0,6 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Изучить ТЗ по сайту</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Выставки</div><div class="dt-text">Просмотреть данные о выставке (участники), сделать анализ — Египет</div><div class="dt-hrs">2 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Выставки</div><div class="dt-text">Просмотреть данные о выставке (участники), сделать анализ — Африка</div><div class="dt-hrs">2 ч</div></div>
+    </div>
+
+    <div class="openq">
+      <b>Открытые вопросы периода 1</b>
+      <ul>
+        <li>У кого из трёх аккаунтов (Леонид/Мария/Ноэль) снижаем объём Connection Request под новые аккаунты — не решено</li>
+        <li>Дедлайн Nevsky 14.08 — актуален? Это блокер для остального JetCompas-трека</li>
+      </ul>
+    </div>
+
+    <div class="period-divider"><span>Период 2 — Выставки, полный фокус</span><span>17–21.08 · занято ≈38ч / 40ч · буфер ≈2ч</span></div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Пн 17.08</h4><div class="day-total">Итого: <b>7,24 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:90%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,08ч)</b>отчёт (25м) · лимиты+2 (2м) · отработка сообщений (5м) · отправка отложенным (5м) · в дашбордах проверить коннекшнз (5м) · проверить ресёрч в GetSales (17,5м) · просмотр ответов (5м)</div>
+      <div class="day-task"><div class="dt-proj expo">Египет</div><div class="dt-text">Определить с какими услугами заходим</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Египет</div><div class="dt-text">Список компаний для достижимости</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Египет</div><div class="dt-text">Список должностей для достижимости</div><div class="dt-hrs">0,7 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Африка</div><div class="dt-text">Определить с какими услугами заходим</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Африка</div><div class="dt-text">Список компаний для достижимости</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Африка</div><div class="dt-text">Список должностей для достижимости</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Создать профиль в LinkedIn JetCompas</div><div class="dt-hrs">1 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Вт 18.08</h4><div class="day-total">Итого: <b>7,63 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:95%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,96ч)</b>отработка сообщений (5м) · отправка отложенным (5м) · recommendation (7,5м) · ресёрч (60м) · в дашбордах проверить коннекшнз (5м) · pipeline stage (15м) · просмотр ответов (5м) · изменить имена после ресёрча (15м)</div>
+      <div class="day-task"><div class="dt-proj expo">Египет</div><div class="dt-text">Подготовить сопроводительные материалы</div><div class="dt-hrs">4,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Добавить должности для аккаунтов в JetCompas</div><div class="dt-hrs">1 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Ср 19.08</h4><div class="day-total">Итого: <b>7,71 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:96%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,71ч)</b>отработка сообщений (5м) · ресёрч (60м) · исправление ошибок (12,5м) · в дашбордах проверить коннекшнз (5м) · просмотр ответов (5м) · изменить имена после ресёрча (15м)</div>
+      <div class="day-task"><div class="dt-proj expo">Египет</div><div class="dt-text">Подготовить текстовки</div><div class="dt-hrs">2 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Африка</div><div class="dt-text">Определить с какими услугами / список компаний / должностей — доводка</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Африка</div><div class="dt-text">Подготовить сопроводительные материалы</div><div class="dt-hrs">2 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Branding (TG)</div><div class="dt-hrs">1 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Чт 20.08</h4><div class="day-total">Итого: <b>7,54 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:94%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (2,04ч)</b>отработка сообщений (5м) · ресёрч (60м) · отправка отложенным (5м) · исправление ошибок (10м) · в дашбордах проверить коннекшнз (5м) · pipeline stage (15м) · просмотр ответов (5м) · изменить имена после ресёрча (17,5м)</div>
+      <div class="day-task"><div class="dt-proj expo">Африка</div><div class="dt-text">Ресёрч контактов для достижимости</div><div class="dt-hrs">3 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Африка</div><div class="dt-text">Подготовить систему автоматизации + подготовить текстовки</div><div class="dt-hrs">1,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Подключить доп. аккаунт для аутрич</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Отредактировать аккаунты под JetCompas</div><div class="dt-hrs">0,5 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Пт 21.08</h4><div class="day-total">Итого: <b>7,92 ч</b> из 8ч <span style="color:var(--warn);">— плотно, почти без запаса</span></div></div>
+      <div class="day-bar-track"><div class="day-bar-fill tight" style="width:99%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,25ч)</b>отработка сообщений (5м) · ресёрч (60м) · в дашбордах проверить коннекшнз (5м) · просмотр ответов (5м)</div>
+      <div class="day-task"><div class="dt-proj expo">Египет</div><div class="dt-text">Ресёрч контактов для достижимости</div><div class="dt-hrs">3 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Египет</div><div class="dt-text">Подготовить систему автоматизации</div><div class="dt-hrs">2 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Египет + Африка</div><div class="dt-text">Распределить профили и лимиты для аутрича (обе)</div><div class="dt-hrs">1,3 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Выбрать аккаунты и степень достижимости для fuel</div><div class="dt-hrs">0,3 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Общее</div><div class="dt-text">Подключение нового аккаунта под выставочный outreach — тех. настройка</div><div class="dt-hrs">—</div></div>
+    </div>
+
+    <div class="openq">
+      <b>Открытые вопросы периода 2</b>
+      <ul>
+        <li>Тексты цепочек под выставки — используем логику HOTAC или пишем с нуля под другую аудиторию (посетители стенда)?</li>
+        <li>Аккаунт под выставки — уже есть готовый профиль, или заводим с нуля (время на прогрев)?</li>
+      </ul>
+    </div>
+
+    <div class="period-divider"><span>Период 3 — Выставки (добить) + JetCompas старт + HOTAC-проект</span><span>24–31.08 · занято ≈37,9ч / 48ч · буфер ≈10,1ч</span></div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Пн 24.08</h4><div class="day-total">Итого: <b>6,08 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:76%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,08ч)</b>отчёт (25м) · лимиты+2 (2м) · отработка сообщений (5м) · отправка отложенным (5м) · в дашбордах проверить коннекшнз (5м) · проверить ресёрч в GetSales (17,5м) · просмотр ответов (5м)</div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Пересчитать значения по дашбордам в GetSales → отчёт и вывод в планер</div><div class="dt-hrs">1,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Полноценный анализ компаний, которые уже получили статус</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Добавить weekly statistics в planner для анализа reply log/статуса</div><div class="dt-hrs">0,6 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Reply log: какие должности чаще отвечают, на какое сообщение, какой ответ</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Более детальное распределение должностей по сегментам</div><div class="dt-hrs">0,6 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Анализ по статусу компании и сегменту (агентство/инхаус)</div><div class="dt-hrs">0,3 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text"><b style="background:#efeaff;padding:0 4px;border-radius:4px;">С 24.08</b> Активировать outreach-аккаунт</div><div class="dt-hrs">—</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Вт 25.08</h4><div class="day-total">Итого: <b>7,96 ч</b> из 8ч <span style="color:var(--warn);">— плотно</span></div></div>
+      <div class="day-bar-track"><div class="day-bar-fill tight" style="width:99.5%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,96ч)</b>отработка сообщений (5м) · отправка отложенным (5м) · recommendation (7,5м) · ресёрч (60м) · в дашбордах проверить коннекшнз (5м) · pipeline stage (15м) · просмотр ответов (5м) · изменить имена после ресёрча (15м)</div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Составление дашборда</div><div class="dt-hrs">1,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Аналитика по ответам: сегмент/должность/цепочка/номер сообщения/сендер</div><div class="dt-hrs">1,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Добавление новых компаний для речерча</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Список компаний по JetCompas для outreach (aviapages.com)</div><div class="dt-hrs">2 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Ср 26.08</h4><div class="day-total">Итого: <b>7,29 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:91%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,71ч)</b>отработка сообщений (5м) · ресёрч (60м) · исправление ошибок (12,5м) · в дашбордах проверить коннекшнз (5м) · просмотр ответов (5м) · изменить имена после ресёрча (15м)</div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Добавление текстовки C</div><div class="dt-hrs">2,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Увеличить время между ответами</div><div class="dt-hrs">0,3 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Проценты сопоставить в автоматизации после аналитики</div><div class="dt-hrs">0,3 ч</div></div>
+      <div class="day-task"><div class="dt-proj jet">JetCompas</div><div class="dt-text">Список должностей для аутрич</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Общее</div><div class="dt-text">Сделать визитки</div><div class="dt-hrs">1,5 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Чт 27.08</h4><div class="day-total">Итого: <b>7,21 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:90%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (2,04ч)</b>отработка сообщений (5м) · ресёрч (60м) · отправка отложенным (5м) · исправление ошибок (10м) · в дашбордах проверить коннекшнз (5м) · pipeline stage (15м) · просмотр ответов (5м) · изменить имена после ресёрча (17,5м)</div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Переправить контакты без контекста — персонализировать цепочки agency/in-house через 3 сообщения</div><div class="dt-hrs">1,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Подключение Claude-плагина для парсинга контактов</div><div class="dt-hrs">1,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj core">HOTAC</div><div class="dt-text">Отредактировать страничку в LN для профиля компании</div><div class="dt-hrs">1,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Общее</div><div class="dt-text">Вывести KPI</div><div class="dt-hrs">0,7 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Пт 28.08</h4><div class="day-total">Итого: <b>7,75 ч</b> из 8ч</div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:97%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,25ч)</b>отработка сообщений (5м) · ресёрч (60м) · в дашбордах проверить коннекшнз (5м) · просмотр ответов (5м)</div>
+      <div class="day-task"><div class="dt-proj gen">Общее</div><div class="dt-text">Общий мерч (буклет и т.д. для выставок) — весь блок за неделю</div><div class="dt-hrs">6,5 ч</div></div>
+    </div>
+
+    <div class="day-card">
+      <div class="day-head"><h4>Пн 31.08</h4><div class="day-total">Итого: <b>1,58 ч</b> из 8ч <span style="color:var(--positive);">— резервный день</span></div></div>
+      <div class="day-bar-track"><div class="day-bar-fill" style="width:20%"></div></div>
+      <div class="daily-list"><b>Ежедневные HOTAC (1,08ч)</b>отчёт (25м) · лимиты+2 (2м) · отработка сообщений (5м) · отправка отложенным (5м) · в дашбордах проверить коннекшнз (5м) · проверить ресёрч в GetSales (17,5м) · просмотр ответов (5м)</div>
+      <div class="day-task"><div class="dt-proj gen">Общее</div><div class="dt-text">Распределить отправку CR по аккаунтам на каждую автоматизацию</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj expo">Выставки</div><div class="dt-text">Активный outreach — хвост, добить до конца месяца</div><div class="dt-hrs">—</div></div>
+      <div class="day-task"><div class="dt-proj gen">Резерв</div><div class="dt-text">Свободно — на перенос того, что не поместилось, или отдых от плотных дней 25 и 28</div><div class="dt-hrs">≈6,4 ч</div></div>
+    </div>
+
+    <div class="openq">
+      <b>Открытые вопросы периода 3</b>
+      <ul>
+        <li>Если выставочный outreach не завершён к 31.08 — сдвигаем JetCompas старт или ведём оба параллельно через силу?</li>
+        <li>Кто мониторит одновременно 3 активных трека outreach на этой неделе — нагрузка на одного человека реальна?</li>
+      </ul>
+    </div>
+
+    <div class="outfocus" style="margin-top:24px;">
+      <h4>Вне фокуса августа — задачи учтены, но не размещены в календаре (по council-вердикту)</h4>
+      <div class="day-task"><div class="dt-proj gen">LinkedIn (LG-02)</div><div class="dt-text">Редактура профиля компании (документ LinkedIn Marketing) — сентябрь</div><div class="dt-hrs">—</div></div>
+      <div class="day-task"><div class="dt-proj gen">LinkedIn (LG-02)</div><div class="dt-text">Редактура профилей сендеров под LinkedIn — сентябрь</div><div class="dt-hrs">—</div></div>
+      <div class="day-task"><div class="dt-proj gen">LinkedIn (LG-02)</div><div class="dt-text">Контент LinkedIn (документ LinkedIn Marketing) — сентябрь</div><div class="dt-hrs">—</div></div>
+      <div class="day-task"><div class="dt-proj gen">Гонконг</div><div class="dt-text">Список должностей для аутрича: Cathay Pacific, HK Airlines/Express, Greater Bay</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Гонконг</div><div class="dt-text">Ресёрч контактов для достижимости</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Гонконг</div><div class="dt-text">Решение о добавлении сотрудника в автоматизацию — вопрос на вынесение</div><div class="dt-hrs">0,25 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Гонконг</div><div class="dt-text">Текстовки для автоматизации</div><div class="dt-hrs">1 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Гонконг</div><div class="dt-text">Определение сендера — вопрос на вынесение</div><div class="dt-hrs">—</div></div>
+      <div class="day-task"><div class="dt-proj gen">Нефть/Леонид</div><div class="dt-text">Список компаний от Леонида — просмотреть</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Нефть/Леонид</div><div class="dt-text">Должности для достижимости — определить</div><div class="dt-hrs">0,5 ч</div></div>
+      <div class="day-task"><div class="dt-proj gen">Нефть/Леонид</div><div class="dt-text">География для достижимости — уже определена</div><div class="dt-hrs">—</div></div>
+      <div class="day-task"><div class="dt-proj gen">Нефть/Леонид</div><div class="dt-text">Профиль/лимит для Connection requests — вопрос на вынесение</div><div class="dt-hrs">—</div></div>
+      <div class="day-task"><div class="dt-proj gen">Нефть/Леонид</div><div class="dt-text">Текстовки для достижимости</div><div class="dt-hrs">1 ч</div></div>
+      <p style="font-size:11.5px;color:var(--text-soft);margin:10px 0 0;">≈4,25ч суммарно — не входят в баланс 89,1ч. Открыть только если появится реальный запас (день 31.08 — единственный кандидат).</p>
+    </div>
+  </section>
+
+  <section id="workload">
+    <h2 class="section-title">Workload по аккаунтам и Connection Requests</h2>
+    <p class="section-sub">5 аккаунтов к концу месяца вместо 3. Ориентир по CR — твоя же безопасная скорость из месяца 1: 614 CR / 3 аккаунта / ~5,3 недели ≈ 7–8 CR/день на аккаунт без банов.</p>
+    <div class="workload">
+      <div class="acc"><div class="acc-name">Леонид</div><div class="acc-proj">HOTAC · C-level</div></div>
+      <div class="acc"><div class="acc-name">Мария</div><div class="acc-proj">HOTAC · Ops</div></div>
+      <div class="acc"><div class="acc-name">Ноэль</div><div class="acc-proj">HOTAC · Procurement</div></div>
+      <div class="acc new"><div class="acc-name">Новый №4</div><div class="acc-proj">Выставки</div><div class="acc-note">подключить в периоде 2</div></div>
+      <div class="acc new"><div class="acc-name">Новый №5</div><div class="acc-proj">JetCompas</div><div class="acc-note">подключить с 24.08</div></div>
+    </div>
+    <div class="cr-table">
+      <div class="cr-row head"><div>Аккаунт</div><div>Период 1</div><div>Период 2</div><div>Период 3</div></div>
+      <div class="cr-row"><div class="acc-cell">Леонид / Мария / Ноэль<br><span style="font-weight:400;color:var(--text-soft);">HOTAC, ×3</span></div><div class="val-cell">~7–8/день</div><div class="val-cell">~7–8/день</div><div class="val-cell">~7–8/день</div></div>
+      <div class="cr-row"><div class="acc-cell">№4 — Выставки</div><div class="val-cell dash">не подключён</div><div class="val-cell">soft-старт, ~5/день (конец недели)</div><div class="val-cell">разогрев до ~10–15/день</div></div>
+      <div class="cr-row"><div class="acc-cell">№5 — JetCompas</div><div class="val-cell dash">не подключён</div><div class="val-cell dash">не подключён</div><div class="val-cell">soft-старт последние 2–3 дня, ~5/день</div></div>
+    </div>
+    <div class="note-box">
+      <b>[проверить]</b> Цифры по новым аккаунтам — рекомендация на основе вашей же прошлой безопасной скорости, не факт из GetSales/GoLogin. Сверься с их рекомендованным лимитом разогрева, если он есть. При таком разгоне за август через новые аккаунты пройдёт реалистично 100–250 контактов каждый, не тысячи.
+    </div>
+  </section>
+
+  <section id="general">
+    <h2 class="section-title">Общие задачи</h2>
+    <p class="section-sub">Сквозное между проектами, не привязано к одному периоду.</p>
+    <div class="list-cards">
+      <div class="item"><h4>Распределение профилей</h4><p>5 аккаунтов на 3 проекта: Леонид/Мария/Ноэль — HOTAC (роли C-level/Ops/Procurement); 2 новых — по одному под Выставки и под JetCompas. Прогрев новых аккаунтов нужно закладывать заранее, не с первого дня активного outreach.</p></div>
+      <div class="item"><h4>Приоритет Connection Request между проектами</h4><p>HOTAC держит базовый постоянный объём весь месяц; Выставки получают приоритет в периоде 2–3; JetCompas — только с 24.08. Точные квоты по существующим трём аккаунтам — открытый вопрос периода 1.</p></div>
+    </div>
+  </section>
+
+  <section id="kpi">
+    <h2 class="section-title">KPI на месяц</h2>
+    <p class="section-sub">Только то, что предсказуемо и зависит от тебя — не от реакции рынка.</p>
+    <div class="kpi-table">
+      <div class="kpi-row head"><div>Трек</div><div>KPI</div><div>Тип</div></div>
+      <div class="kpi-row"><div class="tier jet">JetCompas</div><div class="metric">Сайт/инфо закрыты к 17.08</div><div class="status"><span class="tag controlled">контролируемо</span></div></div>
+      <div class="kpi-row"><div class="tier jet"></div><div class="metric">LinkedIn company page live + аккаунт подключён к 24.08</div><div class="status"><span class="tag controlled">контролируемо</span></div></div>
+      <div class="kpi-row"><div class="tier expo">Выставки</div><div class="metric">Списки + материалы 100% готовы к 24.08</div><div class="status"><span class="tag controlled">контролируемо</span></div></div>
+      <div class="kpi-row"><div class="tier expo"></div><div class="metric">Outreach запущен и завершён до 31.08</div><div class="status"><span class="tag controlled">контролируемо</span></div></div>
+      <div class="kpi-row"><div class="tier core">HOTAC core</div><div class="metric">≥80% новой базы — целевые функции</div><div class="status"><span class="tag controlled">контролируемо</span></div></div>
+      <div class="kpi-row"><div class="tier core"></div><div class="metric">Reply Rate ≥30%, 1–3 qualified meetings</div><div class="status"><span class="tag market">рыночное, не гарантируем</span></div></div>
+      <div class="kpi-row"><div class="tier core"></div><div class="metric">SDR-роль и Connection Request квоты по аккаунтам — решены</div><div class="status"><span class="tag controlled">контролируемо, дедлайн — период 1</span></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>HotelCompas · Рабочий план · внутреннее использование</span>
+    <span>Подготовила Анастасия · 13.08.2026</span>
+  </footer>
+</div>
+
+<script>
+const links = document.querySelectorAll('.subnav a');
+const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+window.addEventListener('scroll', () => {
+  let idx = 0;
+  sections.forEach((s,i) => { if (s && s.getBoundingClientRect().top - 90 <= 0) idx = i; });
+  links.forEach(l => l.classList.remove('active'));
+  links[idx].classList.add('active');
+}, {passive:true});
+</script>
+</body>
+</html>

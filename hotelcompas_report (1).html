@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelCompas — стратегический разбор: LinkedIn, CRM, позиционирование</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<style>
+:root{
+  --bg:#F2F4F3;
+  --ink:#0E2233;
+  --ink-soft:#16212B;
+  --text-2:#5B6B76;
+  --card:#FFFFFF;
+  --line:#E1E6E7;
+  --teal:#1F7A6C;
+  --teal-soft:#DCEEE9;
+  --copper:#B5652D;
+  --copper-soft:#F3E4D6;
+  --red:#B0392E;
+  --red-soft:#F5E1DE;
+  --gold:#8A6D1F;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink-soft);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.5;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px 80px;}
+
+/* HEADER */
+header.top{
+  background:var(--ink);
+  color:#EDF2F1;
+  padding:40px 24px 32px;
+  margin-bottom:28px;
+}
+header.top .inner{max-width:1180px;margin:0 auto;}
+header.top .kicker{
+  font-size:13px;
+  color:#9FB4BE;
+  margin-bottom:10px;
+}
+header.top h1{
+  font-size:30px;
+  font-weight:650;
+  margin:0 0 10px;
+  letter-spacing:-0.01em;
+  max-width:720px;
+}
+header.top p.sub{
+  font-size:15px;
+  color:#B9C7CD;
+  max-width:640px;
+  margin:0;
+}
+header.top .meta{
+  display:flex;
+  gap:28px;
+  margin-top:24px;
+  flex-wrap:wrap;
+  font-size:13px;
+  color:#9FB4BE;
+}
+header.top .meta strong{color:#EDF2F1;font-weight:600;}
+
+/* SECTION HEADINGS */
+section{margin-bottom:44px;}
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-bottom:16px;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.section-head h2{
+  font-size:20px;
+  margin:0;
+  font-weight:650;
+  color:var(--ink);
+}
+.section-head p{
+  margin:4px 0 0;
+  color:var(--text-2);
+  font-size:14px;
+  max-width:560px;
+}
+
+/* KPI CARDS */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.kpi-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px 20px;
+}
+.kpi-card .label{font-size:12.5px;color:var(--text-2);margin-bottom:6px;}
+.kpi-card .value{font-size:26px;font-weight:700;color:var(--ink);}
+.kpi-card .note{font-size:12.5px;margin-top:6px;color:var(--text-2);}
+.kpi-card .note.flag{color:var(--copper);font-weight:600;}
+.kpi-card .note.good{color:var(--teal);font-weight:600;}
+.kpi-card .note.bad{color:var(--red);font-weight:600;}
+
+/* CARD / PANEL */
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:22px 24px;
+}
+.grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+.grid-2 .panel canvas{max-height:280px;}
+@media (max-width:860px){.grid-2{grid-template-columns:1fr;}}
+
+/* CALLOUT */
+.callout{
+  border-left:3px solid var(--copper);
+  background:var(--copper-soft);
+  padding:14px 18px;
+  border-radius:6px;
+  font-size:14.5px;
+  margin:16px 0;
+}
+.callout.teal{border-left-color:var(--teal);background:var(--teal-soft);}
+.callout.red{border-left-color:var(--red);background:var(--red-soft);}
+.callout strong{display:block;margin-bottom:3px;color:var(--ink);}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{
+  text-align:left;
+  padding:9px 10px;
+  border-bottom:2px solid var(--line);
+  color:var(--text-2);
+  font-weight:600;
+  font-size:12.5px;
+}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+.tag{
+  display:inline-block;
+  padding:2px 9px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+}
+.tag.teal{background:var(--teal-soft);color:var(--teal);}
+.tag.copper{background:var(--copper-soft);color:var(--copper);}
+.tag.red{background:var(--red-soft);color:var(--red);}
+.tag.gray{background:#EDEFEF;color:var(--text-2);}
+.quote{font-style:italic;color:var(--ink-soft);}
+.small{font-size:12.5px;color:var(--text-2);}
+
+/* FINDING CARDS */
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.finding{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-left:3px solid var(--ink);
+  border-radius:8px;
+  padding:16px 18px;
+}
+.finding h4{margin:0 0 8px;font-size:14.5px;color:var(--ink);}
+.finding p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+.finding .impact{margin-top:8px;font-size:12.5px;color:var(--text-2);}
+
+/* ACTION PLAN */
+.plan{counter-reset:step;}
+.plan-item{
+  display:grid;
+  grid-template-columns:36px 1fr;
+  gap:14px;
+  padding:14px 0;
+  border-bottom:1px solid var(--line);
+}
+.plan-item:last-child{border-bottom:none;}
+.plan-num{
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--ink);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;
+}
+.plan-item h4{margin:0 0 4px;font-size:14.5px;}
+.plan-item p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+.plan-item .prio{font-size:11.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;margin-left:8px;}
+
+footer{
+  margin-top:40px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+  font-size:12.5px;
+  color:var(--text-2);
+}
+h3.chart-title{font-size:14px;font-weight:650;margin:0 0 14px;color:var(--ink);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="kicker">HotelCompas / JetCompas — стратегический разбор</div>
+    <h1>LinkedIn lead-gen, CRM-данные и позиционирование: что подтверждено цифрами, а что — предположение</h1>
+    <p class="sub">Свод всего, что разбиралось и проверялось: воронка холодного аутрича в LinkedIn, 124 лида из CRM с разметкой по сегментам и данными по переводам между отделами, рекомендации по услугам на сегмент, аудит voice/positioning документа и применимость фреймворка «Кризис-маркетинг 2026».</p>
+    <div class="meta">
+      <div>Период CRM-данных: <strong>06.06.2026 – 13.09.2026</strong></div>
+      <div>Аккаунтов LinkedIn: <strong>3</strong></div>
+      <div>Лидов в CRM: <strong>124</strong></div>
+      <div>Заявок в аутриче: <strong>877</strong></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============ SECTION 1: LINKEDIN FUNNEL ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>1. Воронка холодного аутрича в LinkedIn</h2>
+      <p>877 заявок → 232 приняты → 212 написано сообщений → 84 ответа. Одна метрика в этой воронке технически сломана — см. предупреждение ниже.</p>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="label">Заявок отправлено</div>
+      <div class="value">877</div>
+      <div class="note">3 профиля, ≈146/мес на профиль</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Приняты</div>
+      <div class="value">232</div>
+      <div class="note good">26.5% acceptance rate</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Отправлено сообщений</div>
+      <div class="value">212</div>
+      <div class="note flag">20 accepted не получили сообщение</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Ответили</div>
+      <div class="value">84</div>
+      <div class="note good">39.6% от написанных сообщений</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Сквозная конверсия</div>
+      <div class="value">9.6%</div>
+      <div class="note">от отправленной заявки до ответа</div>
+    </div>
+  </div>
+
+  <div class="callout red">
+    <strong>Метрика «открыто сообщение» (44 из 212) технически недостоверна</strong>
+    Ответивших (84) больше, чем «открывших» (44) — это математически невозможно, если бы открытие фиксировалось корректно: нельзя ответить на то, что не увидел. Значит инструмент считает open rate только по части диалогов (обычно — где включены read receipts у обеих сторон), и реальное число открытий занижено в разы. Эту цифру нельзя использовать для выводов ни в этом отчёте, ни в следующих — заменена на «нет данных».
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h3 class="chart-title">Воронка по стадиям</h3>
+      <canvas id="funnelChart"></canvas>
+    </div>
+    <div class="panel">
+      <h3 class="chart-title">Где теряются контакты</h3>
+      <table>
+        <thead><tr><th>Переход</th><th>Показатель</th><th>Оценка</th></tr></thead>
+        <tbody>
+          <tr><td>Заявка → принята</td><td>26.5%</td><td><span class="tag gray">средне по рынку</span></td></tr>
+          <tr><td>Принята → написано</td><td>91.4%</td><td><span class="tag copper">20 контактов потеряно</span></td></tr>
+          <tr><td>Написано → ответ</td><td>39.6%</td><td><span class="tag teal">выше бенчмарка</span></td></tr>
+          <tr><td>Заявка → ответ (сквозная)</td><td>9.6%</td><td><span class="tag gray">базовый ориентир</span></td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin-top:12px;">39.6% reply rate — это ответ уже тёплой аудитории (человек сам принял заявку в друзья), не холодного InMail. Сравнивать с бенчмарками «холодного аутрича» напрямую нельзя.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Запас по объёму без риска для аккаунтов</strong>
+    ≈5 заявок в день на профиль — заметно ниже типичного безопасного порога LinkedIn (обычно называют ориентир 15–25/день). Есть пространство нарастить объём без смены стратегии, если нужен больший пайплайн.
+  </div>
+</section>
+
+<!-- ============ SECTION 2: CRM ANALYTICS ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>2. Аналитика 124 лидов из CRM</h2>
+      <p>Разбивка по источнику, должности и типу возражения. Два источника: холодный аутрич в LinkedIn (83 лида) и контакты с выставок (41 лид).</p>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="label">Interested (весь пул)</div>
+      <div class="value">32</div>
+      <div class="note">25.8% от всех 124 лидов</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Interested — выставки</div>
+      <div class="value">43.9%</div>
+      <div class="note good">18 из 41</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Interested — холодный LinkedIn</div>
+      <div class="value">16.9%</div>
+      <div class="note bad">14 из 83</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Не тот контакт (Irrelevant+Irresponsible)</div>
+      <div class="value">29.0%</div>
+      <div class="note bad">36 из 124 — проблема квалификации</div>
+    </div>
+  </div>
+
+  <div class="callout teal">
+    <strong>Выставочные лиды конвертируются в 2.6 раза лучше холодных</strong>
+    43.9% против 16.9% — это не погрешность, а структурный разрыв. Прежде чем оптимизировать текст сообщений в LinkedIn, стоит понять, что именно личный контакт даёт такого, чего не даёт холодное касание, и перенести это в сценарий аутрича (контекст события, общий знакомый, конкретика вместо общей формулировки).
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h3 class="chart-title">Статусы по всей базе (124)</h3>
+      <canvas id="statusChart"></canvas>
+    </div>
+    <div class="panel">
+      <h3 class="chart-title">Источник: холодный аутрич vs выставки</h3>
+      <canvas id="sourceChart"></canvas>
+    </div>
+  </div>
+
+  <div style="height:16px"></div>
+
+  <div class="panel">
+    <h3 class="chart-title">Кто отвечает и как — по должностям</h3>
+    <canvas id="bucketChart" style="max-height:320px"></canvas>
+    <table style="margin-top:18px">
+      <thead><tr><th>Должность (группа)</th><th>Всего</th><th>Interested</th><th>% Interested</th><th>% не тот контакт</th></tr></thead>
+      <tbody id="bucketTable"></tbody>
+    </table>
+    <p class="small" style="margin-top:12px;">CEO/Owner и Dispatch дают конверсию в Interested заметно выше средней (37.5% и 60% соответственно) при небольшом объёме. Operations (общая должность) — самый крупный по объёму бакет (25 контактов), но почти половина (48%) — не тот человек. Таргетинг на обобщённые «operations»-роли даёт больше всего лидов и больше всего промахов одновременно.</p>
+  </div>
+
+</section>
+
+<!-- ============ SECTION 3: SEGMENTS ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>3. Сегменты: кто отвечает и как</h2>
+      <p>Разметка сегмента появилась в CRM (Cargo / Regional / Charter-ACMI / Leisure-LCC) — это уже не гипотеза, а факт по 123 из 124 лидов. Важная поправка к прошлой оценке: интуитивное предположение «charter конвертит лучше всех, потому что решение принимает CEO напрямую» на реальных данных не подтвердилось.</p>
+    </div>
+  </div>
+
+  <div class="callout red">
+    <strong>Самопроверка: моя прошлая гипотеза была неверна</strong>
+    Раньше я предполагала, что Charter/on-demand выигрывает по конверсии за счёт короткого цикла принятия решения. По факту — у Charter-ACMI Interested rate ниже среднего (23.6%) при самом высоком объёме контактов (55) и самом высоком проценте «не туда» (36.4%). Реально выигрывают Leisure-LCC (30.0%, но всего 10 контактов — выборка мала) и Regional (29.2%, 24 контакта) — и это стоит держать в голове до появления большего объёма данных.
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h3 class="chart-title">Объём контактов по сегментам</h3>
+      <canvas id="segVolumeChart"></canvas>
+    </div>
+    <div class="panel">
+      <h3 class="chart-title">% Interested по сегментам</h3>
+      <canvas id="segRateChart"></canvas>
+    </div>
+  </div>
+
+  <div style="height:16px"></div>
+
+  <div class="panel">
+    <h3 class="chart-title">Сегмент × ключевые характеристики</h3>
+    <table>
+      <thead><tr><th>Сегмент</th><th>Контактов</th><th>Interested</th><th>% Interested</th><th>% не тот контакт</th><th>In-house / Agency</th><th>Топ-должности</th></tr></thead>
+      <tbody>
+        <tr><td>Charter-ACMI</td><td>55</td><td>13</td><td>23.6%</td><td><span class="tag red">36.4%</span></td><td>8 / 2</td><td>Other/Unclear, Operations, Crew Sched.</td></tr>
+        <tr><td>Cargo</td><td>34</td><td>9</td><td>26.5%</td><td>26.5%</td><td>3 / <span class="tag copper">5</span></td><td>Operations, Director, Manager</td></tr>
+        <tr><td>Regional</td><td>24</td><td>7</td><td><span class="tag teal">29.2%</span></td><td>25.0%</td><td>1 / 4</td><td>CEO/Owner, Operations, Procurement</td></tr>
+        <tr><td>Leisure-LCC</td><td>10</td><td>3</td><td><span class="tag teal">30.0%</span></td><td><span class="tag teal">10.0%</span></td><td>1 / 0</td><td>CEO/Owner, Director of Operations</td></tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:12px;">Cargo выделяется самой высокой долей Agency-возражений (5 из 34) — совпадает с тем, что видели в цитатах: топливные и travel-контракты в грузовых операторах чаще уже закреплены за конкретным вендором. Regional неожиданно даёт столько же CEO/Owner контактов, сколько Operations (6 и 6) — вопреки предположению, что решение там всегда упирается в материнскую авиакомпанию.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 4: SERVICES BY SEGMENT ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>4. Какие услуги предлагать какому сегменту</h2>
+      <p>На основе реальной конверсии, типа возражения и должностей, которые отвечают в каждом сегменте.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead><tr><th>Сегмент</th><th>Приоритетная услуга</th><th>Почему именно она</th><th>Вход через должность</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Leisure-LCC</strong></td><td>HOTAC + IROPS, с ценовой рамкой для procurement</td><td>Лучшая конверсия (30%) и меньше всего промахов по контакту (10%) — но объём мал, расширять список приоритетно</td><td>CEO/Owner, Director of Operations</td></tr>
+        <tr><td><strong>Regional</strong></td><td>IROPS response с явной дифференциацией от вендора материнской авиакомпании</td><td>Высокая доля CEO/Owner — вопреки ожиданиям, решение не всегда упирается в головную компанию</td><td>CEO/Owner, Procurement</td></tr>
+        <tr><td><strong>Cargo</strong></td><td>HOTAC + IROPS как отдельный трек от fuel/travel-контрактов</td><td>Самая высокая доля Agency — не пытаться заходить через уже занятые категории (топливо, travel), заходить через HOTAC отдельно</td><td>Operations, Director (other)</td></tr>
+        <tr><td><strong>Charter-ACMI</strong></td><td>HOTAC + crew transfer, но с пересмотром таргетинга контакта</td><td>Самый большой объём, но и самый высокий % «не туда» (36.4%) — прежде чем наращивать услуги, нужно сузить, кому именно пишем</td><td>Требует уточнения — Other/Unclear сейчас крупнейший бакет</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout teal">
+    <strong>Общий вывод по приоритету сегментов</strong>
+    Если распределять ограниченный ресурс аутрича, порядок по текущим данным: Leisure-LCC и Regional — выше среднего по конверсии и точности попадания; Cargo — средний по конверсии, но с чёткой услугой-нишей (HOTAC отдельно от fuel/travel); Charter-ACMI — самый большой пул, но требует сначала работы над таргетингом контакта, а не увеличения объёма писем.
+  </div>
+</section>
+
+<!-- ============ SECTION 5 (was 3): OBJECTIONS & COMPETITORS ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>5. Возражения и конкуренты</h2>
+      <p>Два разных возражения, требующих разных аргументов — их нельзя закрывать одним скриптом.</p>
+    </div>
+  </div>
+
+  <div class="grid-2" style="align-items:start;">
+    <div class="panel">
+      <h3 class="chart-title">«In-house» — делают всё сами (13 случаев)</h3>
+      <p class="small" style="margin-bottom:10px;">Возражение против аутсорса как идеи, не против конкретного конкурента.</p>
+      <table>
+        <thead><tr><th>Компания / роль</th><th>Цитата</th></tr></thead>
+        <tbody>
+          <tr><td>KaiserAir, Lead Dispatcher</td><td class="quote">«We do not partner with outside vendors unless the benefits... override a direct relationship»</td></tr>
+          <tr><td>Amerijet, Director Ops Control</td><td class="quote">«we have our own team that handles AOGs»</td></tr>
+          <tr><td>Wheels Up, Crew Logistics Supervisor</td><td class="quote">«We managed everything internally»</td></tr>
+          <tr><td>National Airlines, Crew Scheduling Officer</td><td class="quote">«in-house software to do all these necessary arrangements»</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h3 class="chart-title">«Agency» — уже есть внешний вендор (11 случаев)</h3>
+      <p class="small" style="margin-bottom:10px;">Конкурентный бой за замену провайдера — здесь работает дифференциация, не аргумент «за аутсорс».</p>
+      <table>
+        <thead><tr><th>Компания / роль</th><th>Цитата</th></tr></thead>
+        <tbody>
+          <tr><td>Envoy Air, Manager Crew Planning</td><td class="quote">«We use API for our crew accommodations, same as AA»</td></tr>
+          <tr><td>Castle Aviation, Director FBO Services</td><td class="quote">«a combination of Flight Bridge and local contacts»</td></tr>
+          <tr><td>Air Tindi, Procurement Specialist</td><td class="quote">«I think they use Direct Travel for all hotel, car rentals»</td></tr>
+          <tr><td>Alpine Air Express, Dir. Logistics</td><td class="quote">«We already have a provider that handles all of our hotels and travel»</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="height:16px"></div>
+
+  <div class="panel">
+    <h3 class="chart-title">Названные конкуренты — фиксация для battlecard</h3>
+    <table>
+      <thead><tr><th>Название</th><th>Упоминаний</th><th>Контекст</th></tr></thead>
+      <tbody>
+        <tr><td><strong>API</strong></td><td>2 (в т.ч. подтверждение по American Airlines)</td><td>Envoy Air и, через них, American Airlines — крупный игрок, приоритет №1 для battlecard</td></tr>
+        <tr><td>GCL</td><td>1</td><td>National Airlines — все букинги идут через них</td></tr>
+        <tr><td>Flight Bridge</td><td>1</td><td>Castle Aviation — в комбинации с локальными контактами</td></tr>
+        <tr><td>Direct Travel</td><td>1</td><td>Air Tindi — предположительно, со слов procurement (не первое лицо)</td></tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:10px;">Выборка мала для выводов о рыночной доле каждого конкурента — но <strong>API</strong> уже сейчас стоит зафиксировать как приоритетного, поскольку упомянут у двух крупных перевозчиков.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 6: REFERRALS / HANDOFFS ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>6. Переводы между отделами: куда именно нас направляют</h2>
+      <p>9 случаев, где контакт переслал разговор другому человеку — с указанием имени и должности. Это прямой сигнал о том, кто внутри авиакомпании реально владеет темой HOTAC/IROPS/crew logistics.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead><tr><th>От кого (компания)</th><th>Переведён на</th><th>Должность / отдел получателя</th></tr></thead>
+      <tbody>
+        <tr><td>Air Tindi (Procurement)</td><td>Kelsea Cullen</td><td><span class="tag copper">HR Coordinator</span></td></tr>
+        <tr><td>BidAir Cargo</td><td>Martin Boshoff</td><td><span class="tag teal">Charter Operations Manager</span></td></tr>
+        <tr><td>Pacific Coastal Airlines</td><td>Darcy Coonfer</td><td><span class="tag teal">VP Operations</span></td></tr>
+        <tr><td>Pacific Coastal Airlines</td><td>Miriam Lenting</td><td><span class="tag teal">Director, Operations Control & Crew Planning</span></td></tr>
+        <tr><td>Phoenix Aviation Ltd</td><td>Eva Tumbo</td><td><span class="tag gray">не указана</span></td></tr>
+        <tr><td>Proflight Zambia</td><td>reservations team</td><td><span class="tag copper">общий отдел, не конкретный человек</span></td></tr>
+        <tr><td>SkyWest Airlines</td><td>Lori Hunt</td><td><span class="tag teal">VP of Ground Operations</span></td></tr>
+        <tr><td>Vista America</td><td>Emily Fackler</td><td><span class="tag teal">Global Director, Travel Operations</span></td></tr>
+        <tr><td>Wheels Up</td><td>Brian Kedzior</td><td><span class="tag copper">Chief People Officer</span></td></tr>
+        <tr><td>Z.Boskovic Air Charters Ltd</td><td>Busara Kanana</td><td><span class="tag gray">не указана</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h3 class="chart-title">Куда чаще всего переводят — по типу отдела</h3>
+      <canvas id="referralChart"></canvas>
+    </div>
+    <div class="panel">
+      <h3 class="chart-title">Что это значит</h3>
+      <p class="body">5 из 9 переводов попадают точно в целевую зону — Operations/VP Operations, Crew Planning, Travel Operations, Charter Operations. Это подтверждает, что должностные фильтры, которые уже используются в аутриче, в целом верны.</p>
+      <p class="body">Но 2 перевода уходят в HR/People (Air Tindi → HR Coordinator, Wheels Up → Chief People Officer) — это признак того, что исходное сообщение или профиль воспринимается как рекрутинговый или партнёрский запрос общего характера, а не как отраслевое предложение по IROPS/HOTAC. Стоит проверить формулировку первого сообщения именно в тех диалогах, где это произошло.</p>
+      <p class="body">1 перевод — на «reservations team» (общий email, не конкретное лицо) — это тупиковая ветка для персонализированного follow-up, но полезна как альтернативный канал входа для booking-ориентированных сегментов.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 7 (was 4): POSITIONING / BRAND AUDIT ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>7. Аудит voice/positioning документа</h2>
+      <p>Где текущий System Prompt опирается на проверенные данные, а где — на предположение внутри компании.</p>
+    </div>
+  </div>
+
+  <div class="findings">
+    <div class="finding">
+      <h4>Ноль customer interviews в основе</h4>
+      <p>Документ построен из собственных ощущений, одного поста фаундера и анализа конкурента (TA Connections). Ни одной цитаты из реального разговора с ЛПР авиакомпании.</p>
+      <div class="impact">Риск: голос резонирует с командой, а не обязательно с рынком.</div>
+    </div>
+    <div class="finding">
+      <h4>Contrarian-пиллар №2 конфликтует с persona procurement</h4>
+      <p>«Safety, не spend management» — верно для ops-персонажа, но для procurement-контакта spend management — это буквально его KPI. Универсальная позиция бьёт мимо половины аудитории.</p>
+      <div class="impact">11 из 124 лидов в CRM — Agency-возражение, где решает часто именно procurement.</div>
+    </div>
+    <div class="finding">
+      <h4>Заявленный глобальный охват vs реальная глубина</h4>
+      <p>Внутреннее противоречие зафиксировано, но не решено — только скрыто от US-аудитории табу на упоминание РФ-рынка. Продуктовая дыра, не контентная.</p>
+      <div class="impact">Риск вскрытия на демо-звонке при прямом вопросе о международных кейсах.</div>
+    </div>
+    <div class="finding">
+      <h4>Tribal-метрика «надо написать им» не протестирована</h4>
+      <p>Сформулирована как прогноз реакции читателя, не измерялась через реальные inbound-сообщения после публикаций.</p>
+      <div class="impact">Нужен трекинг inbound за 72 часа после каждого поста, чтобы превратить лозунг в метрику.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5: FRAMEWORK APPLICABILITY ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>8. Применимость гайда «Кризис-маркетинг 2026»</h2>
+      <p>Документ написан под B2C/e-commerce с массовой базой. Из 9 тактик к HotelCompas переносимы избирательно.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead><tr><th>Тактика</th><th>Применимость</th><th>Почему</th></tr></thead>
+      <tbody>
+        <tr><td>RFM-анализ базы / уровни лояльности</td><td><span class="tag red">нет</span></td><td>Нет статистики на ~90 accounts, это не B2C-масса</td></tr>
+        <tr><td>Telegram Ads / retail media</td><td><span class="tag red">нет</span></td><td>ЛПР авиакомпании США не находится в этих каналах по рабочим вопросам</td></tr>
+        <tr><td>Собственная платформа + короткая форма захвата</td><td><span class="tag teal">да</span></td><td>Универсальный принцип — сайт-хаб и email+1 поле вместо длинной анкеты</td></tr>
+        <tr><td>Коллаборации («пересечение аудиторий без пересечения продукта»)</td><td><span class="tag teal">да</span></td><td>Партнёрства с crew scheduling software, MRO, страховыми для авиации</td></tr>
+        <tr><td>GEO — упоминание в ответах нейросетей</td><td><span class="tag teal">да</span></td><td>Procurement/ops всё чаще формулируют запрос в ChatGPT/Perplexity — дешёвый ежемесячный аудит</td></tr>
+        <tr><td>ABCDX-сегментация + TOFU/MOFU/BOFU</td><td><span class="tag copper">частично</span></td><td>Фрейм переносим, но матрица сегментов должна строиться по вашим данным (IROPS-частота), не по шаблону из гайда</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ SECTION 6: ACTION PLAN ============ -->
+<section>
+  <div class="section-head">
+    <div>
+      <h2>9. План действий — по приоритету</h2>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="plan">
+      <div class="plan-item">
+        <div class="plan-num">1</div>
+        <div><h4>Закрыть утечку 20 accepted-контактов без сообщения <span class="prio">операционно, сразу</span></h4>
+        <p>Правило: каждый принятый коннект получает сообщение в течение 24–48 часов без исключений. Самая дешёвая точка роста во всей воронке.</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num">2</div>
+        <div><h4>Разделить скрипт возражений на In-house и Agency <span class="prio">контент, 1–2 недели</span></h4>
+        <p>Сейчас риск отвечать одним аргументом на два разных возражения. In-house — про ценность аутсорса, Agency — про дифференциацию от конкретного вендора (в первую очередь API).</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num">3</div>
+        <div><h4>Пересмотреть таргетинг на «Operations» как обобщённую роль <span class="prio">квалификация лида</span></h4>
+        <p>48% контактов в этом бакете — не тот человек. Сузить критерии поиска в сторону конкретных ролей (Crew Scheduling, Dispatch, Procurement) с явными полномочиями.</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num">4</div>
+        <div><h4>Перенести элемент выставочной конверсии в холодный аутрич <span class="prio">тест сообщений</span></h4>
+        <p>43.9% против 16.9% — протестировать первое сообщение с конкретным контекстом (событие, общий контакт, отраслевая деталь) вместо общей формулировки.</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num">5</div>
+        <div><h4>Провести 5–8 интервью с реальными ЛПР до дальнейшего контент-планирования <span class="prio">валидация позиционирования</span></h4>
+        <p>Проверить contrarian-пиллары и tribal-метрику на реальных формулировках, а не на предположениях команды.</p></div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num">6</div>
+        <div><h4>Завести поле сегмента авиакомпании (Cargo/Regional/Charter/LCC/Major) в CRM <span class="prio">данные</span></h4>
+        <p>Без этого поля срез «какой сегмент отвечает чаще» невозможен без ручной разметки задним числом каждый раз.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <strong>Источники и ограничения:</strong> LinkedIn-воронка — сводные цифры за период, метрика «открытий» исключена как недостоверная. CRM-данные — 124 записи, 06.06–13.09.2026, разбивка по должностям — ручная категоризация на основе текста поля «Должность». Сегментация по типу авиакомпании не проводилась — поле отсутствует в исходных данных. Аудит позиционирования — на основе документа System Prompt HotelCompas, без внешней валидации через customer interviews.
+</footer>
+
+</div>
+
+<script>
+const COLORS = ['#1F7A6C','#0E2233','#B5652D','#5B6B76','#8A6D1F','#B0392E','#7FA79C','#9FB4BE'];
+
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+Chart.defaults.color = '#5B6B76';
+Chart.defaults.font.size = 12;
+
+// 1. Funnel chart
+new Chart(document.getElementById('funnelChart'), {
+  type:'bar',
+  data:{
+    labels:['Отправлено','Принято','Написано','Ответили'],
+    datasets:[{
+      data:[877,232,212,84],
+      backgroundColor:['#0E2233','#1F7A6C','#1F7A6C','#B5652D'],
+      borderRadius:4,
+      maxBarThickness:64
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,grid:{color:'#EEF1F1'}},x:{grid:{display:false}}}
+  }
+});
+
+// 2. Status distribution (overall 124)
+new Chart(document.getElementById('statusChart'), {
+  type:'bar',
+  data:{
+    labels:['Interested','Neutral','Irresponsible','Irrelevant','In-house','Agency','Call done','Not interested','Call scheduled'],
+    datasets:[{
+      data:[32,21,21,15,13,11,6,4,1],
+      backgroundColor:'#1F7A6C',
+      borderRadius:4
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{x:{beginAtZero:true,grid:{color:'#EEF1F1'}},y:{grid:{display:false}}}
+  }
+});
+
+// 3. Source comparison stacked
+new Chart(document.getElementById('sourceChart'), {
+  type:'bar',
+  data:{
+    labels:['Холодный LinkedIn (83)','Выставки (41)'],
+    datasets:[
+      {label:'Interested', data:[14,18], backgroundColor:'#1F7A6C'},
+      {label:'Не тот контакт', data:[25,11], backgroundColor:'#B0392E'},
+      {label:'In-house / Agency', data:[23,1], backgroundColor:'#B5652D'},
+      {label:'Neutral / Call', data:[21,11], backgroundColor:'#9FB4BE'}
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{position:'bottom', labels:{boxWidth:12, padding:14}}},
+    scales:{
+      x:{stacked:true, grid:{display:false}},
+      y:{stacked:true, beginAtZero:true, grid:{color:'#EEF1F1'}}
+    }
+  }
+});
+
+// 4. Position bucket chart (count + interested rate)
+const buckets = ['Operations','Other/Unclear','CEO/Owner','Procurement','Crew Sched./Planning','Manager (other)','Director (other)','Dir. of Operations','Dispatch','Coordinator','Crew Ops (other)'];
+const totals =    [25,20,16,11,10,10,9,8,5,4,4];
+const interested=[5,6,6,2,3,4,1,1,3,1,0];
+const rate = totals.map((t,i)=> t? Math.round(interested[i]/t*1000)/10 : 0);
+
+new Chart(document.getElementById('bucketChart'), {
+  data:{
+    labels:buckets,
+    datasets:[
+      {type:'bar', label:'Всего контактов', data:totals, backgroundColor:'#0E2233', order:2, yAxisID:'y'},
+      {type:'line', label:'% Interested', data:rate, borderColor:'#B5652D', backgroundColor:'#B5652D', tension:0.3, yAxisID:'y1', order:1, pointRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{position:'bottom', labels:{boxWidth:12,padding:14}}},
+    scales:{
+      y:{beginAtZero:true, position:'left', grid:{color:'#EEF1F1'}, title:{display:true,text:'Контактов'}},
+      y1:{beginAtZero:true, position:'right', grid:{display:false}, title:{display:true,text:'% Interested'}}
+    }
+  }
+});
+
+// Segment volume chart
+new Chart(document.getElementById('segVolumeChart'), {
+  type:'bar',
+  data:{
+    labels:['Charter-ACMI','Cargo','Regional','Leisure-LCC'],
+    datasets:[{
+      data:[55,34,24,10],
+      backgroundColor:'#0E2233',
+      borderRadius:4
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,grid:{color:'#EEF1F1'}},x:{grid:{display:false}}}
+  }
+});
+
+// Segment interested rate chart
+new Chart(document.getElementById('segRateChart'), {
+  type:'bar',
+  data:{
+    labels:['Charter-ACMI','Cargo','Regional','Leisure-LCC'],
+    datasets:[{
+      label:'% Interested',
+      data:[23.6,26.5,29.2,30.0],
+      backgroundColor:['#B0392E','#B5652D','#1F7A6C','#1F7A6C'],
+      borderRadius:4
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true, max:35, grid:{color:'#EEF1F1'}, title:{display:true,text:'%'}},x:{grid:{display:false}}}
+  }
+});
+
+// Referral destination chart
+new Chart(document.getElementById('referralChart'), {
+  type:'bar',
+  data:{
+    labels:['Operations / VP Ops','Crew Planning','Travel Ops','Charter Ops','HR / People','Без роли','Общий отдел'],
+    datasets:[{
+      data:[2,1,1,1,2,2,1],
+      backgroundColor:['#1F7A6C','#1F7A6C','#1F7A6C','#1F7A6C','#B0392E','#9FB4BE','#B5652D'],
+      borderRadius:4
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{x:{beginAtZero:true, stepSize:1, grid:{color:'#EEF1F1'}},y:{grid:{display:false}}}
+  }
+});
+
+// bucket table
+const rows = [
+  ['Operations (общая)',25,5,'20.0%','48.0%'],
+  ['Other/Unclear',20,6,'30.0%','30.0%'],
+  ['CEO/Owner',16,6,'37.5%','12.5%'],
+  ['Procurement',11,2,'18.2%','36.4%'],
+  ['Crew Scheduling/Planning',10,3,'30.0%','20.0%'],
+  ['Manager (прочее)',10,4,'40.0%','20.0%'],
+  ['Director (прочее)',9,1,'11.1%','22.2%'],
+  ['Director of Operations',8,1,'12.5%','37.5%'],
+  ['Dispatch',5,3,'60.0%','0%'],
+  ['Coordinator',4,1,'25.0%','25.0%'],
+  ['Crew Ops (прочее)',4,0,'0%','25.0%'],
+];
+const tbody = document.getElementById('bucketTable');
+rows.forEach(r=>{
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td>`;
+  tbody.appendChild(tr);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelCompas — стратегический анализ рынка, конкурентов и USP</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<style>
+:root{
+  --bg:#F2F4F3;
+  --ink:#0E2233;
+  --ink-soft:#16212B;
+  --text-2:#5B6B76;
+  --card:#FFFFFF;
+  --line:#E1E6E7;
+  --teal:#1F7A6C;
+  --teal-soft:#DCEEE9;
+  --copper:#B5652D;
+  --copper-soft:#F3E4D6;
+  --red:#B0392E;
+  --red-soft:#F5E1DE;
+  --gold:#8A6D1F;
+  --gold-soft:#F1EAD6;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink-soft);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px 90px;}
+
+header.top{background:var(--ink);color:#EDF2F1;padding:44px 24px 34px;margin-bottom:32px;}
+header.top .inner{max-width:1180px;margin:0 auto;}
+header.top .kicker{font-size:13px;color:#9FB4BE;margin-bottom:10px;}
+header.top h1{font-size:29px;font-weight:650;margin:0 0 12px;letter-spacing:-0.01em;max-width:760px;}
+header.top p.sub{font-size:15px;color:#B9C7CD;max-width:680px;margin:0;}
+header.top .meta{display:flex;gap:26px;margin-top:22px;flex-wrap:wrap;font-size:13px;color:#9FB4BE;}
+header.top .meta strong{color:#EDF2F1;font-weight:600;}
+
+nav.toc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:36px;}
+nav.toc h3{margin:0 0 10px;font-size:13px;color:var(--text-2);font-weight:600;}
+nav.toc ol{margin:0;padding-left:20px;columns:2;column-gap:24px;font-size:13.5px;}
+nav.toc li{margin-bottom:6px;}
+nav.toc a{color:var(--ink);text-decoration:none;}
+nav.toc a:hover{text-decoration:underline;}
+@media (max-width:700px){nav.toc ol{columns:1;}}
+
+section{margin-bottom:44px;scroll-margin-top:20px;}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:16px;flex-wrap:wrap;}
+.section-head h2{font-size:20px;margin:0;font-weight:650;color:var(--ink);}
+.section-head p{margin:4px 0 0;color:var(--text-2);font-size:14px;max-width:640px;}
+
+.legend-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-2);}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:20px;}
+.kpi-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;}
+.kpi-card .label{font-size:12.5px;color:var(--text-2);margin-bottom:6px;}
+.kpi-card .value{font-size:26px;font-weight:700;color:var(--ink);}
+.kpi-card .note{font-size:12.5px;margin-top:6px;color:var(--text-2);}
+.kpi-card .note.good{color:var(--teal);font-weight:600;}
+.kpi-card .note.flag{color:var(--copper);font-weight:600;}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;}
+.grid-2{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;}
+@media (max-width:860px){.grid-2{grid-template-columns:1fr;}}
+h3.chart-title{font-size:14px;font-weight:650;margin:0 0 14px;color:var(--ink);}
+
+.callout{border-left:3px solid var(--copper);background:var(--copper-soft);padding:14px 18px;border-radius:6px;font-size:14.5px;margin:16px 0;}
+.callout.teal{border-left-color:var(--teal);background:var(--teal-soft);}
+.callout.red{border-left-color:var(--red);background:var(--red-soft);}
+.callout.gold{border-left-color:var(--gold);background:var(--gold-soft);}
+.callout strong{display:block;margin-bottom:3px;color:var(--ink);}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{text-align:left;padding:9px 10px;border-bottom:2px solid var(--line);color:var(--text-2);font-weight:600;font-size:12.5px;}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+.tag.teal{background:var(--teal-soft);color:var(--teal);}
+.tag.copper{background:var(--copper-soft);color:var(--copper);}
+.tag.red{background:var(--red-soft);color:var(--red);}
+.tag.gray{background:#EDEFEF;color:var(--text-2);}
+.tag.gold{background:var(--gold-soft);color:var(--gold);}
+
+.region-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+.region-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;}
+.region-card h4{margin:0 0 6px;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.region-card p{margin:6px 0;font-size:13.5px;}
+.region-card .icp{font-size:12.5px;color:var(--text-2);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
+
+.tier-block{margin-bottom:22px;}
+.tier-block h4{font-size:14.5px;color:var(--ink);margin:0 0 10px;display:flex;align-items:center;gap:8px;}
+
+.usp-bar-row{display:flex;align-items:center;gap:10px;margin:10px 0;}
+.usp-label{width:230px;font-size:13px;flex-shrink:0;}
+.usp-track{flex:1;height:10px;background:#EDEFEF;border-radius:6px;overflow:hidden;}
+.usp-fill{height:100%;border-radius:6px;}
+.usp-verdict{width:100px;text-align:right;font-size:12px;font-weight:600;flex-shrink:0;}
+
+.quote-box{background:#F7F8F7;border:1px dashed var(--line);border-radius:8px;padding:14px 18px;font-size:13.5px;margin:10px 0;}
+.quote-box .who{font-size:11.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+.quote-box p{margin:0;font-style:italic;color:var(--ink-soft);}
+
+.plan-item{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);}
+.plan-item:last-child{border-bottom:none;}
+.plan-num{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.plan-item h4{margin:0 0 3px;font-size:14px;}
+.plan-item p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+
+.open-q{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+.open-q:last-child{border-bottom:none;}
+.open-q .num{color:var(--copper);font-weight:700;flex-shrink:0;}
+
+footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--text-2);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="kicker">HotelCompas / JetCompas / Аэропульс — стратегический разбор рынка</div>
+    <h1>Регионы, конкуренты, департаменты, возражения и USP: полная карта для GTM-стратегии</h1>
+    <p class="sub">Синтез CRM-данных (124 лида), внутренней конкурентной разведки, объектной библиотеки из 20 карточек и внешнего рыночного исследования по глобальной IROPS/HOTAC-индустрии.</p>
+    <div class="meta">
+      <div>Подтверждённых сегментов CRM: <strong>4</strong></div>
+      <div>Конкурентов на карте: <strong>24+</strong></div>
+      <div>Авиакомпаний-клиентов: <strong>57</strong></div>
+      <div>Дата: <strong>сентябрь 2026</strong></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h3>Разделы</h3>
+  <ol>
+    <li><a href="#method">Метод и надёжность данных</a></li>
+    <li><a href="#regions">Региональные боли и ICP</a></li>
+    <li><a href="#competitors">Конкурентный ландшафт HOTAC</a></li>
+    <li><a href="#deepaudit">Углублённый аудит (сент. 2026)</a></li>
+    <li><a href="#fuel">Топливные конкуренты JetCompas</a></li>
+    <li><a href="#departments">Департаменты и их боли</a></li>
+    <li><a href="#objections">Возражения + Feel-Felt-Found</a></li>
+    <li><a href="#case">Структура кейса</a></li>
+    <li><a href="#usp">USP — тест и кандидаты</a></li>
+    <li><a href="#brainaudit">Brain Audit — Problem→USP</a></li>
+    <li><a href="#open">Открытые вопросы и план</a></li>
+  </ol>
+</nav>
+
+<!-- METHOD -->
+<section id="method">
+  <div class="section-head">
+    <div><h2>Метод — три уровня надёжности данных</h2>
+    <p>Отчёт держится на данных разной степени надёжности. Важно не путать их между собой при принятии решений.</p></div>
+  </div>
+  <div class="legend-row">
+    <div class="legend-item"><span class="dot" style="background:var(--teal)"></span> Подтверждено в CRM / внутренних данных</div>
+    <div class="legend-item"><span class="dot" style="background:var(--ink)"></span> Внешнее рыночное исследование (2025-2026)</div>
+    <div class="legend-item"><span class="dot" style="background:var(--copper)"></span> Гипотеза — требует проверки</div>
+  </div>
+  <div class="callout">
+    <strong>Почему это важно держать в голове по ходу всего документа</strong>
+    Раздел про США построен на реальных 124 лидах. Разделы про Африку, Ближний Восток, Азию — на внешнем исследовании и единичных внутренних примерах. Смешивать эти уровни в презентации инвестору или команде — значит выдавать гипотезу за факт.
+  </div>
+</section>
+
+<!-- REGIONS -->
+<section id="regions">
+  <div class="section-head">
+    <div><h2>Региональные боли и ICP</h2>
+    <p>США — единственный регион с полным подтверждением через CRM. Остальные — внешнее исследование плюс единичные внутренние сигналы.</p></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h3 class="chart-title">Сегментация США по CRM (124 лида)</h3>
+      <canvas id="segChart"></canvas>
+    </div>
+    <div class="panel">
+      <h3 class="chart-title">Interested rate по сегменту</h3>
+      <table>
+        <thead><tr><th>Сегмент</th><th>Лидов</th><th>Interested</th></tr></thead>
+        <tbody>
+          <tr><td>Charter-ACMI</td><td>55</td><td><span class="tag teal">выше среднего</span></td></tr>
+          <tr><td>Cargo</td><td>34</td><td><span class="tag teal">выше среднего</span></td></tr>
+          <tr><td>Regional</td><td>24</td><td><span class="tag gray">среднее</span></td></tr>
+          <tr><td>Leisure-LCC</td><td>10</td><td><span class="tag gray">среднее</span></td></tr>
+        </tbody>
+      </table>
+      <p class="callout teal" style="margin-top:14px;">Charter-ACMI и Cargo — эмпирически подтверждённый ICP, не гипотеза.</p>
+    </div>
+  </div>
+
+  <div style="height:20px"></div>
+
+  <div class="region-grid">
+    <div class="region-card">
+      <h4>🇺🇸 США <span class="tag teal">данные CRM</span></h4>
+      <p>Ручная обработка HOTAC при IROPS даёт 15-25% перерасхода из-за внеконтрактных бронирований и дублей. Индустрия теряет $60 млрд/год (8% выручки) на IROPS в целом.</p>
+      <div class="icp">ICP: Charter-ACMI, Cargo — малые/средние операторы без выделенного 24/7 crew-logistics отдела</div>
+    </div>
+    <div class="region-card">
+      <h4>🌍 Африка <span class="tag copper">исследование + 1 кейс</span></h4>
+      <p>Карго-трафик +18.2% год к году (самый быстрый рост в мире), маршруты Африка-Азия +41.6%. Ключевая боль — не частота IROPS, а физическая невозможность оплаты (отели принимают только нал/локальную карту).</p>
+      <div class="icp">ICP: карго-операторы и растущие региональные carriers</div>
+    </div>
+    <div class="region-card">
+      <h4>🌐 Ближний Восток <span class="tag copper">гипотеза</span></h4>
+      <p>Геополитика — постоянный, не разовый триггер IROPS (закрытие воздушного пространства Дохи, сентябрь 2025). Одновременно регион инвестирует в инфраструктуру (Etihad Rail: -30% времени транзита).</p>
+      <div class="icp">ICP: перевозчики через нестабильные коридоры — нет ни одного лида в CRM, требует проверки</div>
+    </div>
+    <div class="region-card">
+      <h4>🌎 Латам / Карибы <span class="tag copper">конкурент как ориентир</span></h4>
+      <p>Работающий нишевый пример: Cocotours (Доминиканская Республика) — задокументированные SLA (Hotel Confirmation Time, ≤60 мин активация). Модель "локальный специалист с быстрым SLA" уже доказала спрос.</p>
+      <div class="icp">ICP: чартерные/туристические операторы в аэропортах с ограниченной инфраструктурой</div>
+    </div>
+    <div class="region-card">
+      <h4>🌏 Азия <span class="tag red">белое пятно</span></h4>
+      <p>Нет ни данных CRM, ни специфического исследования в рамках этой сессии. TA Connections упоминает офис в Сингапуре — спрос есть, но не изучен.</p>
+      <div class="icp">Требует отдельного раунда исследования</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETITORS -->
+<section id="competitors">
+  <div class="section-head">
+    <div><h2>Конкурентный ландшафт HOTAC</h2>
+    <p>Три уровня: глобальные лидеры, второй эшелон, непрямые модели поведения. Отдельно — подтверждённые совпадения с реальными контактами CRM.</p></div>
+  </div>
+
+  <div class="tier-block">
+    <h4>🥇 Уровень 1 — глобальные лидеры</h4>
+    <table>
+      <thead><tr><th>Конкурент</th><th>Что продают</th><th>Сильные стороны</th><th>Уязвимость</th></tr></thead>
+      <tbody>
+        <tr><td><strong>TA Connections / Corpay</strong></td><td>Crew layover, IRROPS, транспорт, питание, digital</td><td>160+ авиакомпаний, TA Crew Hub, DHL Air UK (2025)</td><td>Тяжёлый/дорогой для средних; мало человеческого контакта в кризис</td></tr>
+        <tr><td><strong>API / Accommodations Plus</strong></td><td>Crew accommodation, hotel sourcing, disrupted pax</td><td>Долгая история, платформа, клиент SkyWest</td><td>Enterprise-процессы, медленно на малом объёме</td></tr>
+      </tbody>
+    </table>
+    <p class="callout teal" style="margin-top:10px;"><strong>Подтверждено в CRM:</strong> API — действующий провайдер Envoy Air и (через них) American Airlines. Приоритет №1 для battlecard.</p>
+  </div>
+
+  <div class="tier-block">
+    <h4>🥈 Уровень 2 — второй эшелон</h4>
+    <table>
+      <thead><tr><th>Конкурент</th><th>Что продают</th><th>Сильные стороны</th><th>Уязвимость</th></tr></thead>
+      <tbody>
+        <tr><td>CMAC Group</td><td>Disruption management, self-service</td><td>UK/Европа, прозрачность</td><td>Слабее вне Европы</td></tr>
+        <tr><td>HRS Crew & Passenger</td><td>Автоматизация crew accommodation</td><td>Supplier analytics</td><td>Procurement-тяжёлый</td></tr>
+        <tr><td>Gett-e</td><td>Платформа crew hotels</td><td>Интеграция AIMS, N-OC</td><td>Только hotel-цикл</td></tr>
+        <tr><td>Croowy</td><td>HOTAC/RFP tendering</td><td>Софт-упаковка, тендеры</td><td>Не hands-on в кризис</td></tr>
+        <tr><td>Aurora Aviation</td><td>HOTAC как часть flight support</td><td>VIP/charter, biz aviation</td><td>HOTAC не основной фокус</td></tr>
+        <tr><td>ASM</td><td>HOTAC как часть flight support</td><td>Широкий портфель</td><td>HOTAC размыт среди сервисов</td></tr>
+        <tr><td>Plan3</td><td>Passenger disruption tech</td><td>Сильнее в passenger care</td><td>Слабее в crew HOTAC</td></tr>
+        <tr><td>RouteSpring</td><td>Crew travel management</td><td>—</td><td>Мало данных</td></tr>
+        <tr><td>Travelworx</td><td>Crew travel: hotel/транспорт/тикет</td><td>Узкая специализация</td><td>Нет digital dashboard/SLA</td></tr>
+        <tr><td>UAS International</td><td>Permits, compliance</td><td>Business aviation</td><td>Не про HOTAC-кризис</td></tr>
+        <tr><td>Ground Transport Solutions</td><td>—</td><td>—</td><td><span class="tag copper">требует изучения</span></td></tr>
+        <tr><td><strong>GCL</strong></td><td>Air freight + HOTAC-функция</td><td>—</td><td><span class="tag teal">провайдер National Airlines</span></td></tr>
+        <tr><td><strong>Direct Travel</strong></td><td>Travel management</td><td>—</td><td><span class="tag teal">провайдер Air Tindi</span></td></tr>
+        <tr><td><strong>Flight Bridge</strong></td><td>Крюинг-логистика</td><td>+ локальные контакты</td><td><span class="tag teal">провайдер Castle Aviation</span></td></tr>
+        <tr><td><strong>Engine</strong></td><td>Corporate travel booking</td><td>—</td><td><span class="tag teal">провайдер Air Cargo Carriers</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout gold">
+    <strong>Находка: спящий контракт AJet × CMAC</strong>
+    У AJet есть подписанный контракт с CMAC (комиссия 5-10%), но AJet им не пользуется. Редкий случай, когда известен конкретный неактивный контракт конкурента — прямой рычаг захода, приоритет для отдельного battlecard.
+  </div>
+
+  <div class="tier-block" style="margin-top:22px;">
+    <h4>Непрямые конкуренты — модели поведения, не компании</h4>
+    <table>
+      <thead><tr><th>Модель</th><th>Сильные стороны</th><th>Уязвимость</th></tr></thead>
+      <tbody>
+        <tr><td>Отель напрямую</td><td>Лучшая цена на локации, прямой контакт</td><td>Не закрывает сеть, дебиторку, 24/7 хаос</td></tr>
+        <tr><td>Ground handler / airport rep</td><td>На месте, знает аэропорт</td><td>Не умеет массово бронировать при пике</td></tr>
+        <tr><td>Travel agent / reseller</td><td>Быстрый доступ к ценам</td><td>Слабее в aviation-операционке и 24/7</td></tr>
+        <tr><td>Своя платформа авиакомпании</td><td>Контроль внутри компании</td><td>Дорого поддерживать, не заменяет сеть</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Смежная категория — не путать с прямыми конкурентами</strong>
+    Passenger-facing IROPS BPO (1Point1, IGT Solutions, WNS, Teleperformance, Concentrix) занимаются ребукингом и колл-центром для пассажиров, не HOTAC/crew. Это конкуренты Аэропульса (обслуживание сбойных рейсов), не HotelCompas. Смешивать их в одном battlecard — ошибка: разные закупщики внутри авиакомпании (Customer Experience vs Crew Scheduling/OCC).
+  </div>
+
+  <div class="callout teal">
+    <strong>Тактика уже готова к внедрению</strong>
+    Контакты, явно ответившие in-house или agency, — отдельный, уже осведомлённый пул для персонализированного захода, отдельно от тех, кто не ответил вообще. Запланировано после выставок и запуска JetCompas.
+  </div>
+</section>
+
+<!-- FUEL -->
+<section id="fuel">
+  <div class="section-head">
+    <div><h2>Топливные конкуренты JetCompas</h2>
+    <p>Другой рынок, другая динамика: персональные отношения с fuel-менеджерами, нестабильные контуры вместо многолетних стабильных позиций как в HOTAC.</p></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Конкурент</th><th>Статус / детали</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cargo Air Chartering (CAC)</strong></td><td>Активный, работает с WFS, клиентский менеджер Максим Иванов</td></tr>
+      <tr><td>JETEX</td><td><span class="tag copper">выпал из CAMEX</span> — сменился fuel manager, окно возможностей</td></tr>
+      <tr><td>AEG</td><td>Не сотрудничает по CAMEX; слабые цены по топливу в Европе</td></tr>
+      <tr><td>vsky.aero</td><td>Конкурент в Турции</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout red" style="margin-top:16px;">
+    <strong>Российский блок — строго для внутреннего использования</strong>
+    Данные ниже получены от Максима для JetCompas/Аэропульс. Они не должны попадать ни в один документ, доступный US-стороне HotelCompas — та же логика, что при аудите утечки через домен почты Аэропульса.
+  </div>
+
+  <table style="margin-top:10px;">
+    <thead><tr><th>Конкурент</th><th>Модель</th><th>Детали</th></tr></thead>
+    <tbody>
+      <tr><td>Авиацентр «Взлёт»</td><td>Прокладка Jetex под РФ-рынком</td><td>Госконтракты; непрозрачная схема движения денег между юрлицами</td></tr>
+      <tr><td>UTC</td><td>Наземное обслуживание + топливо</td><td>РФ + Дубай; сильная диспетчерская команда; не работает с cargo — ниша для партнёрства</td></tr>
+      <tr><td>Авиасервис</td><td>Купля-продажа (не агентская)</td><td>Собственный ресурс в Жуковском; быстрый рост, Северо-Запад РФ</td></tr>
+      <tr><td>Капитал Авианефть</td><td>Топливный трейдер</td><td>Volga-Dnepr, Абакан, Авиакон, CAMEX, Узбекистан, Oman Air</td></tr>
+      <tr><td>mega.aero</td><td>Топливный трейдер</td><td>Заправляет Smart Aviation на Ближнем Востоке</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout copper" style="margin-top:16px;">
+    <strong>Практический вывод</strong>
+    Топливный рынок обновляется быстрее HOTAC — JETEX и AEG оба сейчас в подвешенном состоянии. Конкурентную карту здесь нужно ревизовать раз в 4-6 недель, а не в общем квартальном цикле.
+  </div>
+</section>
+
+<!-- DEPARTMENTS -->
+<section id="departments">
+  <div class="section-head">
+    <div><h2>Департаменты и их боли</h2>
+    <p>OCC принимает решения в окне 24-72 часа — это структурно объясняет, почему скорость HOTAC-провайдера встроена в цикл принятия решений, а не просто "приятный бонус".</p></div>
+  </div>
+  <table>
+    <thead><tr><th>Департамент</th><th>Задача / боль</th><th>Как закрывает HotelCompas</th></tr></thead>
+    <tbody>
+      <tr><td><strong>OCC / Dispatch / Crew Scheduling</strong></td><td>Ручной поиск отеля съедает время в дефицитном 24-72ч окне; риск нарушения crew rest — штрафы $25,000-$50,000 за нарушение FAA Part 117/EASA FTL</td><td>Живой 24/7 контакт, скорость реакции как основной USP</td></tr>
+      <tr><td><strong>Procurement</strong></td><td>Нужен формализованный сравнимый процесс выбора вендора; решение часто затягивается не из-за отказа, а из-за отсутствия готовой рамки сравнения</td><td>Custom тариф, прозрачная структура, готовность встроиться в формальный RFP</td></tr>
+      <tr><td><strong>Finance</strong></td><td>Разрозненные прямые платежи отелям по всему миру, особенно в странах со сложной платёжной инфраструктурой</td><td>Единый счёт, гибкий кредитный лимит, локальная оплата через сеть агентов</td></tr>
+      <tr><td><strong>C-level</strong> (Charter/small carrier)</td><td>Стратегическое решение об аутсорсе непрофильной функции, репутационный риск сбоя</td><td>Backup/benchmark позиционирование без давления на замену провайдера</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- OBJECTIONS -->
+<section id="objections">
+  <div class="section-head">
+    <div><h2>Возражения + Feel-Felt-Found</h2>
+    <p>Накладывается на уже готовую систему ACKNOWLEDGE → DIAGNOSE → REFRAME → LOW-FRICTION NEXT STEP из скилла hotelcompas-voice — не замена, а конкретная речевая техника для шага ACKNOWLEDGE/REFRAME.</p></div>
+  </div>
+
+  <div class="quote-box">
+    <div class="who">"We already work with another provider"</div>
+    <p>I understand how that feels — switching providers feels like unnecessary risk. Most of our current airline partners <strong>felt</strong> exactly the same way before they tried us. What they <strong>found</strong> was that running us as a backup for just a few requests showed them the difference in response time without any risk to their existing setup.</p>
+  </div>
+  <div class="quote-box">
+    <div class="who">"We handle everything in-house"</div>
+    <p>I understand how you'd feel that way — and it makes sense, you've built a process that works. Airlines with strong in-house teams have <strong>felt</strong> the same confidence, but what many of them <strong>found</strong> is that workload spikes during multi-city IROPS are exactly where even a strong in-house team benefits from extra capacity, not replacement.</p>
+  </div>
+
+  <div class="callout">
+    <strong>Принцип из источника (Bag 4 — Biggest Objection)</strong>
+    Не ждать, пока возражение всплывёт само — выводить его самим в начале разговора и сразу снимать. Конфликтует с типичным cold outreach (ждать ответа и реагировать) — стоит протестировать на части базы: называть возражение вслух в первом сообщении и сразу закрывать backup-фреймингом.
+  </div>
+</section>
+
+<!-- CASE STUDY -->
+<section id="case">
+  <div class="section-head">
+    <div><h2>Структура кейса</h2>
+    <p>Четыре элемента в строгом порядке — пропуск среднего звена самая частая причина, почему кейс не конвертит.</p></div>
+  </div>
+  <div class="panel">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <span class="tag gray">1. Целевая аудитория</span>
+      <span class="tag gray">→ 2. Проблема</span>
+      <span class="tag copper">→ 3. Возражение</span>
+      <span class="tag copper">→ 4. Снятый риск</span>
+      <span class="tag teal">→ 5. Результат</span>
+    </div>
+    <div class="quote-box">
+      <div class="who">Шаблон</div>
+      <p>[Тип авиакомпании] сталкивался с [конкретная проблема]. Их главным сомнением было [реальное возражение]. Мы сняли это, предложив [конкретный риск-reversal]. В результате [измеримый результат].</p>
+    </div>
+    <p style="font-size:13.5px;margin-top:12px;">32 Interested-контакта и несколько закрытых сделок уже есть в CRM — не хватает структурированных интервью по этой формуле (какое было возражение до старта, что его сняло). Это первоочередная операционная задача, не исследовательская.</p>
+  </div>
+</section>
+
+<!-- USP -->
+<section id="usp">
+  <div class="section-head">
+    <div><h2>USP — тест логотипом конкурента</h2>
+    <p>Написать формулировку, поставить сверху логотип конкурента — если работает и для него, это не настоящий USP.</p></div>
+  </div>
+  <div class="panel">
+    <div class="usp-bar-row">
+      <div class="usp-label">24/7 поддержка</div>
+      <div class="usp-track"><div class="usp-fill" style="width:15%;background:var(--red);"></div></div>
+      <div class="usp-verdict" style="color:var(--red);">не проходит</div>
+    </div>
+    <div class="usp-bar-row">
+      <div class="usp-label">Гибкий кредитный лимит</div>
+      <div class="usp-track"><div class="usp-fill" style="width:55%;background:var(--copper);"></div></div>
+      <div class="usp-verdict" style="color:var(--copper);">частично</div>
+    </div>
+    <div class="usp-bar-row">
+      <div class="usp-label">Human-operated, tech-supported</div>
+      <div class="usp-track"><div class="usp-fill" style="width:88%;background:var(--teal);"></div></div>
+      <div class="usp-verdict" style="color:var(--teal);">проходит сильно</div>
+    </div>
+    <div class="usp-bar-row">
+      <div class="usp-label">Платёжная инфраструктура в сложных регионах</div>
+      <div class="usp-track"><div class="usp-fill" style="width:92%;background:var(--teal);"></div></div>
+      <div class="usp-verdict" style="color:var(--teal);">сильный кандидат</div>
+    </div>
+    <p style="font-size:13.5px;margin-top:16px;">Ни TA Connections, ни CMAC, ни ASM, ни Cocotours не заявляют локальную платёжную инфраструктуру как отдельный акцент — это конкретный, проверяемый, недооценённый USP, который стоит поднять выше "24/7" в коммуникации.</p>
+  </div>
+</section>
+
+<!-- DEEP AUDIT -->
+<section id="deepaudit">
+  <div class="section-head">
+    <div><h2>Углублённый аудит конкурентов (сентябрь 2026)</h2>
+    <p>Живой веб-скрейпинг четырёх приоритетных конкурентов + финансовые данные материнской компании. Не общее описание с сайта — конкретные свежие факты.</p></div>
+  </div>
+
+  <div class="region-grid">
+    <div class="region-card">
+      <h4>TA Connections <span class="tag copper">расширяется за HOTAC</span></h4>
+      <p>2022 — куплен Levarti (чек-ин, инфлайт, багаж). 2024 — "интеллектуальный тикетинг". Заявляют <strong>97% автоматизации</strong> crew layover. Новые партнёрства 2026 (Aircalin, Philippine Airlines) — на пассажирской стороне, не crew HOTAC.</p>
+      <div class="icp">Материнская Corpay (NYSE: CPAY) — под расследованием акционеров с мая 2025. Airline-логистика — маленькое подразделение внутри финтех-гиганта.</div>
+    </div>
+    <div class="region-card">
+      <h4>CMAC Group <span class="tag red">идёт в Азию</span></h4>
+      <p>Конгломерат: Rail + Healthcare + Corporate + Public Sector — авиация лишь 1 из 5 вертикалей. Владелец ComfortDelGro (Сингапур) <strong>расширяет CMAC в Азию прямо сейчас</strong>. 156 блог-постов, штатный публичный спикер (COO).</p>
+      <div class="icp">Сеть отелей растёт через самообслуживаемую форму "Become a Supplier", не прямые отношения.</div>
+    </div>
+    <div class="region-card">
+      <h4>Accommodations Plus (API) <span class="tag teal">невидим публично</span></h4>
+      <p>Прямой скрейп сайта не вернул содержательного контента — только рекламные трекеры. При этом приоритетный конкурент по CRM (Envoy Air, American Airlines).</p>
+      <div class="icp">Пространство обгонять в контенте/SEO почти без сопротивления — конкурент там не присутствует.</div>
+    </div>
+    <div class="region-card">
+      <h4>ASM <span class="tag gray">зрелый, экспансия</span></h4>
+      <p>Офис в Саудовской Аравии (2024), AERO Friedrichshafen 2026, материал к 40-летию (авг. 2026). Активен в Instagram/LinkedIn, фокус Ближний Восток + бизнес-авиация.</p>
+      <div class="icp">Давно работающий игрок с активным PR, не тихий нишевый.</div>
+    </div>
+  </div>
+
+  <div class="callout teal" style="margin-top:16px;">
+    <strong>Общий вывод по всем четырём</strong>
+    Ни один из приоритетных конкурентов не заявляет локальную платёжную инфраструктуру в сложных регионах как отдельный акцент — подтверждает недооценённый USP из раздела USP-теста.
+  </div>
+</section>
+
+<!-- BRAIN AUDIT -->
+<section id="brainaudit">
+  <div class="section-head">
+    <div><h2>Brain Audit — стратегия Problem → USP</h2>
+    <p>Семь шагов в прямом порядке применения (в источнике даны в обратном).</p></div>
+  </div>
+  <table>
+    <thead><tr><th>Шаг</th><th>Принцип</th><th>Применение к HotelCompas</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. Problem</strong></td><td>Проблема первична. Заголовки рисуют боль, не решение.</td><td>Пиллары открываются болью (ночной поиск отеля), не фичей</td></tr>
+      <tr><td><strong>2. Solutions</strong></td><td>Решение — вторая ступень, только после признания проблемы.</td><td>Не вести с "24/7 OCC", вести с ценой ошибки без него</td></tr>
+      <tr><td><strong>3. Target Audience</strong></td><td>Максимально узкая аудитория.</td><td>Уже сделано — Charter-ACMI, Cargo</td></tr>
+      <tr><td><strong>4. Biggest Objection</strong></td><td>Выводить возражение самим, сразу снимать.</td><td>Проактивно называть "наверное, есть провайдер" в первом сообщении</td></tr>
+      <tr><td><strong>5. Case Study</strong></td><td>Аудитория + проблема + возражение + снятый риск → результат.</td><td>Без возражения кейс — хвастовство, не история</td></tr>
+      <tr><td><strong>6. Risk Reversal</strong></td><td>Даже при 100% гарантии возврата &lt;5% пользуются ей — reversal почти бесплатен для компании.</td><td>Backup/pilot-позиционирование — это и есть risk reversal</td></tr>
+      <tr><td><strong>7. USP</strong></td><td>Тест логотипом конкурента. USP живёт долго — смена больна. FedEx не поменял USP при устаревании, нашёл новую боль под тем же USP.</td><td>Если "human-operated" ослабнет — искать новую боль под тем же USP, не менять формулировку</td></tr>
+    </tbody>
+  </table>
+  <div class="callout" style="margin-top:14px;">
+    <strong>Как собирать сильные отзывы</strong>
+    Не "как вам сервис", а шесть конкретных вопросов (понравилось больше всего / ожидания до начала / как изменилось восприятие / три главных преимущества / порекомендуете ли / что добавили бы), по телефону с записью — живой ответ вместо причёсанного текста.
+  </div>
+</section>
+
+<!-- OPEN -->
+<section id="open">
+  <div class="section-head">
+    <div><h2>Открытые вопросы</h2>
+    <p>Не закрыто этим отчётом — требует отдельной проверки, прежде чем печатать как факт.</p></div>
+  </div>
+  <div class="panel">
+    <div class="open-q"><div class="num">1</div><div><s>Расхождение "55+" vs "57"</s> — разрешено, 57 подтверждено как канон. Обновить в скилле hotelcompas-voice.</div></div>
+    <div class="open-q"><div class="num">2</div><div>Ближний Восток и Азия — нет ни одного реального контакта в CRM, весь раздел построен на рыночной логике.</div></div>
+    <div class="open-q"><div class="num">3</div><div>Кейсы не собраны в формате "проблема-возражение-риск-результат" — операционная задача, не исследовательская.</div></div>
+    <div class="open-q"><div class="num">4</div><div>Прямое сравнение с Cocotours не проводилось — нужно перед экспансией в Карибы/Латам.</div></div>
+    <div class="open-q"><div class="num">5</div><div>Азиатско-Тихоокеанский регион — белое пятно, отдельный раунд исследования на 2027 год.</div></div>
+    <div class="open-q"><div class="num">6</div><div>Ground Transport Solutions зафиксирован только по ссылке, без разбора.</div></div>
+    <div class="open-q"><div class="num">7</div><div>Топливный контур JetCompas нестабилен прямо сейчас — окно может закрыться быстрее квартального цикла ревью.</div></div>
+  </div>
+
+  <div style="height:20px"></div>
+
+  <div class="panel">
+    <h3 class="chart-title" style="margin-bottom:14px;">План действий по приоритету</h3>
+    <div class="plan-item"><div class="plan-num">1</div><div><h4>Сверить "55+/57" с Максимом</h4><p>Блокирует использование цифры в любых материалах до решения.</p></div></div>
+    <div class="plan-item"><div class="plan-num">2</div><div><h4>Провести 5-8 интервью по формуле кейса</h4><p>С текущими Interested/закрытыми клиентами.</p></div></div>
+    <div class="plan-item"><div class="plan-num">3</div><div><h4>Поднять платёжную инфраструктуру как USP</h4><p>Сейчас недооценён в контенте и питчах.</p></div></div>
+    <div class="plan-item"><div class="plan-num">4</div><div><h4>Протестировать проактивное озвучивание возражения</h4><p>Small batch аутрича, сравнить conversion с реактивным подходом.</p></div></div>
+    <div class="plan-item"><div class="plan-num">5</div><div><h4>Завести трек по Африке</h4><p>Единственный нерыночный регион с конкретным обоснованным сценарием (платёжная инфраструктура).</p></div></div>
+    <div class="plan-item"><div class="plan-num">6</div><div><h4>Исследование Cocotours и нишевых игроков</h4><p>До захода в Карибы/Латинскую Америку.</p></div></div>
+    <div class="plan-item"><div class="plan-num">7</div><div><h4>Запустить раздельный заход in-house/agency</h4><p>Данные уже есть в CRM, задача чисто операционная.</p></div></div>
+    <div class="plan-item"><div class="plan-num">8</div><div><h4>Battlecard по CMAC с акцентом на спящий контракт AJet</h4><p>Готовый рычаг захода.</p></div></div>
+    <div class="plan-item"><div class="plan-num">9</div><div><h4>Обновлять топливный лист JetCompas раз в 4-6 недель</h4><p>Отдельно от общего цикла ревью HOTAC.</p></div></div>
+  </div>
+</section>
+
+<footer>
+  Источники: CRM 06.06-13.09.2026 (124 лида), внутренняя конкурентная разведка (Максим, Настя), объектная библиотека hotelcompas-voice, внешние источники — IATA, Amadeus/T2RL ($60B IROPS), AirHelp, TA Connections, CMAC Group, ASM, Cocotours, PsychoTactics (USP/case study/objection framework). Данные по регионам вне США и топливному контуру РФ помечены по уровню надёжности — см. раздел «Метод».
+</footer>
+
+</div>
+
+<script>
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+Chart.defaults.color = '#5B6B76';
+Chart.defaults.font.size = 12;
+
+new Chart(document.getElementById('segChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Charter-ACMI (55)', 'Cargo (34)', 'Regional (24)', 'Leisure-LCC (10)'],
+    datasets: [{
+      data: [55,34,24,10],
+      backgroundColor: ['#1F7A6C','#0E2233','#B5652D','#9FB4BE'],
+      borderWidth: 2,
+      borderColor: '#FFFFFF'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } } }
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelCompas — гайд по LinkedIn-маркетингу для ABM-модели</title>
+<style>
+:root{
+  --bg:#F2F4F3;
+  --ink:#0E2233;
+  --ink-soft:#16212B;
+  --text-2:#5B6B76;
+  --card:#FFFFFF;
+  --line:#E1E6E7;
+  --teal:#1F7A6C;
+  --teal-soft:#DCEEE9;
+  --copper:#B5652D;
+  --copper-soft:#F3E4D6;
+  --red:#B0392E;
+  --red-soft:#F5E1DE;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink-soft);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55;
+}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px 90px;}
+
+header.top{
+  background:var(--ink);
+  color:#EDF2F1;
+  padding:44px 24px 34px;
+  margin-bottom:32px;
+}
+header.top .inner{max-width:980px;margin:0 auto;}
+header.top .kicker{font-size:13px;color:#9FB4BE;margin-bottom:10px;}
+header.top h1{font-size:29px;font-weight:650;margin:0 0 12px;letter-spacing:-0.01em;max-width:680px;}
+header.top p.sub{font-size:15px;color:#B9C7CD;max-width:620px;margin:0;}
+header.top .meta{display:flex;gap:26px;margin-top:22px;flex-wrap:wrap;font-size:13px;color:#9FB4BE;}
+header.top .meta strong{color:#EDF2F1;font-weight:600;}
+
+nav.toc{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px 22px;
+  margin-bottom:36px;
+}
+nav.toc h3{margin:0 0 10px;font-size:13px;color:var(--text-2);font-weight:600;}
+nav.toc ol{margin:0;padding-left:20px;columns:2;column-gap:24px;font-size:13.5px;}
+nav.toc li{margin-bottom:6px;}
+nav.toc a{color:var(--ink);text-decoration:none;}
+nav.toc a:hover{text-decoration:underline;}
+
+section.checkpoint{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:26px 28px;
+  margin-bottom:22px;
+  scroll-margin-top:20px;
+}
+.cp-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;}
+.cp-num{
+  min-width:36px;height:36px;border-radius:50%;
+  background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:15px;flex-shrink:0;
+}
+.cp-head h2{margin:0 0 4px;font-size:19px;font-weight:650;color:var(--ink);}
+.cp-head p{margin:0;font-size:13.5px;color:var(--text-2);}
+
+.subhead{font-size:14.5px;font-weight:650;color:var(--ink);margin:20px 0 8px;}
+p.body{font-size:14px;margin:0 0 10px;}
+
+.checklist{list-style:none;margin:10px 0 16px;padding:0;}
+.checklist li{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:7px 0;font-size:14px;
+}
+.checklist li::before{
+  content:"";
+  min-width:16px;height:16px;margin-top:3px;
+  border:1.5px solid var(--text-2);border-radius:4px;
+  flex-shrink:0;
+}
+
+.box{
+  border-radius:8px;
+  padding:14px 18px;
+  font-size:13.5px;
+  margin:10px 0;
+}
+.box.template{background:#F7F8F7;border:1px dashed var(--line);}
+.box.template .label{font-size:11.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+.box.template p{margin:0;font-style:italic;color:var(--ink-soft);}
+.box.good{background:var(--teal-soft);border-left:3px solid var(--teal);}
+.box.warn{background:var(--copper-soft);border-left:3px solid var(--copper);}
+.box.avoid{background:var(--red-soft);border-left:3px solid var(--red);}
+.box strong{display:block;margin-bottom:3px;color:var(--ink);}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:12px 0;}
+th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);color:var(--text-2);font-weight:600;font-size:12.5px;}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+.tag.teal{background:var(--teal-soft);color:var(--teal);}
+.tag.copper{background:var(--copper-soft);color:var(--copper);}
+.tag.red{background:var(--red-soft);color:var(--red);}
+
+.plan-item{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);}
+.plan-item:last-child{border-bottom:none;}
+.plan-num{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;}
+.plan-item h4{margin:0 0 3px;font-size:14px;}
+.plan-item p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+
+footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--text-2);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="kicker">HotelCompas / JetCompas — практический гайд</div>
+    <h1>LinkedIn-маркетинг для закрытого B2B-рынка: что взять из типового гайда и как это выглядит для вас</h1>
+    <p class="sub">8 чекпоинтов, разжёванных до готовых формулировок — на основе разбора 10-Day LinkedIn Marketing Guide, ваших CRM-данных (124 лида) и воронки аутрича (877→232→212→84).</p>
+    <div class="meta">
+      <div>Модель: <strong>ABM, закрытый список ~60–90 accounts</strong></div>
+      <div>Каналы: <strong>3 личных профиля + LinkedIn Ads</strong></div>
+      <div>Источник: <strong>разобранный гайд + собственные данные</strong></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h3>Чекпоинты</h3>
+  <ol>
+    <li><a href="#cp1">Профиль как посадочная страница</a></li>
+    <li><a href="#cp2">Позиционирование под закрытый список</a></li>
+    <li><a href="#cp3">Контент-пиллары под две персоны</a></li>
+    <li><a href="#cp4">Заявки на коннект и первое сообщение</a></li>
+    <li><a href="#cp5">Скрипты возражений: in-house vs agency</a></li>
+    <li><a href="#cp6">LinkedIn Ads по названию компании</a></li>
+    <li><a href="#cp7">Метрики: что трекать, что игнорировать</a></li>
+    <li><a href="#cp8">Ритм недели и ежемесячный ревью</a></li>
+  </ol>
+</nav>
+
+<!-- CP1 -->
+<section class="checkpoint" id="cp1">
+  <div class="cp-head">
+    <div class="cp-num">1</div>
+    <div><h2>Профиль как посадочная страница</h2>
+    <p>В типовом гайде — общий чек-лист для личного бренда. Здесь — то же самое, но заполненное под три аккаунта, которые ведут аутрич к авиакомпаниям США.</p></div>
+  </div>
+
+  <p class="body">Профиль каждого аккаунт-менеджера (Leonid, Maria, Noel) — первое, что видит ЛПР авиакомпании до того, как ответить на заявку. Слабый профиль обесценивает даже хорошее сообщение.</p>
+
+  <div class="subhead">Чек-лист профиля</div>
+  <ul class="checklist">
+    <li>Фото — деловое, лицо чётко видно, нейтральный фон (не селфи, не групповое)</li>
+    <li>Баннер — не просто логотип, а одна фраза о зоне экспертизы (HOTAC/IROPS/crew logistics)</li>
+    <li>Headline — не должность, а ценность для ЛПР авиакомпании (формула ниже)</li>
+    <li>About — структура Hook → Problem → Solution → Proof → CTA, не список обязанностей</li>
+    <li>Featured — 2-3 самых убедительных элемента: пример разрешённого IROPS-кейса, короткое видео/пост, ссылка на сайт</li>
+    <li>Experience — не «работаю в HotelCompas», а конкретный результат для клиента</li>
+  </ul>
+
+  <div class="box template">
+    <div class="label">Формула headline (адаптировано)</div>
+    <p>Я помогаю [ops/crew scheduling teams авиакомпаний США] решать [задержки с размещением экипажа при IROPS] через [быстрый доступ к сети отелей и человеческую поддержку 24/7] — HotelCompas.</p>
+  </div>
+
+  <div class="box template">
+    <div class="label">Слабый headline (то, чего избегать)</div>
+    <p>Business Development Manager at HotelCompas</p>
+  </div>
+
+  <div class="box template">
+    <div class="label">About section — заполненный пример</div>
+    <p>Большинство airline ops-команд знают, что при IROPS искать отель для экипажа вручную — это часы потерянного времени и риск ошибки в критический момент.<br><br>
+    Я помогаю ops и crew scheduling командам закрывать размещение экипажа и трансфер за минуты, а не часы — через сеть проверенных отелей и человека на связи, а не через интерфейс дашборда.<br><br>
+    Работаю с Cargo, Regional, Charter и LCC сегментами. Если хотите понять, где именно у вас уходит время при disruption — напишите, разберём на примере.</p>
+  </div>
+</section>
+
+<!-- CP2 -->
+<section class="checkpoint" id="cp2">
+  <div class="cp-head">
+    <div class="cp-num">2</div>
+    <div><h2>Позиционирование под закрытый список, а не под открытый рынок</h2>
+    <p>Формула из гайда рабочая. Аудитория, под которую её обычно заполняют, — нет.</p></div>
+  </div>
+
+  <div class="box warn">
+    <strong>Ключевая поправка к гайду</strong>
+    Типовой гайд формулирует позиционирование под «кого угодно, кто увидит контент». У вас аудитория — конкретный список из ~60-90 авиакомпаний и 3-7 контактов в каждой. Позиционирование должно быть написано так, будто вы обращаетесь к этому списку по имени, а не к рынку.
+  </div>
+
+  <div class="box template">
+    <div class="label">Формула позиционирования (адаптировано)</div>
+    <p>Я помогаю [ops-командам региональных и cargo-авиакомпаний США] решать [задержки экипажа при IROPS без потери часов на поиск отеля] через [прямой человеческий контакт и сеть отелей, а не self-serve платформу].</p>
+  </div>
+
+  <div class="subhead">Проверочные вопросы (заполнить один раз, зафиксировать)</div>
+  <table>
+    <thead><tr><th>Вопрос из гайда</th><th>Ответ для HotelCompas</th></tr></thead>
+    <tbody>
+      <tr><td>Кого хочу охватить?</td><td>Не «рынок США», а поимённый список ~60-90 авиакомпаний (см. CRM)</td></tr>
+      <tr><td>Какие должности?</td><td>Ops/Crew Scheduling/Dispatch — первичный персонаж; Procurement — вторичный, другой скрипт</td></tr>
+      <tr><td>Какие проблемы?</td><td>Ручной поиск отеля при disruption; отсутствие единой точки контакта 24/7</td></tr>
+      <tr><td>Какой контент уже смотрят?</td><td>Отраслевые IROPS-разборы, посты конкурентов (TA Connections) — не общий бизнес-контент</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CP3 -->
+<section class="checkpoint" id="cp3">
+  <div class="cp-head">
+    <div class="cp-num">3</div>
+    <div><h2>Контент-пиллары под две разные персоны</h2>
+    <p>В гайде пиллары общие («Lead Generation», «Personal Branding»). У вас пиллары должны закрывать конкретные возражения из CRM: in-house и agency — это разные читатели с разными вопросами.</p></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Пиллар</th><th>Для кого</th><th>Пример темы</th></tr></thead>
+    <tbody>
+      <tr><td>Стоимость ручного IROPS-ответа</td><td>Ops / in-house</td><td>«Что реально стоит компании 40 минут поиска отеля вручную при disruption»</td></tr>
+      <tr><td>Сравнение in-house vs outsourced</td><td>Procurement</td><td>«Когда аутсорс HOTAC дешевле внутреннего отдела — и когда нет»</td></tr>
+      <tr><td>Сегмент-специфика</td><td>Ops, Crew Scheduling</td><td>«Почему Cargo и Charter нуждаются в разных подходах к crew logistics»</td></tr>
+      <tr><td>Человеческий фактор в кризисе</td><td>Оба персонажа</td><td>«Почему дашборд не звонит отелю в 2 часа ночи, а человек — да» (contrarian pillar №1)</td></tr>
+      <tr><td>Разбор конкретного случая (без имён)</td><td>Оба персонажа</td><td>«Как за 12 минут закрыли размещение 6 членов экипажа при незапланированной посадке»</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box good">
+    <strong>Пропорция контента — с поправкой на масштаб аудитории</strong>
+    Гайд предлагает 70% value / 20% personal / 10% promotional. Для узкой B2B-аудитории соотношение стоит сдвинуть в сторону value ещё сильнее — 80/15/5 — потому что промо-контент на аудитории из нескольких сотен людей выжигает доверие быстрее, чем на широкой публике, где промо теряется в потоке.
+  </div>
+</section>
+
+<!-- CP4 -->
+<section class="checkpoint" id="cp4">
+  <div class="cp-head">
+    <div class="cp-num">4</div>
+    <div><h2>Заявки на коннект и первое сообщение</h2>
+    <p>Пример из гайда — «I noticed you work with B2B SaaS companies» — общая формула. У вас есть точные крючки для персонализации: выставки, конкретная должность, конкретный аэропорт/маршрут.</p></div>
+  </div>
+
+  <div class="box avoid">
+    <strong>Избегать (по правилу из гайда, подтверждено вашими данными)</strong>
+    Generic-заявка без персонализации — прямая причина части из 21 записи «Irresponsible» в CRM: люди не считывают релевантность и просто не отвечают по существу.
+  </div>
+
+  <div class="box template">
+    <div class="label">Заявка на коннект — до (типовая из гайда)</div>
+    <p>Hi, I'd like to add you to my professional network.</p>
+  </div>
+
+  <div class="box template">
+    <div class="label">Заявка — адаптировано под ops-персонажа</div>
+    <p>Hi [Name], saw you handle crew scheduling at [Airline] — curious how your team currently manages hotel arrangements during IROPS. Would love to connect.</p>
+  </div>
+
+  <div class="box template">
+    <div class="label">Первое сообщение после принятия — qualify-вопрос (не generic из гайда)</div>
+    <p>Thanks for connecting! Quick question — when IROPS hits and you need crew accommodation fast, is that handled by an outside partner, or does your team manage it directly in-house?</p>
+  </div>
+
+  <p class="body">Этот один вопрос сразу разводит собеседника на два трека — in-house или agency — и дальше можно сразу применять нужный скрипт возражения (чекпоинт 5), а не гадать.</p>
+</section>
+
+<!-- CP5 -->
+<section class="checkpoint" id="cp5">
+  <div class="cp-head">
+    <div class="cp-num">5</div>
+    <div><h2>Скрипты возражений: in-house vs agency</h2>
+    <p>Этого раздела нет в типовом гайде вообще — но именно он критичен по вашим данным (13 in-house + 11 agency случаев в CRM).</p></div>
+  </div>
+
+  <table>
+    <thead><tr><th></th><th>In-house (делают сами)</th><th>Agency (есть вендор)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Что слышите</strong></td><td>«We have our own team»</td><td>«We already have a provider»</td></tr>
+      <tr><td><strong>Ошибочный ответ</strong></td><td>Сравнивать себя с их текущим вендором — его нет</td><td>Убеждать в ценности аутсорса вообще — они уже убеждены</td></tr>
+      <tr><td><strong>Правильный аргумент</strong></td><td>Не «мы лучше», а «что происходит, когда объём превышает возможности команды» — сценарий пиковой нагрузки</td><td>Прямая дифференциация от названного вендора (в первую очередь API — упомянут дважды в CRM)</td></tr>
+      <tr><td><strong>Follow-up вопрос</strong></td><td>«What happens during a multi-city disruption when your team is already stretched?»</td><td>«What's the one thing your current provider doesn't handle well?»</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box warn">
+    <strong>Battlecard приоритет</strong>
+    API упомянут у Envoy Air и, через них, косвенно у American Airlines — крупный игрок. Составьте отдельный battlecard именно по API, прежде чем по остальным (GCL, Flight Bridge, Direct Travel) — выборка по ним пока слишком мала для приоритета.
+  </div>
+</section>
+
+<!-- CP6 -->
+<section class="checkpoint" id="cp6">
+  <div class="cp-head">
+    <div class="cp-num">6</div>
+    <div><h2>LinkedIn Ads по названию компании — единственный по-настоящему новый инструмент из гайда</h2>
+    <p>Это то, что стоит протестировать первым: таргетинг Ads по company name закрывает разрыв между холодным аутричем (16.9% Interested) и выставками (43.9% Interested), не требуя личного присутствия.</p></div>
+  </div>
+
+  <div class="subhead">Как настроить тест</div>
+  <ul class="checklist">
+    <li>Загрузить закрытый список ~60-90 авиакомпаний как аудиторию по company name</li>
+    <li>Наложить фильтр по должности (Job title/Job function): Operations, Crew Scheduling, Procurement</li>
+    <li>Формат — Message Ads или Sponsored Content с Lead Gen Form (не баннер: у вас узкая аудитория, форма с автозаполнением снижает трение)</li>
+    <li>Оффер — не общий «свяжитесь с нами», а конкретный лид-магнит (см. ниже)</li>
+    <li>Бюджет — тестовый, на 2-3 недели, с оценкой cost per lead against именно вашего закрытого списка, а не общего охвата</li>
+  </ul>
+
+  <div class="box template">
+    <div class="label">Лид-магнит для ops-персонажа</div>
+    <p>«IROPS Response Readiness Checklist» — короткий PDF: что должно быть готово в первые 15 минут disruption</p>
+  </div>
+  <div class="box template">
+    <div class="label">Лид-магнит для procurement-персонажа</div>
+    <p>«In-house vs Outsourced HOTAC: где реально экономия» — сравнительная таблица, не маркетинговый лендинг</p>
+  </div>
+</section>
+
+<!-- CP7 -->
+<section class="checkpoint" id="cp7">
+  <div class="cp-head">
+    <div class="cp-num">7</div>
+    <div><h2>Метрики: что трекать, а что демонстративно игнорировать</h2>
+    <p>Гайд предлагает общий список метрик для роста открытой аудитории. Половина из них на вашем масштабе — шум, не сигнал.</p></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Метрика из гайда</th><th>Статус для HotelCompas</th><th>Почему</th></tr></thead>
+    <tbody>
+      <tr><td>Impressions, Follower growth, Reactions</td><td><span class="tag red">игнорировать как основную</span></td><td>Статистически незначимо на аудитории из нескольких сотен человек</td></tr>
+      <tr><td>Acceptance rate, Reply rate</td><td><span class="tag teal">трекать</span></td><td>Уже трекается — 26.5% и 39.6% соответственно, рабочий ориентир</td></tr>
+      <tr><td>Leads generated, Calls booked</td><td><span class="tag teal">трекать</span></td><td>Прямая связь с pipeline</td></tr>
+      <tr><td>Account-level engagement (не из гайда)</td><td><span class="tag copper">добавить</span></td><td>Кто из закрытого списка взаимодействовал с контентом за 30 дней — критичнее любого охвата</td></tr>
+      <tr><td>Inbound за 72 часа после поста (не из гайда)</td><td><span class="tag copper">добавить</span></td><td>Единственный способ превратить tribal-метрику «надо написать им» в измеримую цифру</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CP8 -->
+<section class="checkpoint" id="cp8">
+  <div class="cp-head">
+    <div class="cp-num">8</div>
+    <div><h2>Ритм недели — облегчённая версия под закрытый список</h2>
+    <p>Гайд предлагает ежедневный постинг и 15-20 комментариев в день. Для вашего объёма аудитории это избыточно — время лучше распределить на качество касаний, а не на частоту.</p></div>
+  </div>
+
+  <table>
+    <thead><tr><th>День</th><th>Действие (адаптировано)</th></tr></thead>
+    <tbody>
+      <tr><td>Понедельник</td><td>1 пост (value-контент), точечные комментарии под постами 5-8 контактов из закрытого списка</td></tr>
+      <tr><td>Вторник</td><td>Заявки на коннект — только по закрытому списку, персонализированные</td></tr>
+      <tr><td>Среда</td><td>Follow-up с тёплыми диалогами, отправка нужного лид-магнита по персоне</td></tr>
+      <tr><td>Четверг</td><td>1 пост (кейс/human-story пиллар)</td></tr>
+      <tr><td>Пятница</td><td>Ревью недели: кто из списка ответил/провзаимодействовал, что сработало</td></tr>
+    </tbody>
+  </table>
+
+  <p class="body">Двух постов в неделю на аудиторию такого размера достаточно — частота из гайда рассчитана на алгоритмический охват, которого у закрытого списка нет и не будет.</p>
+</section>
+
+<!-- ACTION PLAN -->
+<section class="checkpoint">
+  <div class="cp-head">
+    <div class="cp-num">→</div>
+    <div><h2>С чего начать на этой неделе</h2></div>
+  </div>
+  <div class="plan-item">
+    <div class="plan-num">1</div>
+    <div><h4>Переписать headline и About трёх аккаунтов по формулам из чекпоинта 1</h4>
+    <p>Займёт час, влияет на каждый последующий контакт.</p></div>
+  </div>
+  <div class="plan-item">
+    <div class="plan-num">2</div>
+    <div><h4>Внедрить единый qualify-вопрос из чекпоинта 4 во все новые диалоги</h4>
+    <p>Разводит на in-house/agency трек с первого сообщения.</p></div>
+  </div>
+  <div class="plan-item">
+    <div class="plan-num">3</div>
+    <div><h4>Собрать battlecard по API</h4>
+    <p>Приоритетный конкурент по данным CRM — сделать до следующего цикла аутрича.</p></div>
+  </div>
+  <div class="plan-item">
+    <div class="plan-num">4</div>
+    <div><h4>Запустить тестовую LinkedIn Ads кампанию по списку компаний</h4>
+    <p>Единственный новый канал из разобранного гайда — тест на 2-3 недели с бюджетным лимитом.</p></div>
+  </div>
+  <div class="plan-item">
+    <div class="plan-num">5</div>
+    <div><h4>Добавить account-level engagement и inbound-за-72ч в еженедельный ревью</h4>
+    <p>Заменяет vanity-метрики из типового гайда на то, что реально сигнализирует о прогрессе.</p></div>
+  </div>
+</section>
+
+<footer>
+  Источники: разбор 10-Day LinkedIn Marketing Guide (загруженные скриншоты), CRM-отчёт 124 лида (06.06–13.09.2026), воронка LinkedIn-аутрича 877/232/212/84, voice/positioning System Prompt HotelCompas. Все шаблоны сообщений — черновики для теста, не финальные скрипты; проверить на 5-10 диалогах перед масштабированием.
+</footer>
+
+</div>
+</body>
+</html>
