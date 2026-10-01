@@ -1,0 +1,174 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Подтверждённый email с доменом @hotelcompas.com
+    function isHotelCompasUser() {
+      return request.auth != null &&
+        request.auth.token.email != null &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.email.matches('.*@hotelcompas[.]com$');
+    }
+
+    // Рита: внешний адрес, допущенный только к своим данным и разделу Лидогенерация
+    function isRita() {
+      return request.auth != null &&
+        request.auth.token.email != null &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.email.lower() == 'ritapatriciav@gmail.com';
+    }
+
+    function isNastya() {
+      return isHotelCompasUser() && request.auth.token.email.lower() == 'a.belousova@hotelcompas.com';
+    }
+
+    // Кто вообще может пользоваться своими личными данными
+    function isMember() { return isHotelCompasUser() || isRita(); }
+
+    // Раздел Лидогенерация (бывший "Макс"): Макс, Настя, Рита
+    function isLeadgenUser() {
+      return isNastya() || isRita() ||
+        (isHotelCompasUser() && request.auth.token.email.lower() == 'm.oxentyuk@hotelcompas.com');
+    }
+
+    // Личные записи с полем ownerId
+    function ownsDoc() { return isMember() && resource.data.ownerId == request.auth.uid; }
+    function ownsNew() { return isMember() && request.resource.data.ownerId == request.auth.uid; }
+    // Настя дополнительно ЧИТАЕТ чужие личные данные (данные Риты), но не пишет
+    function canReadOwned() { return ownsDoc() || isNastya(); }
+
+    match /maxLeads/{leadId} { allow read, write: if isLeadgenUser(); }
+    match /maxReminders/{reminderId} { allow read, write: if isLeadgenUser(); }
+    match /maxCalls/{callId} { allow read, write: if isLeadgenUser(); }
+    match /maxCompanies/{companyId} { allow read, write: if isLeadgenUser(); }
+
+    // Профили: Рита видит и пишет только свой, остальные коллеги читают всех
+    match /users/{userId} {
+      allow read: if isHotelCompasUser() || (isRita() && request.auth.uid == userId);
+      allow write: if isMember() && request.auth.uid == userId;
+    }
+
+    // Личные коллекции с ownerId
+    match /taskColumns/{colId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /tasks/{taskId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /debts/{debtId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /goals/{goalId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /projectZones/{zoneId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /projectCards/{cardId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /projectPriorities/{prioId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /knowledgeBase/{entryId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /researchReports/{entryId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+    match /followupReminders/{reminderId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
+
+    // Личные документы, id = uid
+    match /tools/{toolDocId} {
+      allow read: if isMember() && request.auth.uid == toolDocId || isNastya();
+      allow write: if isMember() && request.auth.uid == toolDocId;
+    }
+    match /weekZones/{zonesDocId} {
+      allow read: if isMember() && request.auth.uid == zonesDocId || isNastya();
+      allow write: if isMember() && request.auth.uid == zonesDocId;
+    }
+    match /medications/{medDocId} {
+      allow read: if isMember() && request.auth.uid == medDocId || isNastya();
+      allow write: if isMember() && request.auth.uid == medDocId;
+    }
+    match /dailyRoutine/{routineDocId} {
+      allow read: if isMember() && request.auth.uid == routineDocId || isNastya();
+      allow write: if isMember() && request.auth.uid == routineDocId;
+    }
+    match /habits/{habitDocId} {
+      allow read: if isMember() && request.auth.uid == habitDocId || isNastya();
+      allow write: if isMember() && request.auth.uid == habitDocId;
+    }
+    match /weightLog/{weightDocId} {
+      allow read: if isMember() && request.auth.uid == weightDocId || isNastya();
+      allow write: if isMember() && request.auth.uid == weightDocId;
+    }
+
+    // Личные документы, id = uid_дата
+    match /weekPlanner/{planId} {
+      allow read: if isMember() && planId.matches(request.auth.uid + '_.*') || isNastya();
+      allow write: if isMember() && planId.matches(request.auth.uid + '_.*');
+    }
+    match /healthWeekPlanner/{planId} {
+      allow read: if isMember() && planId.matches(request.auth.uid + '_.*') || isNastya();
+      allow write: if isMember() && planId.matches(request.auth.uid + '_.*');
+    }
+    match /healthLog/{logId} {
+      allow read: if isMember() && logId.matches(request.auth.uid + '_.*') || isNastya();
+      allow write: if isMember() && logId.matches(request.auth.uid + '_.*');
+    }
+    match /budgets/{budgetId} {
+      allow read: if isMember() && budgetId.matches(request.auth.uid + '_.*') || isNastya();
+      allow write: if isMember() && budgetId.matches(request.auth.uid + '_.*');
+    }
+
+    // Общие для команды @hotelcompas.com (Рите недоступны)
+    match /leads/{leadId} {
+      allow read, write: if isHotelCompasUser();
+    }
+    match /teamChat/{msgId} {
+      allow read, write: if isHotelCompasUser();
+    }
+    match /reports/{reportId} {
+      allow read, write: if isHotelCompasUser();
+    }
+    match /calls/{callId} {
+      allow read, write: if isHotelCompasUser();
+    }
+    match /weeklyReports/{reportId} {
+      allow read, write: if isHotelCompasUser();
+    }
+    match /settings/{settingId} {
+      allow read, write: if isHotelCompasUser();
+    }
+    match /accessLinks/{linkId} {
+      allow read, write: if isHotelCompasUser();
+    }
+    match /leads/{leadId}/comments/{commentId} {
+      allow read, write: if isHotelCompasUser();
+    }
+  }
+}
