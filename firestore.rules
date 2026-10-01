@@ -170,5 +170,18 @@ service cloud.firestore {
     match /leads/{leadId}/comments/{commentId} {
       allow read, write: if isHotelCompasUser();
     }
+
+    // Рабочее пространство Риты: свои копии общих разделов (Лиды, Список, Чат, Звонки, Конкуренты, Отчётность, Доступы).
+    // Рита читает и пишет, Настя только читает (режим просмотра).
+    match /{coll}/{docId} {
+      allow read: if coll in ['rita_leads','rita_teamChat','rita_reports','rita_calls','rita_weeklyReports','rita_settings','rita_accessLinks']
+                     && (isRita() || isNastya());
+      allow write: if coll in ['rita_leads','rita_teamChat','rita_reports','rita_calls','rita_weeklyReports','rita_settings','rita_accessLinks']
+                      && isRita();
+    }
+    match /rita_leads/{leadId}/comments/{commentId} {
+      allow read: if isRita() || isNastya();
+      allow write: if isRita();
+    }
   }
 }
