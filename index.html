@@ -1301,6 +1301,7 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 11l5 5 5-5M5 21h14"></path></svg>
         <span style="font-size:11.5px;font-weight:600;">Установить</span>
       </button>
+      <button class="switch-btn hidden" id="view-rita-btn" title="Посмотреть данные Риты (только чтение)">Данные Риты</button>
       <div class="theme-toggle" id="theme-toggle">
         <button data-theme-choice="light"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"></path></svg>Свет</button>
         <button data-theme-choice="dark"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"></path></svg>Тёмная</button>
@@ -1326,11 +1327,12 @@
     <button class="tab-btn" data-tab="tools" title="Инструменты" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z"></path></svg></button>
     <button class="tab-btn" data-tab="knowledge" title="База знаний" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg></button>
     <button class="tab-btn" data-tab="research" title="Исследования" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v3l2 2"></path></svg></button>
-    <button class="tab-btn" data-tab="maxsection" style="display:none;">Макс</button>
+    <button class="tab-btn" data-tab="maxsection" style="display:none;">Лидогенерация</button>
   </div>
 
   <div id="notif-banner" class="notif-banner hidden"></div>
   <div id="deadline-banner" class="notif-banner deadline-banner hidden"></div>
+  <div id="viewas-banner" class="notif-banner hidden"></div>
 
   <div id="cal-overlay" class="cal-overlay hidden">
     <div class="cal-panel">
@@ -1989,7 +1991,7 @@
     </div>
   </div>
 
-  <div class="note-line">Личное, Рабочее, Проекты, Инструменты и База знаний - видны только вам. Лиды, Список, Конкуренты, Чат и Звонки - общие для команды @hotelcompas.com, изменения видны всем в реальном времени.</div>
+  <div class="note-line">Личное, Рабочее, Проекты, Инструменты и База знаний - видны только вам. Лиды, Список, Конкуренты, Чат и Звонки - общие для команды @hotelcompas.com, раздел Лидогенерация - общий для Насти, Риты и Максима. Изменения видны всем в реальном времени.</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2000,10 +2002,24 @@ import {
   sendEmailVerification, onAuthStateChanged, signOut, updateProfile
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
-  onSnapshot, query, where, serverTimestamp, setDoc, getDocs, getDoc,
+  getFirestore, collection, doc, addDoc as rawAddDoc, updateDoc as rawUpdateDoc, deleteDoc as rawDeleteDoc,
+  onSnapshot, query, where, serverTimestamp, setDoc as rawSetDoc, getDocs, getDoc,
   arrayUnion, arrayRemove, deleteField
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+/* Режим просмотра данных Риты (для Насти): все записи блокируются, пока readOnlyView = true. */
+let readOnlyView = false;
+let readOnlyNoticeTimer = null;
+function guardWrite(fn){
+  return function(){
+    if(readOnlyView){ onBlockedWrite(); return Promise.resolve(); }
+    return fn.apply(null, arguments);
+  };
+}
+const addDoc = guardWrite(rawAddDoc);
+const updateDoc = guardWrite(rawUpdateDoc);
+const deleteDoc = guardWrite(rawDeleteDoc);
+const setDoc = guardWrite(rawSetDoc);
 
 /* Consistent line-icon set (matches the header icon style), used instead of Unicode dingbats/emoji. */
 const ICON_EDIT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>';
@@ -2031,7 +2047,18 @@ const MAX_EMAIL = "m.oxentyuk@hotelcompas.com";
 const NASTYA_EMAIL = "a.belousova@hotelcompas.com";
 function isMaxUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === MAX_EMAIL; }
 function isNastyaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === NASTYA_EMAIL; }
-function canSeeMaxTab(){ return isMaxUser() || isNastyaUser(); }
+const RITA_EMAIL = "ritapatriciav@gmail.com";
+function isRitaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === RITA_EMAIL; }
+function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser(); }
+function isAllowedEmail(email){
+  var e = (email || '').toLowerCase();
+  return e.endsWith(ALLOWED_DOMAIN) || e === RITA_EMAIL;
+}
+// uid, чьи личные данные (Рабочее/Проекты/Инструменты) сейчас показываются: свои или Риты в режиме просмотра
+let viewAsUid = null;
+function ownerUid(){ return viewAsUid || currentUser.uid; }
+// У Риты (и у Насти в режиме просмотра Риты) свои копии общих разделов: Лиды, Список, Чат, Звонки, Конкуренты, Отчётность, Доступы
+function sc(name){ return (viewAsUid || isRitaUser()) ? 'rita_' + name : name; }
 
 const PRIORITIES = [
   { key:'low', label:'Низкий' }, { key:'medium', label:'Средний' },
@@ -2184,13 +2211,15 @@ async function ensureUserProfile(user){
   if(existing.exists() && existing.data().displayName) return; // уже настроено раньше
 
   var baseName = (user.displayName || user.email.split('@')[0] || 'User').trim();
-  var snap = await getDocs(collection(db,'users'));
   var takenLower = {};
-  snap.forEach(function(d){
-    if(d.id === user.uid) return;
-    var dn = d.data().displayNameLower;
-    if(dn) takenLower[dn] = true;
-  });
+  if(!isRitaUser()){ // Рите список коллег не показываем
+    var snap = await getDocs(collection(db,'users'));
+    snap.forEach(function(d){
+      if(d.id === user.uid) return;
+      var dn = d.data().displayNameLower;
+      if(dn) takenLower[dn] = true;
+    });
+  }
 
   var finalName = baseName;
   var n = 2;
@@ -2215,7 +2244,7 @@ async function handleAuthSubmit(){
   var name = el('auth-name').value.trim();
   setAuthError(null);
   if(!email || !password){ setAuthError('Введите email и пароль'); return; }
-  if(!email.toLowerCase().endsWith(ALLOWED_DOMAIN)){
+  if(!isAllowedEmail(email)){
     setAuthError('Только адреса ' + ALLOWED_DOMAIN);
     return;
   }
@@ -2267,7 +2296,7 @@ onAuthStateChanged(auth, async function(user){
     showAuthScreen();
     return;
   }
-  if(!user.email || !user.email.toLowerCase().endsWith(ALLOWED_DOMAIN)){
+  if(!user.email || !isAllowedEmail(user.email)){
     signOut(auth);
     return;
   }
@@ -2277,10 +2306,12 @@ onAuthStateChanged(auth, async function(user){
   }
   currentUser = user;
   await ensureUserProfile(user);
+  await restoreViewAs();
   startBoard();
 });
 
 function teardownListeners(){
+  teardownOwnerListeners();
   if(unsubTaskCols){ unsubTaskCols(); unsubTaskCols = null; }
   if(unsubTasks){ unsubTasks(); unsubTasks = null; }
   if(unsubLeads){ unsubLeads(); unsubLeads = null; }
@@ -2319,29 +2350,13 @@ function startBoard(){
   el('tasks-container').innerHTML = skeletonBoard();
   el('leads-container').innerHTML = skeletonBoard();
   try{ lastSeenChatAt = Number(localStorage.getItem('lastSeenChat:'+currentUser.uid)) || 0; }catch(e){ lastSeenChatAt = 0; }
-  subscribeTaskColumns();
-  subscribeTasks();
   subscribeLeads();
   subscribeCompanyMeta();
   subscribeChat();
-  subscribeUsers();
-  subscribeDebts();
-  subscribeGoals();
-  subscribeBudget();
-  subscribeWeekPlan();
-  subscribeWeekZones();
-  subscribeHealth();
-  subscribeMeds();
-  subscribeHabits();
-  subscribeWeight();
-  subscribeRoutine();
+  if(!isRitaUser()) subscribeUsers(); // Рите список коллег не показываем
   subscribeCalls();
-  subscribeFollowupReminders();
-  subscribeProjects();
   subscribeCompetitors();
-  subscribeTools();
-  subscribeKnowledge();
-  subscribeResearch();
+  subscribeOwnerData();
   if(canSeeMaxTab()){
     subscribeMaxLeads();
     subscribeMaxReminders();
@@ -2354,6 +2369,46 @@ function startBoard(){
   deadlineBannerTimer = setInterval(updateDeadlineBanner, 60000);
 }
 
+function subscribeOwnerData(){
+  subscribeTaskColumns();
+  subscribeTasks();
+  subscribeDebts();
+  subscribeGoals();
+  subscribeBudget();
+  subscribeWeekPlan();
+  subscribeWeekZones();
+  subscribeHealth();
+  subscribeMeds();
+  subscribeHabits();
+  subscribeWeight();
+  subscribeRoutine();
+  subscribeFollowupReminders();
+  subscribeProjects();
+  subscribeTools();
+  subscribeKnowledge();
+  subscribeResearch();
+}
+function teardownOwnerListeners(){
+  if(unsubTaskCols){ unsubTaskCols(); unsubTaskCols = null; }
+  if(unsubTasks){ unsubTasks(); unsubTasks = null; }
+  if(unsubDebts){ unsubDebts(); unsubDebts = null; }
+  if(unsubGoals){ unsubGoals(); unsubGoals = null; }
+  if(unsubBudget){ unsubBudget(); unsubBudget = null; }
+  if(unsubWeekPlan){ unsubWeekPlan(); unsubWeekPlan = null; }
+  if(unsubWeekZones){ unsubWeekZones(); unsubWeekZones = null; }
+  if(unsubHealth){ unsubHealth(); unsubHealth = null; }
+  if(unsubMeds){ unsubMeds(); unsubMeds = null; }
+  if(unsubHabits){ unsubHabits(); unsubHabits = null; }
+  if(unsubWeight){ unsubWeight(); unsubWeight = null; }
+  if(unsubRoutine){ unsubRoutine(); unsubRoutine = null; }
+  if(unsubFollowup){ unsubFollowup(); unsubFollowup = null; }
+  if(unsubProjZones){ unsubProjZones(); unsubProjZones = null; }
+  if(unsubProjCards){ unsubProjCards(); unsubProjCards = null; }
+  if(unsubProjPriorities){ unsubProjPriorities(); unsubProjPriorities = null; }
+  if(unsubTools){ unsubTools(); unsubTools = null; }
+  if(unsubKnowledge){ unsubKnowledge(); unsubKnowledge = null; }
+  if(unsubResearch){ unsubResearch(); unsubResearch = null; }
+}
 function applyRoleVisibility(){
   var maxTabBtn = document.querySelector('.tab-btn[data-tab="maxsection"]');
   if(maxTabBtn) maxTabBtn.style.display = canSeeMaxTab() ? '' : 'none';
@@ -2372,7 +2427,62 @@ function applyRoleVisibility(){
     document.querySelectorAll('#tab-tasks,#tab-leads,#tab-leadlist,#tab-competitors,#tab-chat,#tab-calls,#tab-projects,#tab-tools,#tab-knowledge').forEach(function(elx){ elx.classList.add('hidden'); });
     el('tab-maxsection').classList.remove('hidden');
     renderMaxLeadsView();
+    return;
   }
+
+  // Рита и Настя в режиме просмотра Риты: все вкладки, кроме Личного (у Риты свои пустые данные)
+  var ritaWorkspace = !!viewAsUid || isRitaUser();
+  var nameBtn = el('edit-name-btn'); if(nameBtn) nameBtn.style.display = isRitaUser() ? 'none' : '';
+  var viewBtn = el('view-rita-btn');
+  if(viewBtn){
+    viewBtn.classList.toggle('hidden', !isNastyaUser());
+    viewBtn.textContent = viewAsUid ? 'Мои данные' : 'Данные Риты';
+  }
+  var viewBanner = el('viewas-banner');
+  if(viewBanner){
+    viewBanner.classList.toggle('hidden', !viewAsUid);
+    viewBanner.textContent = 'Режим просмотра: данные Риты, только чтение. Лидогенерация общая. Изменения не сохраняются.';
+  }
+  var noteLine = document.querySelector('#board-screen .note-line');
+  if(noteLine) noteLine.style.display = isRitaUser() ? 'none' : '';
+  document.querySelectorAll('.tab-bar .tab-btn').forEach(function(b){
+    var hide = (ritaWorkspace && b.dataset.tab === 'personal') || (b.dataset.tab === 'maxsection' && !canSeeMaxTab());
+    b.style.display = hide ? 'none' : '';
+  });
+  var activeBtn = document.querySelector('.tab-bar .tab-btn.active');
+  if(!activeBtn || activeBtn.style.display === 'none' || (ritaWorkspace && (isRitaUser() || activeBtn.dataset.tab === 'personal'))){
+    var firstBtn = document.querySelector('.tab-bar .tab-btn[data-tab="'+(ritaWorkspace ? 'work' : 'personal')+'"]');
+    if(firstBtn) firstBtn.click();
+  }
+}
+
+/* ---------- Режим просмотра данных Риты (только для Насти) ---------- */
+function onBlockedWrite(){
+  var b = el('viewas-banner');
+  if(b){ b.textContent = 'Только чтение: данные Риты изменить нельзя. Страница обновится.'; b.classList.remove('hidden'); }
+  if(readOnlyNoticeTimer) clearTimeout(readOnlyNoticeTimer);
+  readOnlyNoticeTimer = setTimeout(function(){ location.reload(); }, 1500); // откатываем правки, не ушедшие в базу
+}
+async function restoreViewAs(){
+  var want = false;
+  try{ want = isNastyaUser() && sessionStorage.getItem('viewAsRita') === '1'; }catch(e){}
+  if(!want) return;
+  try{
+    var snap = await getDocs(query(collection(db,'users'), where('email','==',RITA_EMAIL)));
+    if(!snap.empty){ viewAsUid = snap.docs[0].id; readOnlyView = true; return; }
+  }catch(e){}
+  try{ sessionStorage.removeItem('viewAsRita'); }catch(e){}
+}
+async function toggleViewRita(){
+  if(!isNastyaUser()) return;
+  if(!viewAsUid){
+    var snap = await getDocs(query(collection(db,'users'), where('email','==',RITA_EMAIL)));
+    if(snap.empty){ alert('Рита ещё не зарегистрировалась в доске'); return; }
+  }
+  try{
+    if(viewAsUid) sessionStorage.removeItem('viewAsRita'); else sessionStorage.setItem('viewAsRita','1');
+  }catch(e){}
+  location.reload(); // чистый перезапуск всех подписок на данные нужного человека
 }
 
 /* ---------- TASKS (личные, Firestore, realtime) ---------- */
@@ -2388,7 +2498,7 @@ function showLoadError(containerId, title, err){
 }
 
 function subscribeTaskColumns(){
-  var q = query(collection(db,'taskColumns'), where('ownerId','==',currentUser.uid));
+  var q = query(collection(db,'taskColumns'), where('ownerId','==',ownerUid()));
   unsubTaskCols = onSnapshot(q, function(snap){
     taskColumns = [];
     snap.forEach(function(d){ taskColumns.push(Object.assign({id:d.id}, d.data())); });
@@ -2399,7 +2509,7 @@ function subscribeTaskColumns(){
   });
 }
 function subscribeTasks(){
-  var q = query(collection(db,'tasks'), where('ownerId','==',currentUser.uid));
+  var q = query(collection(db,'tasks'), where('ownerId','==',ownerUid()));
   unsubTasks = onSnapshot(q, function(snap){
     tasks = [];
     snap.forEach(function(d){ tasks.push(Object.assign({id:d.id}, d.data())); });
@@ -2644,7 +2754,7 @@ function renderAddTaskBox(col){
 
 /* ---------- LEADS (общие, Firestore, realtime) ---------- */
 function subscribeLeads(){
-  unsubLeads = onSnapshot(collection(db,'leads'), function(snap){
+  unsubLeads = onSnapshot(collection(db,sc('leads')), function(snap){
     leads = [];
     snap.forEach(function(d){ leads.push(Object.assign({id:d.id}, d.data())); });
     renderLeadsTab();
@@ -2690,7 +2800,7 @@ function renderLeadColumn(stage){
     try{
       var data = JSON.parse(raw);
       if(data.type==='lead' && data.stage !== stage){
-        updateDoc(doc(db,'leads',data.id), { stage: stage });
+        updateDoc(doc(db,sc('leads'),data.id), { stage: stage });
       }
     }catch(err){}
   });
@@ -2725,7 +2835,7 @@ function renderLeadCard(lead){
   listBtn.title = 'Открыть в списке';
   listBtn.addEventListener('click', function(e){ e.stopPropagation(); goToLeadInList(lead.id); });
   var del = document.createElement('button'); del.className='card-del'; del.innerHTML = ICON_X;
-  del.addEventListener('click', function(){ if(confirm('Удалить лид «'+(lead.companyName||'')+'»?')) deleteDoc(doc(db,'leads',lead.id)); });
+  del.addEventListener('click', function(){ if(confirm('Удалить лид «'+(lead.companyName||'')+'»?')) deleteDoc(doc(db,sc('leads'),lead.id)); });
   top.appendChild(title); top.appendChild(listBtn); top.appendChild(del);
   card.appendChild(top);
 
@@ -2756,7 +2866,7 @@ function renderLeadCard(lead){
     var o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o);
   });
   sel.addEventListener('change', function(){
-    if(sel.value) updateDoc(doc(db,'leads',lead.id), { stage: sel.value });
+    if(sel.value) updateDoc(doc(db,sc('leads'),lead.id), { stage: sel.value });
   });
   card.appendChild(sel);
 
@@ -2831,7 +2941,7 @@ function renderAddLeadBox(stage){
     if(required.some(function(v){ return !v; })){
       if(!confirm('Часть обязательных полей (*) не заполнена - лид не будет считаться outreach-ready. Добавить всё равно как черновик?')) return;
     }
-    addDoc(collection(db,'leads'), {
+    addDoc(collection(db,sc('leads')), {
       companyName: company, website: websiteInput.value.trim(), countryHQ: countryInput.value.trim(),
       segment: segmentSelect.value, priority: prioSelect.value,
       leadScore: scoreInput.value ? Number(scoreInput.value) : null, scoreReason: scoreReasonInput.value.trim(),
@@ -2921,14 +3031,14 @@ var unsubCompanyMeta = null;
 
 function subscribeCompanyMeta(){
   if(unsubCompanyMeta) return; // уже подписан
-  unsubCompanyMeta = onSnapshot(doc(db,'settings','companyMeta'), function(snap){
+  unsubCompanyMeta = onSnapshot(doc(db,sc('settings'),'companyMeta'), function(snap){
     companyMeta = snap.exists() ? (snap.data() || {}) : {};
     if(!el('tab-leadlist').classList.contains('hidden')) renderLeadListTab();
   }, function(err){ console.error('companyMeta err', err); });
 }
 
 function saveCompanyMeta(){
-  setDoc(doc(db,'settings','companyMeta'), companyMeta, { merge: true });
+  setDoc(doc(db,sc('settings'),'companyMeta'), companyMeta, { merge: true });
 }
 
 function renderLeadListTab(highlightId){
@@ -3109,7 +3219,7 @@ function renderLeadListTab(highlightId){
     editBtn.style.marginRight = '6px';
     editBtn.addEventListener('click', function(leadId){ return function(){ openLeadEdit(leadId); }; }(lead.id));
     var delBtn = document.createElement('button'); delBtn.className='icon-btn'; delBtn.innerHTML = ICON_X; delBtn.title='Удалить';
-    delBtn.addEventListener('click', function(leadId, name){ return function(){ if(confirm('Удалить лид «'+(name||'')+'» из списка?')) deleteDoc(doc(db,'leads',leadId)); }; }(lead.id, lead.companyName));
+    delBtn.addEventListener('click', function(leadId, name){ return function(){ if(confirm('Удалить лид «'+(name||'')+'» из списка?')) deleteDoc(doc(db,sc('leads'),leadId)); }; }(lead.id, lead.companyName));
     actionsTd.appendChild(editBtn); actionsTd.appendChild(delBtn);
     tr.appendChild(actionsTd);
     tbody.appendChild(tr);
@@ -3280,7 +3390,7 @@ function confirmImport(){
     Object.keys(r).forEach(function(k){ if(k !== '__dup') payload[k] = r[k]; });
     payload.createdAt = serverTimestamp();
     payload.createdBy = currentUser.email;
-    addDoc(collection(db,'leads'), payload);
+    addDoc(collection(db,sc('leads')), payload);
   });
   closeImportOverlay();
   alert('Добавлено лидов: ' + toAdd.length);
@@ -3336,7 +3446,7 @@ function subscribeUsers(){
 
 /* ---------- CHAT (общий, Firestore, realtime) ---------- */
 function subscribeChat(){
-  unsubChat = onSnapshot(collection(db,'teamChat'), function(snap){
+  unsubChat = onSnapshot(collection(db,sc('teamChat')), function(snap){
     chatMessages = [];
     snap.forEach(function(d){ chatMessages.push(Object.assign({id:d.id}, d.data())); });
     chatMessages.sort(function(a,b){
@@ -3409,7 +3519,7 @@ function sendChatMessage(){
   var input = el('chat-input');
   var text = input.value.trim();
   if(!text) return;
-  addDoc(collection(db,'teamChat'), {
+  addDoc(collection(db,sc('teamChat')), {
     text: text, authorEmail: currentUser.email, authorUid: currentUser.uid, authorName: currentDisplayName(),
     mentions: parseMentions(text), createdAt: serverTimestamp()
   });
@@ -3451,7 +3561,7 @@ function currentYM(){ var d = new Date(); return d.getFullYear()+'-'+String(d.ge
 function ymOfDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 
 function subscribeDebts(){
-  var q = query(collection(db,'debts'), where('ownerId','==',currentUser.uid));
+  var q = query(collection(db,'debts'), where('ownerId','==',ownerUid()));
   unsubDebts = onSnapshot(q, function(snap){
     debts = [];
     snap.forEach(function(d){
@@ -3687,7 +3797,7 @@ var GOAL_STATUSES = [{key:'progress',label:'В процессе',cls:'active-pro
 
 function subscribeGoals(){
   if(unsubGoals){ unsubGoals(); unsubGoals=null; }
-  var q = query(collection(db,'goals'), where('ownerId','==',currentUser.uid));
+  var q = query(collection(db,'goals'), where('ownerId','==',ownerUid()));
   unsubGoals = onSnapshot(q, function(snap){
     goals = [];
     snap.forEach(function(d){ goals.push(Object.assign({id:d.id}, d.data())); });
@@ -3807,14 +3917,14 @@ function budgetYM(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart
 
 function subscribeBudget(){
   if(unsubBudget){ unsubBudget(); unsubBudget=null; }
-  unsubBudget = onSnapshot(doc(db,'budgets',currentUser.uid+'_'+budgetYM(budgetMonth)), function(snap){
+  unsubBudget = onSnapshot(doc(db,'budgets',ownerUid()+'_'+budgetYM(budgetMonth)), function(snap){
     budgetData = snap.exists() ? snap.data() : { income:0, categories:[] };
     if(personalSubtab === 'budget') renderBudgetView();
   }, function(err){ console.error('budget err', err); });
 }
 
 function saveBudget(){
-  setDoc(doc(db,'budgets',currentUser.uid+'_'+budgetYM(budgetMonth)), budgetData);
+  setDoc(doc(db,'budgets',ownerUid()+'_'+budgetYM(budgetMonth)), budgetData);
 }
 
 function renderBudgetView(){
@@ -4189,7 +4299,7 @@ function closeLeadDetail(){
 
 function subscribeLeadComments(leadId){
   if(unsubComments){ unsubComments(); unsubComments = null; }
-  unsubComments = onSnapshot(collection(db,'leads',leadId,'comments'), function(snap){
+  unsubComments = onSnapshot(collection(db,sc('leads'),leadId,'comments'), function(snap){
     leadComments = [];
     snap.forEach(function(d){ leadComments.push(Object.assign({id:d.id}, d.data())); });
     leadComments.sort(function(a,b){
@@ -4235,7 +4345,7 @@ async function submitComment(){
   if(!currentDetailLeadId) return;
   var payload = { text: text, authorEmail: currentUser.email, authorName: currentDisplayName(), createdAt: serverTimestamp() };
   try{
-    await addDoc(collection(db,'leads',currentDetailLeadId,'comments'), payload);
+    await addDoc(collection(db,sc('leads'),currentDetailLeadId,'comments'), payload);
     clearCommentForm();
   }catch(err){
     alert('Не удалось сохранить: ' + err.message);
@@ -4272,7 +4382,7 @@ function closeReportsOverlay(){
 
 function subscribeReportLinks(){
   if(unsubReportLinks){ unsubReportLinks(); unsubReportLinks = null; }
-  unsubReportLinks = onSnapshot(doc(db,'settings','reportLinks'), function(snap){
+  unsubReportLinks = onSnapshot(doc(db,sc('settings'),'reportLinks'), function(snap){
     renderReportLinks(snap.exists() ? snap.data() : {});
   }, function(err){
     console.error('report links load error', err);
@@ -4309,7 +4419,7 @@ async function editReportLink(key, label, currentUrl){
   try{
     var payload = {};
     payload[key] = newUrl;
-    await setDoc(doc(db,'settings','reportLinks'), payload, { merge: true });
+    await setDoc(doc(db,sc('settings'),'reportLinks'), payload, { merge: true });
   }catch(err){
     alert('Не удалось сохранить ссылку: ' + err.message);
   }
@@ -4317,7 +4427,7 @@ async function editReportLink(key, label, currentUrl){
 
 function subscribeReports(){
   if(unsubReports){ unsubReports(); unsubReports = null; }
-  unsubReports = onSnapshot(collection(db,'reports'), function(snap){
+  unsubReports = onSnapshot(collection(db,sc('reports')), function(snap){
     reports = [];
     snap.forEach(function(d){ reports.push(Object.assign({id:d.id}, d.data())); });
     reports.sort(function(a,b){
@@ -4357,7 +4467,7 @@ async function submitReport(){
   if(!text) return;
   var payload = { text: text, authorEmail: currentUser.email, authorName: currentDisplayName(), createdAt: serverTimestamp() };
   try{
-    await addDoc(collection(db,'reports'), payload);
+    await addDoc(collection(db,sc('reports')), payload);
     el('report-text').value = '';
   }catch(err){
     alert('Не удалось опубликовать: ' + err.message);
@@ -4367,7 +4477,7 @@ async function submitReport(){
 /* ---------- WEEKLY REPORTS (аккордеон) ---------- */
 function subscribeWeeklyReports(){
   if(unsubWeeklyReports){ unsubWeeklyReports(); unsubWeeklyReports = null; }
-  unsubWeeklyReports = onSnapshot(collection(db,'weeklyReports'), function(snap){
+  unsubWeeklyReports = onSnapshot(collection(db,sc('weeklyReports')), function(snap){
     weeklyReports = [];
     snap.forEach(function(d){ weeklyReports.push(Object.assign({id:d.id}, d.data())); });
     weeklyReports.sort(function(a,b){ return (b.dateFrom||'').localeCompare(a.dateFrom||''); });
@@ -4406,7 +4516,7 @@ function renderWeeklyList(){
     var d = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate() : null;
     meta.textContent = (r.authorEmail||'') + (d ? ' · '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear() : '');
     var del = document.createElement('button'); del.className='weekly-del'; del.innerHTML = ICON_X; del.title='Удалить отчёт';
-    del.addEventListener('click', function(e){ e.stopPropagation(); if(confirm('Удалить отчёт за '+r.dateFrom+'?')) deleteDoc(doc(db,'weeklyReports',r.id)); });
+    del.addEventListener('click', function(e){ e.stopPropagation(); if(confirm('Удалить отчёт за '+r.dateFrom+'?')) deleteDoc(doc(db,sc('weeklyReports'),r.id)); });
     meta.appendChild(del);
     body.appendChild(meta);
 
@@ -4429,7 +4539,7 @@ async function submitWeeklyReport(){
   if(!text){ alert('Вставь текст отчёта'); return; }
   if(!dateFrom || !dateTo){ alert('Укажи даты периода'); return; }
   try{
-    await addDoc(collection(db,'weeklyReports'), {
+    await addDoc(collection(db,sc('weeklyReports')), {
       dateFrom: dateFrom, dateTo: dateTo, text: text, link: link||null,
       authorEmail: currentUser.email, createdAt: serverTimestamp()
     });
@@ -4476,7 +4586,7 @@ function closeAccessOverlay(){
 
 function subscribeAccess(){
   if(unsubAccess){ unsubAccess(); unsubAccess = null; }
-  unsubAccess = onSnapshot(collection(db,'accessLinks'), function(snap){
+  unsubAccess = onSnapshot(collection(db,sc('accessLinks')), function(snap){
     accessLinks = [];
     snap.forEach(function(d){ accessLinks.push(Object.assign({id:d.id}, d.data())); });
     accessLinks.sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
@@ -4506,7 +4616,7 @@ function renderAccessList(){
       row.appendChild(a);
     }
     var del = document.createElement('button'); del.className='debt-del'; del.innerHTML = ICON_X; del.title='Удалить';
-    del.addEventListener('click', function(){ if(confirm('Удалить «'+(item.name||'')+'»?')) deleteDoc(doc(db,'accessLinks',item.id)); });
+    del.addEventListener('click', function(){ if(confirm('Удалить «'+(item.name||'')+'»?')) deleteDoc(doc(db,sc('accessLinks'),item.id)); });
     row.appendChild(del);
     list.appendChild(row);
   });
@@ -4521,7 +4631,7 @@ function initAccess(){
     var url = el('access-url-input').value.trim();
     var note = el('access-note-input').value.trim();
     if(!name){ alert('Укажи название инструмента'); return; }
-    addDoc(collection(db,'accessLinks'), { name: name, url: url, note: note, createdAt: serverTimestamp(), createdBy: currentUser.email });
+    addDoc(collection(db,sc('accessLinks')), { name: name, url: url, note: note, createdAt: serverTimestamp(), createdBy: currentUser.email });
     el('access-name-input').value=''; el('access-url-input').value=''; el('access-note-input').value='';
   });
 }
@@ -4536,7 +4646,7 @@ var unsubWeekTasks = null;
 
 function subscribeWeekTasks(){
   if(unsubWeekTasks){ unsubWeekTasks(); unsubWeekTasks = null; }
-  unsubWeekTasks = onSnapshot(doc(db,'settings','weekTasks'), function(snap){
+  unsubWeekTasks = onSnapshot(doc(db,sc('settings'),'weekTasks'), function(snap){
     weekTasksData = snap.exists() ? snap.data() : {};
     renderWeekGrid();
   }, function(err){ console.error('week tasks load error', err); });
@@ -4557,8 +4667,8 @@ function renderWeekGrid(){
       var span = document.createElement('span'); span.textContent = taskText;
       var del = document.createElement('button'); del.innerHTML = ICON_X;
       del.addEventListener('click', function(){
-        updateDoc(doc(db,'settings','weekTasks'), { [day.key]: arrayRemove(taskText) }).catch(function(){
-          setDoc(doc(db,'settings','weekTasks'), { [day.key]: [] }, { merge:true });
+        updateDoc(doc(db,sc('settings'),'weekTasks'), { [day.key]: arrayRemove(taskText) }).catch(function(){
+          setDoc(doc(db,sc('settings'),'weekTasks'), { [day.key]: [] }, { merge:true });
         });
       });
       row.appendChild(span); row.appendChild(del);
@@ -4572,7 +4682,7 @@ function renderWeekGrid(){
     function submit(){
       var v = input.value.trim();
       if(!v) return;
-      setDoc(doc(db,'settings','weekTasks'), { [day.key]: arrayUnion(v) }, { merge:true });
+      setDoc(doc(db,sc('settings'),'weekTasks'), { [day.key]: arrayUnion(v) }, { merge:true });
       input.value='';
     }
     addBtn.addEventListener('click', submit);
@@ -4601,7 +4711,7 @@ function defaultLeadCalcData(){
 
 function subscribeLeadCalc(){
   if(unsubLeadCalc){ unsubLeadCalc(); unsubLeadCalc = null; }
-  unsubLeadCalc = onSnapshot(doc(db,'settings','leadCalc'), function(snap){
+  unsubLeadCalc = onSnapshot(doc(db,sc('settings'),'leadCalc'), function(snap){
     leadCalcData = snap.exists() ? snap.data() : defaultLeadCalcData();
     if(!leadCalcData.senders || leadCalcData.senders.length !== 3) leadCalcData = defaultLeadCalcData();
     renderLeadCalc();
@@ -4632,7 +4742,7 @@ function computeLeadsToAdd(currentLeads, sharedLimit){
 function saveLeadCalc(){
   if(leadCalcSaveTimer) clearTimeout(leadCalcSaveTimer);
   leadCalcSaveTimer = setTimeout(function(){
-    setDoc(doc(db,'settings','leadCalc'), leadCalcData, { merge: true });
+    setDoc(doc(db,sc('settings'),'leadCalc'), leadCalcData, { merge: true });
   }, 500);
 }
 
@@ -4817,7 +4927,7 @@ function saveLeadEdit(){
     payload[k] = (k === 'leadScore') ? (v ? Number(v) : null) : v;
   });
   if(!payload.companyName){ alert('Компания обязательна'); return; }
-  updateDoc(doc(db,'leads',currentEditLeadId), payload).then(function(){
+  updateDoc(doc(db,sc('leads'),currentEditLeadId), payload).then(function(){
     closeLeadEdit();
   }).catch(function(err){ alert('Не удалось сохранить: ' + err.message); });
 }
@@ -4891,7 +5001,7 @@ function initTaskDetail(){
 
 /* ---------- CALLS (общие, Firestore, realtime) ---------- */
 function subscribeCalls(){
-  unsubCalls = onSnapshot(collection(db,'calls'), function(snap){
+  unsubCalls = onSnapshot(collection(db,sc('calls')), function(snap){
     calls = [];
     snap.forEach(function(d){ calls.push(Object.assign({id:d.id}, d.data())); });
     calls.sort(function(a,b){
@@ -4941,7 +5051,7 @@ function renderCallsList(){
     outcomeDiv.setAttribute('data-placeholder','Итоги звонка - кликни чтобы редактировать');
     outcomeDiv.addEventListener('blur', function(){
       var newVal = outcomeDiv.innerText.trim();
-      if(newVal !== (c.outcome||'').trim()){ updateDoc(doc(db,'calls',c.id), { outcome: newVal }); }
+      if(newVal !== (c.outcome||'').trim()){ updateDoc(doc(db,sc('calls'),c.id), { outcome: newVal }); }
     });
     item.appendChild(outcomeDiv);
 
@@ -4958,15 +5068,15 @@ function renderCallsList(){
     editNextBtn.addEventListener('click', function(){
       var newDate = prompt('Новая дата следующего контакта (ГГГГ-ММ-ДД):', c.nextContactDate || new Date().toISOString().slice(0,10));
       if(newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)){
-        updateDoc(doc(db,'calls',c.id), { nextContactDate: newDate });
-        if(c.leadId) updateDoc(doc(db,'leads',c.leadId), { nextContactDate: newDate });
+        updateDoc(doc(db,sc('calls'),c.id), { nextContactDate: newDate });
+        if(c.leadId) updateDoc(doc(db,sc('leads'),c.leadId), { nextContactDate: newDate });
       }
     });
     bottomRow.appendChild(editNextBtn);
 
     var delBtn = document.createElement('button');
     delBtn.className = 'task-del'; delBtn.innerHTML = ICON_X; delBtn.title = 'Удалить звонок';
-    delBtn.addEventListener('click', function(){ if(confirm('Удалить этот звонок?')) deleteDoc(doc(db,'calls',c.id)); });
+    delBtn.addEventListener('click', function(){ if(confirm('Удалить этот звонок?')) deleteDoc(doc(db,sc('calls'),c.id)); });
     bottomRow.appendChild(delBtn);
 
     item.appendChild(bottomRow);
@@ -4987,12 +5097,12 @@ async function addCall(){
     nextDate = d.toISOString().slice(0,10);
   }
   try{
-    await addDoc(collection(db,'calls'), {
+    await addDoc(collection(db,sc('calls')), {
       leadId: leadId, companyName: lead ? lead.companyName : '',
       callDate: callDate, outcome: outcome, nextContactDate: nextDate || null,
       authorEmail: currentUser.email, createdAt: serverTimestamp()
     });
-    if(nextDate){ await updateDoc(doc(db,'leads',leadId), { nextContactDate: nextDate }); }
+    if(nextDate){ await updateDoc(doc(db,sc('leads'),leadId), { nextContactDate: nextDate }); }
     el('call-date').value = ''; el('call-outcome').value = ''; el('call-next-date').value = ''; el('call-next-preset').value = '';
   }catch(err){
     alert('Не удалось сохранить звонок: ' + err.message);
@@ -5079,7 +5189,8 @@ var PROJ_STATUS_MAP = {hypothesis:'Гипотеза',progress:'В работе',
 var PROJ_STATUS_ORDER = ['hypothesis','progress','stable','blocked'];
 
 async function seedDefaultProjectsIfEmpty(){
-  var existing = await getDocs(query(collection(db,'projectZones'), where('ownerId','==',currentUser.uid)));
+  if(viewAsUid || isRitaUser()) return; // Рите - пустой интерфейс, без наших проектов
+  var existing = await getDocs(query(collection(db,'projectZones'), where('ownerId','==',ownerUid())));
   if(!existing.empty) return; // уже есть данные, миграция не нужна
   for(var zi=0; zi<DEFAULT_ZONES.length; zi++){
     var z = DEFAULT_ZONES[zi];
@@ -5110,19 +5221,19 @@ async function seedDefaultProjectsIfEmpty(){
 
 function subscribeProjects(){
   seedDefaultProjectsIfEmpty().then(function(){
-    var qz = query(collection(db,'projectZones'), where('ownerId','==',currentUser.uid));
+    var qz = query(collection(db,'projectZones'), where('ownerId','==',ownerUid()));
     unsubProjZones = onSnapshot(qz, function(snap){
       projZones = []; snap.forEach(function(d){ projZones.push(Object.assign({id:d.id}, d.data())); });
       projZones.sort(function(a,b){ return (a.order||0)-(b.order||0); });
       renderProjectsTab();
     });
-    var qc = query(collection(db,'projectCards'), where('ownerId','==',currentUser.uid));
+    var qc = query(collection(db,'projectCards'), where('ownerId','==',ownerUid()));
     unsubProjCards = onSnapshot(qc, function(snap){
       projCards = []; snap.forEach(function(d){ projCards.push(Object.assign({id:d.id}, d.data())); });
       projCards.sort(function(a,b){ return (a.order||0)-(b.order||0); });
       renderProjectsTab();
     });
-    var qp = query(collection(db,'projectPriorities'), where('ownerId','==',currentUser.uid));
+    var qp = query(collection(db,'projectPriorities'), where('ownerId','==',ownerUid()));
     unsubProjPriorities = onSnapshot(qp, function(snap){
       projPriorities = []; snap.forEach(function(d){ projPriorities.push(Object.assign({id:d.id}, d.data())); });
       projPriorities.sort(function(a,b){ return (a.order||0)-(b.order||0); });
@@ -5598,14 +5709,15 @@ var competitorsData = { sections: [] };
 var competitorsEditMode = {}; // {sectionId: true/false}
 
 async function seedCompetitorsIfEmpty(){
-  var snap = await getDoc(doc(db,'settings','competitors'));
+  if(viewAsUid || isRitaUser()) return; // Рите - пустой раздел, без наших конкурентов
+  var snap = await getDoc(doc(db,sc('settings'),'competitors'));
   if(snap.exists()) return;
-  await setDoc(doc(db,'settings','competitors'), { sections: DEFAULT_COMPETITOR_SECTIONS });
+  await setDoc(doc(db,sc('settings'),'competitors'), { sections: DEFAULT_COMPETITOR_SECTIONS });
 }
 
 function subscribeCompetitors(){
   seedCompetitorsIfEmpty().then(function(){
-    onSnapshot(doc(db,'settings','competitors'), function(snap){
+    onSnapshot(doc(db,sc('settings'),'competitors'), function(snap){
       competitorsData = snap.exists() ? snap.data() : { sections: [] };
       renderCompetitorsTab();
     });
@@ -5613,7 +5725,7 @@ function subscribeCompetitors(){
 }
 
 function saveCompetitors(){
-  setDoc(doc(db,'settings','competitors'), competitorsData);
+  setDoc(doc(db,sc('settings'),'competitors'), competitorsData);
 }
 
 var competitorsOpenSections = {};
@@ -5731,14 +5843,14 @@ var unsubTools = null;
 
 function subscribeTools(){
   if(unsubTools){ unsubTools(); unsubTools=null; }
-  unsubTools = onSnapshot(doc(db,'tools',currentUser.uid), function(snap){
+  unsubTools = onSnapshot(doc(db,'tools',ownerUid()), function(snap){
     toolsData = snap.exists() ? snap.data() : { sections: [] };
     renderToolsTab();
   }, function(err){ console.error('tools err', err); });
 }
 
 function saveTools(){
-  setDoc(doc(db,'tools',currentUser.uid), toolsData);
+  setDoc(doc(db,'tools',ownerUid()), toolsData);
 }
 
 function renderToolsTab(){
@@ -5854,7 +5966,7 @@ var kbOpenTags = {};
 
 function subscribeKnowledge(){
   if(unsubKnowledge){ unsubKnowledge(); unsubKnowledge=null; }
-  var q = query(collection(db,'knowledgeBase'), where('ownerId','==',currentUser.uid));
+  var q = query(collection(db,'knowledgeBase'), where('ownerId','==',ownerUid()));
   unsubKnowledge = onSnapshot(q, function(snap){
     knowledgeEntries = [];
     snap.forEach(function(d){ knowledgeEntries.push(Object.assign({id:d.id}, d.data())); });
@@ -5956,7 +6068,7 @@ var rsOpenMonths = {};
 
 function subscribeResearch(){
   if(unsubResearch){ unsubResearch(); unsubResearch=null; }
-  var q = query(collection(db,'researchReports'), where('ownerId','==',currentUser.uid));
+  var q = query(collection(db,'researchReports'), where('ownerId','==',ownerUid()));
   unsubResearch = onSnapshot(q, function(snap){
     researchEntries = [];
     snap.forEach(function(d){ researchEntries.push(Object.assign({id:d.id}, d.data())); });
@@ -6113,7 +6225,7 @@ function getMondayOf(d){
 function wpDateKey(monday){
   return monday.getFullYear()+'-'+String(monday.getMonth()+1).padStart(2,'0')+'-'+String(monday.getDate()).padStart(2,'0');
 }
-function wpDocId(){ return currentUser.uid+'_'+wpDateKey(weekPlanMonday); }
+function wpDocId(){ return ownerUid()+'_'+wpDateKey(weekPlanMonday); }
 
 function subscribeWeekPlan(){
   if(unsubWeekPlan){ unsubWeekPlan(); unsubWeekPlan=null; }
@@ -6132,12 +6244,12 @@ function saveWeekPlan(){
 
 function subscribeWeekZones(){
   if(unsubWeekZones){ unsubWeekZones(); unsubWeekZones=null; }
-  unsubWeekZones = onSnapshot(doc(db,'weekZones',currentUser.uid), function(snap){
+  unsubWeekZones = onSnapshot(doc(db,'weekZones',ownerUid()), function(snap){
     weekZones = snap.exists() ? (snap.data().zones||[]) : [];
     if(personalSubtab === 'weekplan') renderWeekZonesGrid();
   }, function(err){ console.error('weekzones err', err); });
 }
-function saveWeekZones(){ setDoc(doc(db,'weekZones',currentUser.uid), { zones: weekZones }); }
+function saveWeekZones(){ setDoc(doc(db,'weekZones',ownerUid()), { zones: weekZones }); }
 
 function renderWeekZonesGrid(){
   var grid = el('weekzones-grid'); if(!grid) return; grid.innerHTML = '';
@@ -6517,7 +6629,7 @@ var routineDaySelection = [1,2,3,4,5]; // по умолчанию в форме 
 
 function subscribeRoutine(){
   if(unsubRoutine){ unsubRoutine(); unsubRoutine=null; }
-  unsubRoutine = onSnapshot(doc(db,'dailyRoutine',currentUser.uid), function(snap){
+  unsubRoutine = onSnapshot(doc(db,'dailyRoutine',ownerUid()), function(snap){
     if(snap.exists()){
       routineData = snap.data();
       if(!routineData.items) routineData.items = [];
@@ -6531,7 +6643,7 @@ function subscribeRoutine(){
     if(personalSubtab === 'health') renderRoutineList();
   }, function(err){ console.error('routine err', err); });
 }
-function saveRoutine(){ setDoc(doc(db,'dailyRoutine',currentUser.uid), routineData); }
+function saveRoutine(){ setDoc(doc(db,'dailyRoutine',ownerUid()), routineData); }
 
 function renderRoutineList(){
   var today = new Date();
@@ -6808,7 +6920,7 @@ var unsubHabits = null;
 var weightData = { entries: [] };
 var unsubWeight = null;
 
-function healthDocId(){ return currentUser.uid+'_'+ymOfDate(healthDate)+'-'+String(healthDate.getDate()).padStart(2,'0'); }
+function healthDocId(){ return ownerUid()+'_'+ymOfDate(healthDate)+'-'+String(healthDate.getDate()).padStart(2,'0'); }
 
 function subscribeHealth(){
   if(unsubHealth){ unsubHealth(); unsubHealth=null; }
@@ -6828,34 +6940,34 @@ function saveHealth(){
 
 function subscribeMeds(){
   if(unsubMeds){ unsubMeds(); unsubMeds=null; }
-  unsubMeds = onSnapshot(doc(db,'medications',currentUser.uid), function(snap){
+  unsubMeds = onSnapshot(doc(db,'medications',ownerUid()), function(snap){
     medsData = snap.exists() ? snap.data() : { items: [] };
     if(!medsData.items) medsData.items = [];
     if(personalSubtab === 'health') renderMedsList();
   }, function(err){ console.error('meds err', err); });
 }
-function saveMeds(){ setDoc(doc(db,'medications',currentUser.uid), medsData); }
+function saveMeds(){ setDoc(doc(db,'medications',ownerUid()), medsData); }
 function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
 function subscribeHabits(){
   if(unsubHabits){ unsubHabits(); unsubHabits=null; }
-  unsubHabits = onSnapshot(doc(db,'habits',currentUser.uid), function(snap){
+  unsubHabits = onSnapshot(doc(db,'habits',ownerUid()), function(snap){
     habitsData = snap.exists() ? snap.data() : { items: [] };
     if(!habitsData.items) habitsData.items = [];
     if(personalSubtab === 'health') renderHabitsList();
   }, function(err){ console.error('habits err', err); });
 }
-function saveHabits(){ setDoc(doc(db,'habits',currentUser.uid), habitsData); }
+function saveHabits(){ setDoc(doc(db,'habits',ownerUid()), habitsData); }
 
 function subscribeWeight(){
   if(unsubWeight){ unsubWeight(); unsubWeight=null; }
-  unsubWeight = onSnapshot(doc(db,'weightLog',currentUser.uid), function(snap){
+  unsubWeight = onSnapshot(doc(db,'weightLog',ownerUid()), function(snap){
     weightData = snap.exists() ? snap.data() : { entries: [] };
     if(!weightData.entries) weightData.entries = [];
     if(personalSubtab === 'health') renderWeightList();
   }, function(err){ console.error('weight err', err); });
 }
-function saveWeight(){ setDoc(doc(db,'weightLog',currentUser.uid), weightData); }
+function saveWeight(){ setDoc(doc(db,'weightLog',ownerUid()), weightData); }
 
 function renderHealthView(){
   var pad = function(n){ return String(n).padStart(2,'0'); };
@@ -7205,7 +7317,7 @@ var unsubFollowup = null;
 
 function subscribeFollowupReminders(){
   if(unsubFollowup){ unsubFollowup(); unsubFollowup=null; }
-  var q = query(collection(db,'followupReminders'), where('ownerId','==',currentUser.uid));
+  var q = query(collection(db,'followupReminders'), where('ownerId','==',ownerUid()));
   unsubFollowup = onSnapshot(q, function(snap){
     followupReminders = [];
     snap.forEach(function(d){ followupReminders.push(Object.assign({id:d.id}, d.data())); });
@@ -7406,7 +7518,7 @@ var autostatsMonday = getMondayOf(new Date());
 var autostatsData = { weekStart:'', perAccount:{}, contactsAdded:0 };
 var unsubAutostats = null;
 
-function autostatsDocId(){ return currentUser.uid+'_'+wpDateKey(autostatsMonday); }
+function autostatsDocId(){ return ownerUid()+'_'+wpDateKey(autostatsMonday); }
 function emptyAccountStats(){
   var o = {}; AUTOSTATS_FIELDS.forEach(function(f){ o[f[0]] = 0; }); return o;
 }
@@ -7518,7 +7630,7 @@ async function loadAutostatsChart(){
   for(var j=0;j<weeks.length;j++){
     var sum = 0;
     try{
-      var snap = await getDoc(doc(db,'weeklyAutomationStats',currentUser.uid+'_'+weeks[j]));
+      var snap = await getDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_'+weeks[j]));
       if(snap.exists()){
         var data = snap.data();
         AUTOMATION_ACCOUNTS.forEach(function(acc){
@@ -8599,7 +8711,7 @@ async function fetchAutostatsForRange(fromStr, toStr){
   var contactsAddedTotal = 0;
   for(var i=0;i<mondays.length;i++){
     try{
-      var snap = await getDoc(doc(db,'weeklyAutomationStats',currentUser.uid+'_'+mondays[i]));
+      var snap = await getDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_'+mondays[i]));
       if(snap.exists()){
         var data = snap.data();
         contactsAddedTotal += Number(data.contactsAdded)||0;
@@ -8919,6 +9031,7 @@ function initAuthUI(){
   el('verify-refresh-btn').addEventListener('click', handleVerifyRefresh);
   el('verify-signout-btn').addEventListener('click', function(){ signOut(auth); });
   el('signout-btn').addEventListener('click', function(){ signOut(auth); });
+  el('view-rita-btn').addEventListener('click', toggleViewRita);
   el('edit-name-btn').addEventListener('click', changeMyDisplayName);
   setAuthMode('login');
 }

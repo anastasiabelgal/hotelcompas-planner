@@ -145,6 +145,12 @@ service cloud.firestore {
       allow write: if isMember() && budgetId.matches(request.auth.uid + '_.*');
     }
 
+    // Еженедельная статистика автоматизации (id = uid_дата): свою пишет сам, Настя читает чужую (данные Риты)
+    match /weeklyAutomationStats/{statsId} {
+      allow read: if isMember() && statsId.matches(request.auth.uid + '_.*') || isNastya();
+      allow write: if isMember() && statsId.matches(request.auth.uid + '_.*');
+    }
+
     // Общие для команды @hotelcompas.com (Рите недоступны)
     match /leads/{leadId} {
       allow read, write: if isHotelCompasUser();
