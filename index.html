@@ -7613,7 +7613,7 @@ function renderAutostatsTable(){
   wrap.appendChild(chartWrap);
 }
 
-var autostatsChartLoading = false;
+var autostatsChartToken = 0;
 // Серии недельного графика: цвета те же, что в палитре планера (жёлтый, красный, зелёный, синий)
 var AUTOSTATS_TREND_SERIES = [
   { key:'connectionsSent', label:'Connection sent', color:'var(--amber, #ef9b3d)' },
@@ -7622,9 +7622,8 @@ var AUTOSTATS_TREND_SERIES = [
   { key:'messagesReplied', label:'Ответы', color:'var(--sky, #0061FF)' }
 ];
 async function loadAutostatsChart(){
-  var chartWrap = el('autostats-chart-wrap'); if(!chartWrap) return;
-  if(autostatsChartLoading) return;
-  autostatsChartLoading = true;
+  if(!el('autostats-chart-wrap')) return;
+  var myToken = ++autostatsChartToken;
   var WEEKS_BACK = 8;
   var weeks = [];
   var d = new Date(autostatsMonday);
@@ -7650,7 +7649,9 @@ async function loadAutostatsChart(){
     }catch(err){ console.error('chart fetch err', err); }
     points.push({ date: weeks[j], values: sums });
   }
-  autostatsChartLoading = false;
+  // Таблица могла перерисоваться, пока грузились данные: берём актуальный контейнер, устаревшие запросы отбрасываем
+  if(myToken !== autostatsChartToken) return;
+  var chartWrap = el('autostats-chart-wrap'); if(!chartWrap) return;
   if(!hasAnyData){
     chartWrap.innerHTML = '<div class="empty-col" style="padding:14px;">Заполни пару недель - появится график тренда: заявки, сообщения, просмотры, ответы</div>';
     return;
