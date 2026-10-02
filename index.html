@@ -7614,6 +7614,13 @@ function renderAutostatsTable(){
 }
 
 var autostatsChartLoading = false;
+// Серии недельного графика: цвета те же, что в палитре планера (жёлтый, красный, зелёный, синий)
+var AUTOSTATS_TREND_SERIES = [
+  { key:'connectionsSent', label:'Connection sent', color:'var(--amber, #ef9b3d)' },
+  { key:'messagesSent',    label:'Сообщений отправлено', color:'var(--red, #dd5c56)' },
+  { key:'messagesOpened',  label:'Сообщений просмотрено', color:'var(--green, #3fae7f)' },
+  { key:'messagesReplied', label:'Ответы', color:'var(--sky, #0061FF)' }
+];
 async function loadAutostatsChart(){
   var chartWrap = el('autostats-chart-wrap'); if(!chartWrap) return;
   if(autostatsChartLoading) return;
@@ -7628,31 +7635,76 @@ async function loadAutostatsChart(){
   var points = [];
   var hasAnyData = false;
   for(var j=0;j<weeks.length;j++){
-    var sum = 0;
+    var sums = {};
+    AUTOSTATS_TREND_SERIES.forEach(function(sr){ sums[sr.key] = 0; });
     try{
       var snap = await getDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_'+weeks[j]));
       if(snap.exists()){
         var data = snap.data();
         AUTOMATION_ACCOUNTS.forEach(function(acc){
           var accData = (data.perAccount && data.perAccount[acc]) || {};
-          sum += Number(accData.messagesReplied)||0;
+          AUTOSTATS_TREND_SERIES.forEach(function(sr){ sums[sr.key] += Number(accData[sr.key])||0; });
         });
-        if(sum>0) hasAnyData = true;
+        AUTOSTATS_TREND_SERIES.forEach(function(sr){ if(sums[sr.key]>0) hasAnyData = true; });
       }
     }catch(err){ console.error('chart fetch err', err); }
-    points.push({ date: weeks[j], count: sum });
+    points.push({ date: weeks[j], values: sums });
   }
   autostatsChartLoading = false;
   if(!hasAnyData){
-    chartWrap.innerHTML = '<div class="empty-col" style="padding:14px;">Заполни пару недель — появится график тренда по ответам</div>';
+    chartWrap.innerHTML = '<div class="empty-col" style="padding:14px;">Заполни пару недель - появится график тренда: заявки, сообщения, просмотры, ответы</div>';
     return;
   }
-  var title = document.createElement('div'); title.className='health-section-title'; title.style.marginTop='0'; title.textContent = 'Тренд: ответы по неделям';
+  var title = document.createElement('div'); title.className='health-section-title'; title.style.marginTop='0'; title.textContent = 'Тренд по неделям: заявки, сообщения, просмотры, ответы';
   chartWrap.innerHTML = '';
   chartWrap.appendChild(title);
   var holder = document.createElement('div'); holder.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;';
-  holder.innerHTML = buildTrendSvg(points);
+  var legend = document.createElement('div'); legend.style.cssText='display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:10px;font-size:11.5px;color:var(--text);';
+  AUTOSTATS_TREND_SERIES.forEach(function(sr){
+    var item = document.createElement('span'); item.style.cssText='display:inline-flex;align-items:center;gap:6px;';
+    var dot = document.createElement('span'); dot.style.cssText='width:10px;height:10px;border-radius:50%;background:'+sr.color+';display:inline-block;';
+    item.appendChild(dot); item.appendChild(document.createTextNode(sr.label));
+    legend.appendChild(item);
+  });
+  holder.appendChild(legend);
+  var svgBox = document.createElement('div'); svgBox.innerHTML = buildWeeklyTrendSvg(points);
+  holder.appendChild(svgBox);
   chartWrap.appendChild(holder);
+}
+
+// Линейный график с несколькими сериями на одной шкале (без второй оси)
+function buildWeeklyTrendSvg(points){
+  var series = AUTOSTATS_TREND_SERIES;
+  var w = 700, h = 240, padL = 34, padB = 30, padT = 12, padR = 46;
+  var maxVal = 1;
+  points.forEach(function(p){ series.forEach(function(sr){ if(p.values[sr.key] > maxVal) maxVal = p.values[sr.key]; }); });
+  var plotW = w - padL - padR, plotH = h - padT - padB;
+  var stepX = points.length > 1 ? plotW / (points.length-1) : 0;
+  var gridColor = 'var(--border, #e5e8ee)', textColor = 'var(--muted, #6b7280)';
+  var svg = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:auto;font-family:sans-serif;">';
+  for(var g=0; g<=4; g++){
+    var gy = padT + plotH - (g/4)*plotH;
+    svg += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(w-padR)+'" y2="'+gy+'" stroke="'+gridColor+'" stroke-width="1" stroke-dasharray="3,3"/>';
+    svg += '<text x="'+(padL-6)+'" y="'+(gy+3)+'" font-size="9" fill="'+textColor+'" text-anchor="end">'+Math.round(maxVal*g/4)+'</text>';
+  }
+  points.forEach(function(p, i){
+    var x = padL + i*stepX;
+    svg += '<text x="'+x.toFixed(1)+'" y="'+(h-8)+'" font-size="8" fill="'+textColor+'" text-anchor="middle">'+p.date.slice(5)+'</text>';
+  });
+  series.forEach(function(sr){
+    var pts = points.map(function(p, i){
+      return { x: padL + i*stepX, y: padT + plotH - (p.values[sr.key]/maxVal)*plotH, v: p.values[sr.key], date: p.date };
+    });
+    var pathD = pts.map(function(q,i){ return (i===0?'M':'L')+q.x.toFixed(1)+','+q.y.toFixed(1); }).join(' ');
+    svg += '<path d="'+pathD+'" fill="none" stroke="'+sr.color+'" stroke-width="2"/>';
+    pts.forEach(function(q){
+      svg += '<circle cx="'+q.x.toFixed(1)+'" cy="'+q.y.toFixed(1)+'" r="3" fill="'+sr.color+'"><title>'+sr.label+': '+q.v+' ('+q.date+')</title></circle>';
+    });
+    var last = pts[pts.length-1];
+    svg += '<text x="'+(last.x+6).toFixed(1)+'" y="'+(last.y+3).toFixed(1)+'" font-size="9" font-weight="700" fill="'+sr.color+'">'+last.v+'</text>';
+  });
+  svg += '</svg>';
+  return svg;
 }
 
 function initAutostats(){
