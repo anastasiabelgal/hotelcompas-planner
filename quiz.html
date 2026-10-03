@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Допуск SDR HotelCompas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Концепт: табло вылета. Каждая тема теста - рейс, итог - посадочный талон. */
+:root{
+  --bg:#EEF2F8; --panel:#FFFFFF; --ink:#0B1F3A; --muted:#566884; --line:#D6DEEB;
+  --accent:#0061FF; --on-accent:#FFFFFF; --gold:#B86E00; --gold-bg:#FFF1D6;
+  --good:#17804F; --good-bg:#E1F5EA; --bad:#C23B31; --bad-bg:#FCE6E3; --soft:#F5F8FD;
+  --f-display:'Unbounded','Onest',system-ui,sans-serif;
+  --f-body:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1424; --panel:#12213A; --ink:#E8EEF8; --muted:#94A4BE; --line:#23365A;
+    --accent:#5B96FF; --on-accent:#06142B; --gold:#F2B04A; --gold-bg:#3A2D12;
+    --good:#4CC38A; --good-bg:#12372A; --bad:#FF8076; --bad-bg:#40201F; --soft:#0F1B31;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1424; --panel:#12213A; --ink:#E8EEF8; --muted:#94A4BE; --line:#23365A;
+  --accent:#5B96FF; --on-accent:#06142B; --gold:#F2B04A; --gold-bg:#3A2D12;
+  --good:#4CC38A; --good-bg:#12372A; --bad:#FF8076; --bad-bg:#40201F; --soft:#0F1B31;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:24px 56px}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;margin:0;text-wrap:balance}
+.mono{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:12px 20px;font-weight:700}
+.btn:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.xp{display:flex;gap:14px;align-items:center}
+.chip{font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--panel);white-space:nowrap}
+.chip b{color:var(--gold)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+.hero{padding-block:8px 24px}
+.hero h1{font-size:clamp(26px,6vw,38px);margin:10px 0 14px}
+.hero p{max-width:60ch;color:var(--muted);margin:0 0 10px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:22px 0}
+.rules div{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px}
+.rules b{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+label.name{display:block;margin:18px 0 6px;font-weight:700}
+input[type=text]{width:100%;max-width:360px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;margin-bottom:16px}
+.board{display:flex;flex-direction:column;gap:8px}
+.leg{display:grid;grid-template-columns:76px 1fr auto;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:left;width:100%}
+.leg .code{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.06em}
+.leg h3{font-size:15px;font-family:var(--f-body);font-weight:700}
+.leg small{color:var(--muted);display:block;margin-top:2px}
+.leg.locked{opacity:.55;cursor:not-allowed}
+.leg.next{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.stars{font-family:var(--f-mono);color:var(--gold);letter-spacing:2px;white-space:nowrap;text-align:right}
+.stars em{font-style:normal;color:var(--line)}
+.stat{font-size:12px;color:var(--muted);display:block;text-align:right;letter-spacing:0}
+.prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:10px 0 22px}
+.prog i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.qhead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.qtext{font-size:18px;font-weight:700;margin:14px 0 6px;text-wrap:pretty}
+.hint-tag{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:12px 14px;width:100%}
+.opt:hover:not([disabled]){border-color:var(--accent)}
+.opt .k{font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);border-radius:6px;min-width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;background:var(--panel);flex:0 0 auto;margin-top:1px}
+.opt.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.opt.ok{border-color:var(--good);background:var(--good-bg)}
+.opt.no{border-color:var(--bad);background:var(--bad-bg)}
+.opt[disabled]{cursor:default}
+.mrow{display:grid;grid-template-columns:1fr minmax(160px,230px);gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mrow select{width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit}
+.mrow.ok select{border-color:var(--good);background:var(--good-bg)}
+.mrow.no select{border-color:var(--bad);background:var(--bad-bg)}
+.mrow .fix{grid-column:1/-1;font-size:12.5px;color:var(--good)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.fb{margin-top:18px;border-radius:12px;padding:14px 16px;border:1px solid var(--line)}
+.fb.ok{background:var(--good-bg);border-color:var(--good)}
+.fb.no{background:var(--bad-bg);border-color:var(--bad)}
+.fb strong{display:block;margin-bottom:4px}
+.fb .ref{display:block;margin-top:8px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+.ticket{display:grid;grid-template-columns:1fr 200px;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.ticket .main{padding:24px}
+.ticket .stub{padding:24px;border-left:2px dashed var(--line);background:var(--soft);display:flex;flex-direction:column;gap:12px;justify-content:center}
+.ticket .big{font-family:var(--f-display);font-size:38px;font-weight:700;line-height:1}
+.ticket h2{font-size:22px;margin:8px 0 10px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:16px}
+.kv div span{display:block}
+.kv .v{font-weight:700;font-size:16px}
+.topics{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.topics .chip{background:var(--bad-bg);border-color:var(--bad);color:var(--ink)}
+.pass{color:var(--good)} .fail{color:var(--bad)}
+.legres{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0}
+.legres div{min-width:90px}
+.legres .big{font-family:var(--f-display);font-size:28px;font-weight:700}
+textarea.share{width:100%;min-height:150px;margin-top:10px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:13px/1.5 var(--f-mono)}
+.sent{font-size:13px;margin-top:12px;color:var(--muted)} .sent.ok{color:var(--good)}
+.rrow{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px;margin-bottom:10px}
+.rrow summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-weight:700}
+.rrow ul{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:13.5px}
+@media (max-width:560px){
+  .ticket{grid-template-columns:1fr}
+  .ticket .stub{border-left:0;border-top:2px dashed var(--line)}
+  .leg{grid-template-columns:1fr auto}
+  .leg .code{grid-column:1/-1}
+  .mrow{grid-template-columns:1fr}
+  .card{padding:18px}
+}
+@media (prefers-reduced-motion: reduce){ .prog i{transition:none} }
+</style>
+
+</head><body>
+<div class="wrap" id="app" aria-live="polite"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+var firebaseConfig = {
+  apiKey: "AIzaSyCNllF-829_5wKylE1_EU9gZFlM-pvuSI0",
+  authDomain: "hotelcompas-880d9.firebaseapp.com",
+  projectId: "hotelcompas-880d9",
+  storageBucket: "hotelcompas-880d9.firebasestorage.app",
+  messagingSenderId: "47724626160",
+  appId: "1:47724626160:web:7fd5d98a9d34fa79740235"
+};
+var fbApp = initializeApp(firebaseConfig);
+var auth = getAuth(fbApp);
+var fdb = getFirestore(fbApp);
+var NASTYA_EMAIL = 'a.belousova@hotelcompas.com';
+var RITA_EMAIL = 'ritapatriciav@gmail.com';
+/* ---------- Вопросы ----------
+   t: single | multi | match; a: индекс верного (single), массив индексов (multi), массив по строкам (match) */
+var LEGS = [
+{ id:1, name:'Команда', sub:'Кто есть кто и к кому идти', qs:[
+ { t:'single', q:'На звонке авиакомпания просит конкретные отели, цены и трансфер для своих рейсов. Кто готовит такое предложение?',
+   o:['Booking (отдел бронирования)','Аккаунт-менеджмент','Разработчики','Маркетинг'], a:0,
+   why:'Booking готовит офферы: перечень отелей и услуг (трансфер, кейтеринг). Букеры подбирают отели и считают предложение по ценам.', ref:'Раздел «Команда и к кому обращаться»' },
+ { t:'single', q:'Клиент согласен работать с нами. Нужно подготовить и изучить договор. Чья это зона?',
+   o:['Booking','Аккаунт-менеджмент','Маркетинг','SDR (ты)'], a:1,
+   why:'Аккаунт-менеджмент готовит документы и договоры и изучает их вместе с клиентом.', ref:'Раздел «Команда и к кому обращаться»' },
+ { t:'single', q:'Кто после старта ведёт клиента глубже: консультирует, развивает на новые услуги и собирает ежедневные заказы?',
+   o:['Key account-менеджеры','Букеры','Разработчики','SDR (ты)'], a:0,
+   why:'Key account-менеджеры работают с компанией дальше: консультируют, расширяют набор услуг, собирают заказы.', ref:'Раздел «Команда и к кому обращаться»' },
+ { t:'single', q:'Сотруднику клиента нужен доступ в CRM-систему. К кому идти?',
+   o:['К разработчикам','К Booking','К Максу','К Насте'], a:0,
+   why:'Разработчики дают доступ в CRM-систему.', ref:'Раздел «Команда и к кому обращаться»' },
+ { t:'match', q:'Соедини вопрос и того, к кому с ним идти.',
+   items:['Лидогенерация, регламент, рынок, дизайн материалов','Как искать компании, расширение партнёрств, операционная часть','Подготовка договора и документов','Оффер: отели, цены, трансфер, кейтеринг','Доступ в CRM'],
+   o:['Настя (маркетинг)','Макс (бизнес-девелопмент и операции)','Аккаунт-менеджмент','Booking','Разработчики'], a:[0,1,2,3,4],
+   why:'Настя отвечает за лидогенерацию, маркетинг и рынок. Макс развивает партнёрства и знает операционную часть. Договоры у аккаунт-менеджмента, офферы у Booking, CRM у разработчиков.', ref:'Раздел «Команда и к кому обращаться»' },
+ { t:'single', q:'Клиент ответил «интересно» и спросил про кредитный лимит и интеграцию с их crew-системой. Что ты делаешь?',
+   o:['Отвечаю сама, чтобы не потерять момент','Предлагаю звонок, фиксирую в планере и зову наставника: вопросы про кредит и интеграцию нестандартные','Передаю сразу в Booking, пусть считают','Жду до конца недели'], a:1,
+   why:'Interested: звонок предлагаем в течение 24-48 часов. Цена, кредит, интеграция, тендер - повод позвать наставника.', ref:'Регламент: «Когда звать наставника»' }
+]},
+{ id:2, name:'Продукт', sub:'HOTAC, IROPS и как об этом говорить', qs:[
+ { t:'single', q:'Что такое IROPS?',
+   o:['Сбой в расписании (отмена, задержка, диверт, погода): людям срочно нужны отель, трансфер, питание','Размещение экипажа в обычном режиме','Самолёт на земле из-за техники','Платная подписка на аналитику'], a:0,
+   why:'IROPS - irregular operations. HOTAC - размещение экипажа: в обычном режиме рутина, при сбое срочная и дорогая операция.', ref:'Онбординг, раздел 3.1' },
+ { t:'single', q:'Чем AOG отличается от IROPS?',
+   o:['AOG - самолёт на земле, обычно из-за техники: это причина. IROPS - более широкий сценарий сбоя','Это одно и то же','AOG про пассажиров, IROPS про экипаж','AOG - название нашего тарифа'], a:0,
+   why:'Не путай: AOG - причина, IROPS - более широкий сценарий для пассажиров и операций.', ref:'Онбординг, раздел 3.1' },
+ { t:'single', q:'Кто принимает решение о размещении при сбое и в каком окне?',
+   o:['OCC авиакомпании, окно около 24-72 часов','Закупки, 6-24 месяца','Пассажиры, 5 минут','CEO, неделя'], a:0,
+   why:'Решение принимает диспетчерский центр (OCC). Поэтому скорость провайдера - часть процесса, а не бонус.', ref:'Онбординг, раздел 3.1' },
+ { t:'single', q:'Какую скорость реакции можно называть клиенту?',
+   o:['«2 минуты»','«5-15 минут»','«Менее 10 минут»','«Мгновенно»'], a:1,
+   why:'Канон - диапазон 5-15 минут. «2 минуты» и «менее 10 минут» встречаются в старых материалах, их не используем.', ref:'Онбординг, раздел 3.6' },
+ { t:'single', q:'Какую формулировку про экономию можно использовать?',
+   o:['«До 35%»','«До 30%»','«Ровно 50%»','«Любая цифра, лишь бы цепляла»'], a:1,
+   why:'«До 30%» используем. Это маркетинговый выбор поверх измеренных 15-20% на пилоте. Новых цифр выше 30% не придумываем.', ref:'Онбординг, раздел 3.6' },
+ { t:'multi', q:'Какие из пунктов - ценностные опоры HotelCompas? (выбери все верные)',
+   o:['Единое окно','Локальная координация','Постоплата','Самые низкие цены на рынке','Собственные отели в собственности','OPS SaaS-платформа как главный продукт'], a:[0,1,2],
+   why:'Шесть опор: единое окно, скорость 5-15 минут, авиационная специфика, локальная координация, гибкость, постоплата. «Самые низкие цены» мы не обещаем, SaaS в американском пилоте не продаём.', ref:'Онбординг, раздел 3.4' },
+ { t:'single', q:'Как HotelCompas зарабатывает, если для авиакомпании сервис бесплатный?',
+   o:['На марже отеля','Абонентская плата','Комиссия с пассажиров','Продажа данных'], a:0,
+   why:'Для авиакомпании сервис бесплатный, мы зарабатываем на марже отеля.', ref:'Онбординг, раздел 2' },
+ { t:'single', q:'Какая формулировка для первого сообщения сильнее?',
+   o:['«Мы бронируем отели»','«Берём операционную ответственность за ситуацию»','«Работаем 24/7»','«У нас есть партнёры»'], a:1,
+   why:'Проверяем «тестом логотипа конкурента»: фраза «24/7» подойдёт любому конкуренту. Операционная ответственность - наше отличие.', ref:'Онбординг, раздел 3.5' }
+]},
+{ id:3, name:'Клиенты и сегменты', sub:'Кому мы пишем и что о них известно', qs:[
+ { t:'multi', q:'С каких сегментов в США быстрее всего идут сделки? (выбери все верные)',
+   o:['Regional','Charter / ACMI','Cargo','Major passenger'], a:[0,1,2],
+   why:'Самые быстрые - Regional, Charter/ACMI и Cargo. У major passenger вход занимает 6-24 месяца.', ref:'Онбординг, раздел 5.1' },
+ { t:'single', q:'Сколько может занять вход в крупную пассажирскую авиакомпанию?',
+   o:['1-2 недели','1-2 месяца','6-24 месяца','Два дня'], a:2,
+   why:'Длинный цикл закупки, много отделов и аудитов: 6-24 месяца.', ref:'Онбординг, раздел 5.1' },
+ { t:'single', q:'Какой уровень контакта не закупщик, но инициирует запрос и может рекомендовать наверх?',
+   o:['Ops (Crew Travel, OCC, Ground Ops, Station Manager)','C-level','Procurement','Никакой'], a:0,
+   why:'Ops инициирует запрос и может порекомендовать нас руководству. Триггер: новый маршрут без отельного контракта или сбой у текущего подхода.', ref:'Онбординг, раздел 5.2' },
+ { t:'single', q:'Procurement молчит несколько недель. Что это обычно значит?',
+   o:['Отказ','Нет готовой рамки сравнения вендоров','Они нас не видели','Конкурент дешевле'], a:1,
+   why:'Затягивание - это обычно не отказ, а отсутствие рамки сравнения. Угол: «бюджет уже заложен, нового согласования не нужно».', ref:'Онбординг, раздел 5.2' },
+ { t:'single', q:'Что показали данные CRM про сегмент Charter-ACMI?',
+   o:['Больше всего ответов «не тот человек»: сначала уточняем, кому именно пишем','Лучший процент Interested','Они не отвечают вообще','Самая маленькая выборка'], a:0,
+   why:'У Charter-ACMI 36,4% ответов «не тот контакт». Перед наращиванием объёма уточняем адресата.', ref:'Онбординг, раздел 5.1' },
+ { t:'single', q:'Небольшой оператор бизнес-авиации: один человек отвечает и за операции, и за закупки. Какой флаг ставим?',
+   o:['VERIFY_STATUS','SINGLE_CONTACT','Priority: Low','Relevant service: Fuel'], a:1,
+   why:'SINGLE_CONTACT обрезает волны 2-3: один заход, один аккаунт (обычно CEO).', ref:'Онбординг, раздел 7.6' },
+ { t:'single', q:'Какое утверждение нельзя произносить клиенту как установленный факт?',
+   o:['«Мы закрыли cargo-операцию в Анкоридже за несколько часов»','«Вы, скорее всего, опасаетесь незнакомого поставщика»','«Мы работаем в 90+ странах»','«Для авиакомпании сервис бесплатный»'], a:1,
+   why:'Барьеры («почему могут отказать») - гипотезы, не подтверждены разговорами с клиентами. Используем их как рамку для вопросов, но не как факт.', ref:'Онбординг, раздел 5.2' },
+ { t:'single', q:'Клиент из сегмента Regional просит пример. Что говорим?',
+   o:['Подаём кейс Анкориджа как кейс Regional','Подаём кейс ОАЭ как кейс Regional','«We handle this kind of coverage regularly across our airline partners»','Придумываем подходящий кейс'], a:2,
+   why:'Для Regional и Charter/ACMI подтверждённого кейса пока нет. Не натягиваем чужой.', ref:'Онбординг, раздел 4' }
+]},
+{ id:4, name:'Как устроен аутрич', sub:'Аккаунты, списки, волны, цепочки', qs:[
+ { t:'match', q:'Соедини аккаунт и уровень контактов, которым он пишет.',
+   items:['Леонид Хлибов (CEO)','Мария Хлибова (Head of Booking)','Ноэль Боева (BDM)'],
+   o:['C-level: COO, VP Ops, Founder','Ops: Crew Travel, OCC, Station Manager','Procurement и Fuel'], a:[0,1,2],
+   why:'Аккаунт привязан к уровню контакта, не к сегменту: senior-контакт получает сообщение от CEO-аккаунта, операционный владелец - от Head of Booking, закупки и топливо - от BDM.', ref:'Онбординг, раздел 7.2' },
+ { t:'single', q:'Сколько у нас списков контактов и сколько текстовых цепочек?',
+   o:['12 списков и 16 цепочек','16 списков и 12 цепочек','3 списка и 5 цепочек','12 списков и 12 цепочек'], a:0,
+   why:'4 сегмента × 3 уровня = 12 списков. Цепочек 16: четыре C-level, четыре Ops и восемь Proc (HOTAC и Fuel ветки).', ref:'Онбординг, раздел 7.3' },
+ { t:'single', q:'Что делает первое сообщение (M1)?',
+   o:['Питчит услугу и называет цену','Задаёт факт про их операцию и один открытый вопрос, без питча','Присылает кейс','Просит звонок'], a:1,
+   why:'M1 - заход: факт про операцию и вопрос о том, как у них устроено размещение сейчас. Углубление идёт со второго сообщения, после ответа.', ref:'Онбординг, раздел 7.4' },
+ { t:'single', q:'Как идут волны по компании, где нет ответа?',
+   o:['День 0, день 7, день 14: по одному контакту другого уровня','Все три контакта в день 0','День 0, день 1, день 2','Раз в месяц один контакт'], a:0,
+   why:'Последовательный заход, не залп: так аккаунты не выглядят скоординированной кампанией.', ref:'Онбординг, раздел 7.5' },
+ { t:'single', q:'Контакт из волны 1 ответил. Что с волнами 2 и 3 по этой компании?',
+   o:['Запускаем как обычно','Не запускаем, ответившего ведём индивидуально','Запускаем только волну 3','Удаляем компанию из списков'], a:1,
+   why:'Если ответил первый контакт, волны 2 и 3 по компании не стартуют.', ref:'Онбординг, раздел 7.5' },
+ { t:'single', q:'Что делает флаг VERIFY_STATUS?',
+   o:['Блокирует аутрич до проверки статуса компании (M&A, банкротство, смена бренда)','Ставит компанию в начало очереди','Включает Fuel-ветку','Сокращает цепочку до одного сообщения'], a:0,
+   why:'Пока статус не подтверждён по официальному источнику, не пишем.', ref:'Онбординг, раздел 7.6' },
+ { t:'single', q:'Контакт - Fuel Manager. Что меняется в аутриче?',
+   o:['Ничего, цепочка та же','Уходит Fuel-ветка первого сообщения вместо HOTAC-ветки (аккаунт BDM)','Пишем от CEO-аккаунта','Не пишем вообще'], a:1,
+   why:'Тег Relevant service: Fuel определяет ветку текста внутри списков Proc.', ref:'Онбординг, раздел 7.6' },
+ { t:'single', q:'Что ты делаешь перед ресёрчем и отправкой?',
+   o:['Сверяюсь с таблицей «Кому писали»','Добавляю всех подряд','Спрашиваю у клиента','Ничего'], a:0,
+   why:'Interested, Call scheduled и Call done - уже в работе. По остальным контакт тоже состоялся: заново не пишем, если это не новый человек на новой должности.', ref:'Онбординг, раздел 5.3' }
+]},
+{ id:5, name:'Возражения', sub:'Схема из четырёх шагов и скрипты', qs:[
+ { t:'single', q:'Какой правильный порядок работы с возражением?',
+   o:['Признать, выяснить ограничение, привязать один аргумент, предложить маленький шаг','Доказать, дать скидку, назначить звонок, прислать кейс','Выяснить, прислать кейс, назначить звонок, признать','Возразить, привести цифры, закрыть'], a:0,
+   why:'ACKNOWLEDGE → DIAGNOSE → REFRAME → LOW-FRICTION NEXT STEP.', ref:'Онбординг, раздел 8.2' },
+ { t:'single', q:'Клиент пишет: «We have our own team». Лучший ответ по смыслу?',
+   o:['Наша команда сделает лучше вашей','Мы встраиваемся в ваш процесс: команда сохраняет контроль, а мы берём поиск, переговоры и координацию, когда нагрузка растёт','Тогда вам мы не нужны','Вот наш прайс'], a:1,
+   why:'Скрипт «extension of OCC»: не сравниваем себя с вендором, которого у них нет.', ref:'Онбординг, раздел 8.3' },
+ { t:'single', q:'Клиент: «We already have a provider». В чём главная ошибка?',
+   o:['Убеждать в пользе аутсорса вообще: они уже убеждены','Предложить стать backup','Спросить, что провайдер делает плохо','Признать выбор клиента'], a:0,
+   why:'Мы не просим заменять провайдера. Предлагаем стать secondary/backup и показать разницу на реальных запросах.', ref:'Онбординг, раздел 8.3' },
+ { t:'single', q:'Какой вопрос задаём после ответа «in-house»?',
+   o:['«What happens during a multi-city disruption when your team is already stretched?»','«Can I get your CEO’s number?»','«Why not outsource everything?»','«Do you like your provider?»'], a:0,
+   why:'После каждого возражения - вопрос, который ведёт к реальному ограничению, и маленький следующий шаг.', ref:'Онбординг, раздел 8.3' },
+ { t:'single', q:'Клиент пишет: «We use API for crew hotels». Как реагируем?',
+   o:['«API хуже нас»','Признаём, что это сильный игрок, предлагаем быть backup и сравнить на реальных запросах','«Мы всегда дешевле»','Спорим про рынок'], a:1,
+   why:'Конкурентов не атакуем. Показываем, где закрываем серую зону: срочные запросы, сложные регионы, ручная координация 24/7.', ref:'Онбординг, раздел 6' },
+ { t:'single', q:'«Not now, ping us in Q2». Что делаем и какой статус?',
+   o:['Not interested, больше не пишем','Bad timing: уточняем дату или ближайшие тендеры, ставим дату контакта в планере','Neutral, ждём','Irrelevant'], a:1,
+   why:'«Не сейчас» - Bad timing. Возвращаемся в дату, которую назвал клиент, и ставим напоминание.', ref:'Регламент, разделы 2.3 и 2.5' },
+ { t:'single', q:'«Это не ко мне, напишите Джону». Что делаешь?',
+   o:['Благодарю, прошу контакт Джона, ставлю статус Irresponsible или Irrelevant, добавляю Джона как другой контакт','Игнорирую','Отвечаю: «Тогда вы не нужны»','Пишу Джону без согласования от первого контакта'], a:0,
+   why:'Рекомендация - ценный сигнал. Фиксируем в карточке лида как «другой контакт» и отмечаем, кто порекомендовал.', ref:'Регламент, разделы 2.3 и 2.4' },
+ { t:'single', q:'Ответ клиента необычный и не подходит ни под один скрипт. Что делаешь?',
+   o:['Импровизирую','Не отвечаю сама, показываю наставнику','Копирую ближайший скрипт','Удаляю лид'], a:1,
+   why:'Необычные ответы разбираем вместе: так база скриптов растёт.', ref:'Регламент, раздел 2.3' }
+]},
+{ id:6, name:'Планер и ритм дня', sub:'Лидогенерация, сроки, лимиты, отчёт', qs:[
+ { t:'single', q:'Клиент ответил. Когда вносишь его в планер?',
+   o:['В тот же день','В конце недели','Когда накопится несколько','Только по Interested'], a:0,
+   why:'Всё, что узнала о контакте, записываем в планер в тот же день.', ref:'Регламент, главные правила' },
+ { t:'single', q:'Лид подсвечен красным. Что это значит?',
+   o:['Он не обновлялся больше 3 дней','Он отказался','Это Fuel-контакт','Ошибка в планере'], a:0,
+   why:'Не оставляй красные лиды: обновляй или ставь дату следующего контакта.', ref:'Регламент, раздел 2.4' },
+ { t:'single', q:'За какое время должен получить сообщение принятый коннект?',
+   o:['В течение 24-48 часов','Через неделю','В течение 5 минут','Когда будет время'], a:0,
+   why:'Каждый принятый коннект получает сообщение в течение 24-48 часов.', ref:'Регламент, главные правила' },
+ { t:'single', q:'Рабочий ориентир заявок на коннект в день на один аккаунт?',
+   o:['7-8','30','50','Сколько успеешь'], a:0,
+   why:'Новый аккаунт разогреваем: около 5 в день, затем нарастаем.', ref:'Регламент, раздел 2.9' },
+ { t:'single', q:'Чтобы успеть, хочется поднять лимит отправки. Что делаешь?',
+   o:['Поднимаю сама','Меняю только по согласованию с Настей','Прошу Booking','Поднимаю ночью'], a:1,
+   why:'Лимит нельзя нарушать, чтобы успеть. Новые лимиты - только по согласованию.', ref:'Регламент, раздел 2.9' },
+ { t:'single', q:'Клиент прочитал, но не ответил. Когда писать follow-up?',
+   o:['Через 5-10 рабочих дней, с одним новым вопросом','Завтра','Через 3 месяца','Никогда'], a:0,
+   why:'Короткий follow-up с одним новым вопросом. Если отправляли материалы - через 3-5 рабочих дней.', ref:'Регламент, раздел 2.5' },
+ { t:'single', q:'Клиент ответил на M2. Как занести ответ, чтобы он попал в отчёт «на какое сообщение отвечают»?',
+   o:['Выбрать в карточке «Касание…» = M2, затем нажать «+ Сообщение» с датой','Только поменять статус','Написать в заметки','Ничего: отчёт сам угадает'], a:0,
+   why:'Касание запоминается вместе с сообщением. Без него ответ попадёт в строку «Не указано».', ref:'Планер: Лидогенерация → Лиды' },
+ { t:'single', q:'Лид из прошлого месяца написал новое сообщение. Попадёт ли он в отчёт этой недели?',
+   o:['Да, если сообщение внесено с датой этой недели','Нет, он старый','Только после смены статуса','Только по Interested'], a:0,
+   why:'В отчёт попадают лиды, которые появились, сменили статус или написали новое сообщение за выбранную неделю.', ref:'Планер: Лидогенерация → Отчёт' },
+ { t:'single', q:'LinkedIn показал предупреждение или блокировку. Что делаешь?',
+   o:['Остановиться, ничего не нажимать, написать Насте','Попробовать обойти','Сменить прокси','Подождать до завтра'], a:0,
+   why:'Любые действия могут ухудшить ситуацию. Сначала стоп и наставник.', ref:'Регламент, «Когда звать наставника»' }
+]},
+{ id:7, name:'Красные линии', sub:'Чего нельзя делать никогда', qs:[
+ { t:'multi', q:'Что из этого делать нельзя? (выбери все верные)',
+   o:['Называть клиентов по имени','Писать Kalitta Air холодным аутричем','Продавать OPS SaaS-платформу в американском пилоте','Говорить «до 30%»','Ссылаться на кейс Анкориджа в cargo-цепочке','Отправлять M1 без кейса'], a:[0,1,2],
+   why:'Остальное допустимо: «до 30%» - канон, кейс Анкориджа - наш самый сильный для cargo, а первое касание всегда идёт без кейса.', ref:'Онбординг, раздел 12' },
+ { t:'single', q:'Как называем клиента в примере?',
+   o:['По названию компании','«An airline we work with»','По имени контакта','Только по сегменту'], a:1,
+   why:'Названия клиентов не раскрываем.', ref:'Онбординг, раздел 12' },
+ { t:'single', q:'Можно ли упоминать Aeropulse в переписке с американскими контактами?',
+   o:['Да, это наша компания','Нет, не используем вообще','Только в M5','Только в LinkedIn'], a:1,
+   why:'Aeropulse - отдельная компания группы, название в переписке с американскими контактами не используем.', ref:'Онбординг, раздел 2' },
+ { t:'single', q:'Как поступаешь с перевозчиками из санкционных юрисдикций?',
+   o:['Упоминаю в общем списке','Не упоминаю ни в каком виде, даже случайно','Упоминаю только в личных сообщениях','Спрашиваю у клиента'], a:1,
+   why:'Для procurement в США это повод для отказа на этапе проверки поставщика.', ref:'Онбординг, раздел 12' },
+ { t:'single', q:'Можно ли говорить «мы одни делаем всё в одном месте»?',
+   o:['Нет: у TA Connections тоже широкая линейка. Наш тезис - гибкость в сложных 5% случаев','Да','Только cargo','Только в M5'], a:0,
+   why:'Мы конкурируем не широтой, а гибкостью там, где стандартный процесс не работает.', ref:'Онбординг, раздел 3.6' },
+ { t:'single', q:'Клиент готов подписать, и вы уже обсуждаете цену. Что делаешь?',
+   o:['Закрываю сделку сама','Довожу лид до готовности и передаю дальше, не закрываю сама','Скидываю 10%','Исчезаю'], a:1,
+   why:'Задача SDR - довести лид и передать. Цена, кредит, интеграция - дальше с наставником и другими отделами.', ref:'Онбординг, раздел 9.5' },
+ { t:'single', q:'Знакомый просит выгрузку из CRM или таблицу «Кому писали». Что делаешь?',
+   o:['Отправляю','Не пересылаю наружу внутренние материалы','Отправляю часть','Отправляю по запросу в Telegram'], a:1,
+   why:'Внутренние материалы, аналитика и выгрузки наружу не уходят.', ref:'Онбординг, раздел 12' },
+ { t:'single', q:'Два документа противоречат друг другу. Что делаешь?',
+   o:['Выбираю тот, что новее','Спрашиваю Настю, не выбираю молча','Выбираю удобный','Игнорирую оба'], a:1,
+   why:'При расхождении документов спроси Настю.', ref:'Онбординг, раздел 12' }
+]}
+];
+
+/* ---------- Состояние ---------- */
+var KEY = 'hc_sdr_quiz_v1';
+var state = { name:'', res:{} };
+try { var raw = localStorage.getItem(KEY); if(raw){ var s = JSON.parse(raw); if(s && s.res) state = s; } } catch(e){}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+var app = document.getElementById('app');
+var run = null;
+
+function totalXp(){ var x=0; Object.keys(state.res).forEach(function(k){ x += state.res[k].xp; }); return x; }
+function done(){ return Object.keys(state.res).length; }
+function totals(){
+  var c=0,t=0; LEGS.forEach(function(l){ if(state.res[l.id]){ c+=state.res[l.id].correct; t+=state.res[l.id].total; } });
+  return {c:c,t:t};
+}
+function stars(p){ return p>=0.9?3:p>=0.7?2:p>=0.5?1:0; }
+function starStr(n){ return '★'.repeat(n) + '<em>' + '★'.repeat(3-n) + '</em>'; }
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toTop(){ window.scrollTo({top:0}); }
+
+/* ---------- Отправка результата (если страница открыта по ссылке и есть доступ) ---------- */
+var remote = { id:null, owner:false, status:'unknown', email:'' };
+function allowedUser(u){
+  if(!u || !u.email || !u.emailVerified) return false;
+  var e = u.email.toLowerCase();
+  return e === RITA_EMAIL || /@hotelcompas\.com$/.test(e);
+}
+
+function payload(){
+  var t = totals(), legs = {};
+  LEGS.forEach(function(l){ var r = state.res[l.id]; if(r) legs[l.id] = { name:l.name, correct:r.correct, total:r.total, missed:r.missed.map(function(i){ return l.qs[i].q; }) }; });
+  return { name: state.name||'', updatedAt: new Date().toISOString(), correct:t.c, total:t.t, pct: t.t?Math.round(t.c/t.t*100):0, xp: totalXp(), legsDone: done(), complete: done()===LEGS.length, legs: legs };
+}
+function sendResult(cb){
+  if(remote.status!=='ready'){ cb && cb(false); return; }
+  var data = payload(); data.email = remote.email;
+  setDoc(doc(fdb,'quizResults',remote.id), data).then(function(){ cb && cb(true); }, function(){ cb && cb(false); });
+}
+function resultText(){
+  var p = payload(), lines = ['Тест SDR HotelCompas', 'Имя: '+(p.name||'-'), 'Дата: '+new Date().toLocaleDateString('ru-RU'),
+    'Итог: '+p.pct+'% ('+p.correct+' из '+p.total+'), опыт '+p.xp+' XP', 'Пройдено рейсов: '+p.legsDone+' из '+LEGS.length, ''];
+  LEGS.forEach(function(l){ var r=p.legs[l.id]; if(r){ lines.push('Рейс '+l.id+' '+l.name+': '+r.correct+'/'+r.total); r.missed.forEach(function(q){ lines.push('  - ошибка: '+q); }); } });
+  return lines.join('\n');
+}
+function shareBlock(){
+  return '<div class="actions"><button class="btn" id="copy">Скопировать результат</button></div>'+
+    '<div id="sentmsg" class="sent">'+(remote.status==='ready'?'Результат отправляется автоматически.':'Не получилось подключиться к планеру. Нажми «Скопировать» и вставь текст в Telegram Насте.')+'</div>'+
+    '<textarea class="share" id="sharebox" readonly hidden></textarea>';
+}
+function wireShare(){
+  var c = document.getElementById('copy'); if(!c) return;
+  c.onclick = function(){
+    var txt = resultText(), box = document.getElementById('sharebox');
+    box.hidden = false; box.value = txt; box.focus(); box.select();
+    try { navigator.clipboard.writeText(txt).then(function(){ c.textContent='Скопировано'; }, function(){ c.textContent='Выдели текст ниже и скопируй'; }); }
+    catch(e){ c.textContent='Выдели текст ниже и скопируй'; }
+  };
+  sendResult(function(ok){ var m=document.getElementById('sentmsg'); if(m && remote.status==='ready'){ m.textContent = ok ? 'Результат отправлен Насте.' : 'Не получилось отправить автоматически. Нажми «Скопировать» и пришли текст Насте.'; m.className='sent'+(ok?' ok':''); } });
+}
+
+/* ---------- Экраны ---------- */
+function header(){
+  return '<div class="topbar"><span class="mono">HotelCompas · допуск SDR</span><div class="xp">'+
+    '<span class="chip">Опыт <b>'+totalXp()+'</b> XP</span><span class="chip">Рейсов <b>'+done()+'</b>/'+LEGS.length+'</span></div></div>';
+}
+
+function screenStart(){
+  var resume = done() > 0;
+  app.innerHTML = header() +
+   '<div class="hero"><span class="mono">Рейсов: '+LEGS.length+' · вопросов: '+LEGS.reduce(function(a,l){return a+l.qs.length;},0)+' · примерно 25 минут</span>'+
+   '<h1>Допуск SDR: проверь, что ты готова к первому рейсу</h1>'+
+   '<p>Это не экзамен на память. Тест показывает, где материал ещё не лёг, и подсказывает, какой раздел перечитать. Каждый рейс - одна тема из онбординга и регламента.</p></div>'+
+   '<div class="rules">'+
+    '<div><b>Опыт</b>10 XP за верный ответ с первой попытки, 5 XP, если брала подсказку. Серия из 5 верных подряд даёт +5.</div>'+
+    '<div><b>Подсказка</b>Показывает, в каком разделе документа искать ответ. Можно брать, это не стыдно.</div>'+
+    '<div><b>Допуск</b>Верно с первой попытки 80% и больше. Ошибки можно сразу отработать повторно.</div>'+
+   '</div>'+
+   '<div class="card"><label class="name" for="nm">Как тебя записать в талон?</label>'+
+   '<input type="text" id="nm" placeholder="Имя" value="'+esc(state.name||'')+'" maxlength="40" autocomplete="off">'+
+   '<div class="actions"><button class="btn" id="go">'+(resume?'Продолжить':'К карте рейсов')+'</button>'+
+   (resume?'<button class="btn ghost" id="reset">Начать заново</button>':'')+(remote.owner?'<button class="btn ghost" id="ownerbtn">Результаты команды</button>':'')+'</div></div>';
+  document.getElementById('go').onclick = function(){ state.name = document.getElementById('nm').value.trim(); save(); screenMap(); };
+  var ob = document.getElementById('ownerbtn'); if(ob) ob.onclick = screenResults;
+  var r = document.getElementById('reset');
+  if(r) r.onclick = function(){ state = {name:document.getElementById('nm').value.trim(), res:{}}; save(); screenStart(); };
+}
+
+function screenMap(){
+  var nextId = null;
+  for(var i=0;i<LEGS.length;i++){ if(!state.res[LEGS[i].id]){ nextId = LEGS[i].id; break; } }
+  var html = header() + '<h2 style="font-size:22px;margin-bottom:6px">Карта рейсов</h2><p style="color:var(--muted);margin:0 0 16px">Рейсы открываются по порядку. Пройденный рейс можно пересдать, лучший результат сохранится.</p><div class="board">';
+  LEGS.forEach(function(l){
+    var r = state.res[l.id], locked = !r && l.id !== nextId;
+    var st = r ? '<span class="stars">'+starStr(stars(r.correct/r.total))+'</span><span class="stat">'+r.correct+' из '+r.total+'</span>' : '<span class="stat">'+(locked?'закрыт':'вылет')+'</span>';
+    html += '<button class="leg'+(locked?' locked':'')+(l.id===nextId?' next':'')+'" data-id="'+l.id+'"'+(locked?' disabled':'')+'>'+
+      '<span class="code">РЕЙС '+l.id+'/'+LEGS.length+'</span><span><h3>'+l.name+'</h3><small>'+l.sub+' · '+l.qs.length+' вопр.</small></span><span>'+st+'</span></button>';
+  });
+  html += '</div>';
+  if(done() === LEGS.length) html += '<div class="actions"><button class="btn" id="fin">Получить талон</button></div>';
+  app.innerHTML = html;
+  Array.prototype.forEach.call(app.querySelectorAll('.leg:not(.locked)'), function(b){ b.onclick = function(){ startLeg(+b.dataset.id, false); }; });
+  var f = document.getElementById('fin'); if(f) f.onclick = screenFinal;
+  toTop();
+}
+
+function startLeg(id, practiceList){
+  var leg = LEGS.filter(function(l){ return l.id===id; })[0];
+  run = { leg:leg, list: practiceList || leg.qs.map(function(_,i){return i;}), i:0, correct:0, xp:0, streak:0, missed:[], practice: !!practiceList, usedHint:false };
+  screenQ();
+}
+
+function screenQ(){
+  var q = run.leg.qs[run.list[run.i]];
+  run.usedHint = false; run.answered = false;
+  var pct = Math.round(run.i/run.list.length*100);
+  var html = header() + '<div class="card"><div class="qhead"><span class="mono">Рейс '+run.leg.id+' · '+run.leg.name+(run.practice?' · работа над ошибками':'')+'</span><span class="mono">Вопрос '+(run.i+1)+' из '+run.list.length+'</span></div>'+
+    '<div class="prog" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="qtext">'+esc(q.q)+'</div>'+
+    (q.t==='multi'?'<div class="hint-tag">Можно выбрать несколько ответов.</div>':'')+
+    '<div id="body"></div><div id="hintbox"></div><div id="fbbox"></div>'+
+    '<div class="actions" id="acts"></div></div>';
+  app.innerHTML = html;
+  renderBody(q);
+  toTop();
+}
+
+function actions(q){
+  var acts = document.getElementById('acts'); acts.innerHTML = '';
+  if(!run.answered){
+    var h = document.createElement('button'); h.className='btn ghost'; h.textContent='Подсказка (−5 XP)';
+    h.onclick = function(){ run.usedHint = true; document.getElementById('hintbox').innerHTML = '<div class="hint-tag" style="margin-top:12px">Загляни сюда: <b>'+esc(q.ref)+'</b></div>'; h.disabled = true; };
+    if(q.t!=='single'){
+      var chk = document.createElement('button'); chk.className='btn'; chk.id='chk'; chk.textContent='Проверить'; chk.onclick = function(){ evalAnswer(q); };
+      acts.appendChild(chk);
+    }
+    acts.appendChild(h);
+  }
+}
+
+function renderBody(q){
+  var body = document.getElementById('body'); body.innerHTML = '';
+  if(q.t==='match'){
+    q.items.forEach(function(it, idx){
+      var row = document.createElement('div'); row.className='mrow'; row.dataset.idx = idx;
+      var span = document.createElement('div'); span.textContent = it;
+      var sel = document.createElement('select'); sel.setAttribute('aria-label', it);
+      var d = document.createElement('option'); d.value=''; d.textContent='Выбери…'; sel.appendChild(d);
+      q.o.forEach(function(o, oi){ var op = document.createElement('option'); op.value=oi; op.textContent=o; sel.appendChild(op); });
+      row.appendChild(span); row.appendChild(sel); body.appendChild(row);
+    });
+  } else {
+    var wrap = document.createElement('div'); wrap.className='opts';
+    run.order = shuffle(q.o.map(function(_,i){return i;}));
+    run.sel = {};
+    run.order.forEach(function(oi, pos){
+      var b = document.createElement('button'); b.className='opt'; b.type='button'; b.dataset.oi = oi;
+      b.innerHTML = '<span class="k">'+String.fromCharCode(65+pos)+'</span><span>'+esc(q.o[oi])+'</span>';
+      b.onclick = function(){
+        if(run.answered) return;
+        if(q.t==='single'){ run.sel = {}; run.sel[oi]=true; evalAnswer(q); }
+        else { if(run.sel[oi]) delete run.sel[oi]; else run.sel[oi]=true; b.classList.toggle('sel'); }
+      };
+      wrap.appendChild(b);
+    });
+    body.appendChild(wrap);
+  }
+  actions(q);
+}
+
+function evalAnswer(q){
+  var ok = false, blank = false;
+  if(q.t==='single'){ ok = !!run.sel[q.a]; }
+  else if(q.t==='multi'){
+    var chosen = Object.keys(run.sel).map(Number).sort();
+    if(!chosen.length){ blank = true; }
+    ok = chosen.length === q.a.length && chosen.every(function(v,i){ return v === q.a.slice().sort()[i]; });
+  } else {
+    var rows = document.querySelectorAll('.mrow'); ok = true;
+    Array.prototype.forEach.call(rows, function(r){
+      var v = r.querySelector('select').value; if(v==='') blank = true;
+      if(v === '' || +v !== q.a[+r.dataset.idx]) ok = false;
+    });
+  }
+  if(blank){ document.getElementById('fbbox').innerHTML = '<div class="hint-tag" style="margin-top:12px">Выбери ответ, потом проверяй.</div>'; return; }
+  run.answered = true;
+  // подсветка
+  if(q.t==='match'){
+    Array.prototype.forEach.call(document.querySelectorAll('.mrow'), function(r){
+      var sel = r.querySelector('select'), idx = +r.dataset.idx; sel.disabled = true;
+      var good = +sel.value === q.a[idx]; r.classList.add(good?'ok':'no');
+      if(!good){ var fx = document.createElement('div'); fx.className='fix'; fx.textContent='Верно: '+q.o[q.a[idx]]; r.appendChild(fx); }
+    });
+  } else {
+    var corr = q.t==='single' ? [q.a] : q.a;
+    Array.prototype.forEach.call(document.querySelectorAll('.opt'), function(b){
+      var oi = +b.dataset.oi; b.disabled = true;
+      if(corr.indexOf(oi) > -1) b.classList.add('ok');
+      else if(run.sel[oi]) b.classList.add('no');
+    });
+  }
+  var gained = 0;
+  if(ok){
+    run.correct++; run.streak++;
+    gained = run.usedHint ? 5 : 10;
+    if(run.streak > 0 && run.streak % 5 === 0) gained += 5;
+  } else { run.streak = 0; run.missed.push(run.list[run.i]); }
+  if(!run.practice) run.xp += gained;
+  document.getElementById('fbbox').innerHTML =
+    '<div class="fb '+(ok?'ok':'no')+'"><strong>'+(ok?'Верно':'Не совсем')+(ok&&gained?' · +'+gained+' XP':'')+'</strong>'+esc(q.why)+'<span class="ref">'+esc(q.ref)+'</span></div>';
+  var acts = document.getElementById('acts'); acts.innerHTML='';
+  var nx = document.createElement('button'); nx.className='btn';
+  nx.textContent = run.i+1 < run.list.length ? 'Дальше' : 'Закончить рейс';
+  nx.onclick = function(){ run.i++; if(run.i < run.list.length) screenQ(); else endLeg(); };
+  acts.appendChild(nx); nx.focus();
+}
+
+function endLeg(){
+  var total = run.list.length, pctv = run.correct/total;
+  if(!run.practice){
+    var prev = state.res[run.leg.id];
+    if(!prev || run.correct > prev.correct || (run.correct===prev.correct && run.xp>prev.xp)){
+      state.res[run.leg.id] = { correct:run.correct, total:total, xp:run.xp, missed:run.missed };
+      save();
+    }
+  }
+  var msg = pctv>=0.9 ? 'Чисто пролетела.' : pctv>=0.7 ? 'Хороший заход, пара тем ещё шатается.' : pctv>=0.5 ? 'Половину знаешь. Перечитай разделы из подсказок и пересдай.' : 'Рейс пока не взят. Перечитай раздел и попробуй ещё раз, так и задумано.';
+  var html = header() + '<div class="card"><span class="mono">'+(run.practice?'Работа над ошибками':'Рейс '+run.leg.id+' · '+run.leg.name)+' завершён</span>'+
+   '<h2 style="margin:10px 0 6px;font-size:22px">'+msg+'</h2>'+
+   '<div class="legres"><div><span class="mono">Верно</span><div class="big">'+run.correct+'/'+total+'</div></div>'+
+   (run.practice?'':'<div><span class="mono">Опыт</span><div class="big">+'+run.xp+'</div></div>')+
+   '<div><span class="mono">Оценка</span><div class="big" style="color:var(--gold)">'+'★'.repeat(stars(pctv))+(stars(pctv)===0?'—':'')+'</div></div></div>';
+  if(run.missed.length){
+    html += '<p style="color:var(--muted);margin:0 0 6px">Сложные места:</p><div class="topics">'+
+      run.missed.map(function(i){ return '<span class="chip">'+esc(run.leg.qs[i].ref)+'</span>'; }).filter(function(v,i,a){return a.indexOf(v)===i;}).join('')+'</div>';
+  }
+  html += '<div class="actions">';
+  if(run.missed.length) html += '<button class="btn" id="fix">Отработать ошибки</button>';
+  html += '<button class="btn'+(run.missed.length?' ghost':'')+'" id="map">К карте рейсов</button>';
+  if(!run.practice) html += '<button class="btn ghost" id="again">Пересдать рейс</button>';
+  html += '</div>' + (run.practice?'':shareBlock()) + '</div>';
+  app.innerHTML = html; toTop();
+  if(!run.practice) wireShare();
+  var lg = run.leg, missed = run.missed.slice();
+  document.getElementById('map').onclick = screenMap;
+  var f = document.getElementById('fix'); if(f) f.onclick = function(){ startLeg(lg.id, missed); };
+  var a = document.getElementById('again'); if(a) a.onclick = function(){ startLeg(lg.id, false); };
+}
+
+function screenFinal(){
+  var t = totals(), pct = Math.round(t.c/t.t*100);
+  var passed = pct >= 80;
+  var rank = pct>=95 ? 'Командир SDR' : pct>=80 ? 'Первый офицер' : pct>=60 ? 'Курсант' : 'Стажёр';
+  var verdict = passed ? 'Допуск получен. Покажи талон Насте и переходи к совместной работе: поиск компаний и ЛПР.' : 'Допуска пока нет: нужно 80% и больше. Перечитай разделы из списка ниже и пересдай слабые рейсы.';
+  var topics = {};
+  LEGS.forEach(function(l){ var r = state.res[l.id]; if(r) r.missed.forEach(function(i){ var k = l.qs[i].ref; topics[k] = (topics[k]||0)+1; }); });
+  var topicHtml = Object.keys(topics).sort(function(a,b){return topics[b]-topics[a];}).map(function(k){ return '<span class="chip">'+esc(k)+(topics[k]>1?' ×'+topics[k]:'')+'</span>'; }).join('');
+  var today = new Date(); var ds = today.getDate()+'.'+('0'+(today.getMonth()+1)).slice(-2)+'.'+today.getFullYear();
+  var legLines = LEGS.map(function(l){ var r=state.res[l.id]; return '<div><span class="mono">'+l.name+'</span><span class="v">'+r.correct+'/'+r.total+'</span></div>'; }).join('');
+  app.innerHTML = header() +
+   '<div class="ticket"><div class="main"><span class="mono">Посадочный талон · HotelCompas SDR</span>'+
+   '<h2>'+esc(state.name||'Без имени')+' · '+rank+'</h2><p style="margin:0;color:var(--muted)">'+verdict+'</p>'+
+   '<div class="kv">'+legLines+'</div>'+
+   (topicHtml?'<p class="mono" style="margin:20px 0 0">Перечитать</p><div class="topics">'+topicHtml+'</div>':'<p class="mono pass" style="margin-top:20px">Ошибок по темам нет</p>')+
+   '</div><div class="stub"><span class="mono">Результат</span><div class="big '+(passed?'pass':'fail')+'">'+pct+'%</div>'+
+   '<span class="mono">'+t.c+' из '+t.t+' верно</span><span class="mono">Опыт: '+totalXp()+' XP</span><span class="mono">'+ds+'</span></div></div>'+
+   '<div class="actions"><button class="btn ghost" id="map">К карте рейсов</button></div>'+shareBlock();
+  document.getElementById('map').onclick = screenMap; wireShare(); toTop();
+}
+
+function screenResults(){
+  app.innerHTML = header()+'<h2 style="font-size:22px;margin-bottom:12px">Результаты команды</h2><div id="rlist" class="sent">Загружаю…</div><div class="actions"><button class="btn ghost" id="back">Назад</button></div>';
+  document.getElementById('back').onclick = screenStart;
+  getDocs(collection(fdb,'quizResults')).then(function(snap){
+    var docs = snap.docs.map(function(d){ return { id:d.id, d:d.data() }; });
+    var box = document.getElementById('rlist');
+    if(!docs.length){ box.textContent = 'Пока никто не прошёл тест.'; return; }
+    docs.sort(function(a,b){ return String(b.d.updatedAt).localeCompare(String(a.d.updatedAt)); });
+    return Promise.resolve({}).then(function(ps){
+      box.className=''; box.innerHTML='';
+      docs.forEach(function(x){
+        var d = x.d, who = (d.name || d.email || 'Без имени') + (d.email && d.name ? ' · '+d.email : '');
+        var det = document.createElement('details'); det.className='rrow';
+        var sm = document.createElement('summary');
+        var a = document.createElement('span'); a.textContent = who + (d.complete?'':' (не закончил)');
+        var b = document.createElement('span'); b.className='mono'; b.textContent = d.pct+'% · '+d.correct+'/'+d.total+' · '+new Date(d.updatedAt).toLocaleDateString('ru-RU');
+        sm.appendChild(a); sm.appendChild(b); det.appendChild(sm);
+        Object.keys(d.legs||{}).forEach(function(k){
+          var l = d.legs[k], p = document.createElement('p'); p.style.margin='10px 0 0'; p.textContent = 'Рейс '+k+' '+l.name+': '+l.correct+'/'+l.total; det.appendChild(p);
+          if(l.missed && l.missed.length){ var ul = document.createElement('ul'); l.missed.forEach(function(q){ var li=document.createElement('li'); li.textContent=q; ul.appendChild(li); }); det.appendChild(ul); }
+        });
+        box.appendChild(det);
+      });
+    });
+  }).catch(function(){ document.getElementById('rlist').textContent = 'Не удалось загрузить результаты.'; });
+}
+
+function screenGate(kind){
+  var msg = kind==='login' ? 'Сначала войди в планер HotelCompas: тест использует тот же вход. После входа вернись на эту страницу.' :
+            kind==='verify' ? 'Подтверди почту по письму из планера и обнови страницу.' :
+            'Этот адрес не допущен к тесту. Войди в планер под рабочей почтой.';
+  app.innerHTML = '<div class="hero"><span class="mono">HotelCompas · допуск SDR</span><h1>Нужен вход</h1><p>'+msg+'</p></div>'+
+    '<div class="actions"><a class="btn" href="index.html" style="text-decoration:none;display:inline-block">Открыть планер</a></div>';
+}
+onAuthStateChanged(auth, function(u){
+  if(!u){ remote.status='none'; screenGate('login'); return; }
+  if(!u.emailVerified){ remote.status='none'; screenGate('verify'); return; }
+  if(!allowedUser(u)){ remote.status='none'; screenGate('denied'); return; }
+  remote.id = u.uid; remote.email = u.email; remote.status = 'ready';
+  remote.owner = u.email.toLowerCase() === NASTYA_EMAIL;
+  if(!state.name && u.displayName) state.name = u.displayName;
+  screenStart();
+});
+</script>
+</body></html>
