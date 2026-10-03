@@ -264,6 +264,75 @@ var LEGS = [
    o:['Импровизирую','Не отвечаю сама, показываю наставнику','Копирую ближайший скрипт','Удаляю лид'], a:1,
    why:'Необычные ответы разбираем вместе: так база скриптов растёт.', ref:'Регламент, раздел 2.3' }
 ]},
+{ id:8, name:'Практика: возражения', sub:'Типовые ответы клиентов и как на них отвечать', qs:[
+ { t:'single', q:'«We already work with another HOTAC provider.» Какая формулировка подходит?',
+   o:['«We are cheaper and better than your provider.»','«We are not asking you to replace your provider. We can start as a secondary or backup partner, so you can compare us on real requests.»','«Then you don’t need us.»','«Please send your provider’s contract.»'], a:1,
+   why:'Цель: убрать страх замены и получить статус secondary/backup. Следующий шаг: один тестовый запрос или одна станция. Нельзя говорить «мы дешевле/лучше вашего провайдера».', ref:'Онбординг, раздел 8.4, возражение №1' },
+ { t:'single', q:'«We are happy with our current provider.» Что делаем?',
+   o:['Ищем слабые места провайдера и называем их клиенту','Говорим: «That’s good to hear» и предлагаем стать утверждённым backup для IROPS, sold-out станций и extra credit','Настаиваем на встрече','Благодарим и закрываем диалог'], a:1,
+   why:'Удовлетворённость текущим поставщиком не препятствие, а причина иметь резерв. Не пытаемся «найти плохое» в конкуренте. Следующий шаг: backup-статус и контакт procurement/OCC.', ref:'Онбординг, раздел 8.4, возражение №2' },
+ { t:'single', q:'«Our OCC books hotels directly.» Как строим ответ?',
+   o:['«Your OCC isn’t efficient at it.»','«Of course your OCC can do it. The question is whether it is the best use of their time during a disruption.»','«Our agents are faster than your OCC.»','«We can fully replace your OCC.»'], a:1,
+   why:'Мы продаём освобождение времени OCC, не обесцениваем его компетентность. Вопрос: что происходит, когда ночью срочно нужно много номеров. Следующий шаг: внешний 24/7 HOTAC-деск на IROPS.', ref:'Онбординг, раздел 8.4, возражение №4' },
+ { t:'single', q:'«We have direct hotel contracts.» Что правильно?',
+   o:['Доказываем, что marketplace всегда дешевле прямого контракта','Соглашаемся: прямые контракты хороши для предсказуемых ротаций. Мы нужны, когда отель заполнен, расписание сдвинулось, открылась новая станция или случился IROPS','Просим расторгнуть контракты','Предлагаем скидку на все номера'], a:1,
+   why:'Не конкурируем с прямыми контрактами там, где они работают. Следующий шаг: backup для overflow и станций без контракта. Нельзя утверждать, что marketplace всегда дешевле.', ref:'Онбординг, раздел 8.4, возражение №5' },
+ { t:'single', q:'«Your rate is higher / another provider is cheaper.» Первый шаг?',
+   o:['Пообещать «we will beat any price»','Спросить, что именно не устраивает в тарифе, и предложить обсудить структуру: видимая ставка, fee/markup, условия оплаты, отчётность','Сразу снизить цену','Сказать, что у конкурента скрытые комиссии'], a:1,
+   why:'Переводим разговор с одной цифры на структуру тарифа. Вопрос: какая структура проще для procurement и finance. Нельзя обещать «beat any price».', ref:'Онбординг, раздел 8.4, возражение №6' },
+ { t:'single', q:'«Procurement has strict pricing requirements.» Что делаешь?',
+   o:['Просишь клиента обойти procurement','Говоришь: «That’s exactly why it would be useful to speak with procurement» и просишь представить тебя ответственному за HOTAC-закупки','Игнорируешь ограничение','Сразу присылаешь прайс'], a:1,
+   why:'Входим в диалог с procurement, а не спорим с ограничением. Следующий шаг: интро и целевая модель.', ref:'Онбординг, раздел 8.4, возражение №7' },
+ { t:'single', q:'«We have standard payment terms.» Что можно и нельзя?',
+   o:['Можно спросить цикл оплаты и примерный месячный объём, чтобы подготовить кредитный лимит. Нельзя обещать конкретный лимит до оценки риска','Можно сразу пообещать любой лимит','Нельзя обсуждать оплату','Нужно отказаться от клиента'], a:0,
+   why:'Кредитный лимит гибкий, но с индивидуальным approval. Следующий шаг: собрать данные для credit approval.', ref:'Онбординг, раздел 8.4, возражение №8' },
+ { t:'single', q:'«Our current provider already gives us credit.» Что спрашиваем?',
+   o:['Хватает ли текущего лимита в период крупного сбоя и не замедлял ли когда-нибудь approval срочное размещение','Сколько процентов маржи у провайдера','Можем ли мы дать «unlimited credit»','Почему вы не берёте кредит у нас'], a:0,
+   why:'Ищем ограничение лимита на пике IROPS. Предлагаем дополнительную credit capacity или backup-лимит. Нельзя обещать «unlimited credit».', ref:'Онбординг, раздел 8.4, возражение №9' },
+ { t:'single', q:'«We don’t need another system.» Лучший ход?',
+   o:['Начать продавать наш портал','«You don’t need another system. We can adapt to the systems you already use» и спросить, какую систему они используют для crew scheduling и пассажирских операций','Сказать, что их система устарела','Предложить заменить их систему'], a:1,
+   why:'Снимаем страх дополнительного портала и логина. Следующий шаг: технический discovery call. Нельзя начинать с продажи собственного портала.', ref:'Онбординг, раздел 8.4, возражение №10' },
+ { t:'single', q:'«Integration will be too complicated.» Как снять возражение?',
+   o:['Описать большой IT-проект','Старт без интеграции: запросы по email или телефону, как сейчас, автоматизируем только то, что реально экономит время. Сначала пилот, потом интеграция','Сказать, что интеграция займёт полгода','Согласиться и закончить диалог'], a:1,
+   why:'Делаем старт безрисковым. Нельзя создавать впечатление большого IT-проекта до начала работы.', ref:'Онбординг, раздел 8.4, возражение №11' },
+ { t:'single', q:'«We want more automation / AI.» Как позиционируемся?',
+   o:['«AI is unreliable, we don’t use it.»','Technology-supported, human-operated: технологии ускоряют процесс, а решения и коммуникацию ведёт живой специалист 24/7','«We don’t use technology at all.»','«Our bot answers everything.»'], a:1,
+   why:'Показываем человеческую ответственность как преимущество, не отрицая технологии. AI не продаём как самоцель.', ref:'Онбординг, раздел 8.4, возражение №13' },
+ { t:'single', q:'«Your company is smaller than our current provider.» Что отвечаем?',
+   o:['Спорим цифрами: «мы уже такие же большие»','Размер - это гибкость: подстраиваем кредит, тариф, процесс и интеграцию под конкретную авиакомпанию. Спрашиваем, где сейчас нужна гибкость','Соглашаемся и извиняемся','Предлагаем скидку за размер'], a:1,
+   why:'Переопределяем размер как гибкость. Следующий шаг: найти процесс, который крупный провайдер стандартизировал слишком жёстко.', ref:'Онбординг, раздел 8.4, возражение №15' },
+ { t:'single', q:'«We don’t need a second supplier.» Что выбираем?',
+   o:['Продаём resilience: второй источник номеров и кредита на случай, когда инвентарь быстро заканчивается. Спрашиваем, какой у них fallback, если основной поставщик не подтвердит достаточно номеров','Говорим, что их поставщик скоро подведёт','Настаиваем на замене','Игнорируем возражение'], a:0,
+   why:'Нельзя преувеличивать вероятность отказа текущего поставщика. Следующий шаг: экстренное/backup-утверждение.', ref:'Онбординг, раздел 8.4, возражение №16' },
+ { t:'single', q:'«We rarely have IROPS.» Как отвечаем?',
+   o:['Доказываем, что сбои у них частые','«Exactly. If disruptions are infrequent, keep HotelCompas as an emergency option» и предлагаем заранее утвердить нас, чтобы у OCC был готовый контакт','Предлагаем большой регулярный объём','Закрываем диалог'], a:1,
+   why:'Редкость IROPS превращаем в аргумент за внешний backup. Следующий шаг: pre-approval и экстренный контакт. Не пытаемся продать большой регулярный объём там, где его нет.', ref:'Онбординг, раздел 8.4, возражение №17' },
+ { t:'single', q:'«Our volume is too small.» Что предлагаем?',
+   o:['Годовой контракт со скидкой','Микропилот: одна станция, одно перемещение экипажа или одна нестандартная операция. Спрашиваем, какую станцию проще протестировать первой','Отказаться от малых клиентов','Предложить больший объём'], a:1,
+   why:'Снижаем порог входа. Нельзя давить на годовое обязательство.', ref:'Онбординг, раздел 8.4, возражение №18' },
+ { t:'single', q:'Клиент: «Send me information / a presentation.» Что делаешь?',
+   o:['«Sure, attached.»','«Of course. To send you the most relevant information: is your focus crew accommodation, IROPS passenger handling, or both?» и спрашиваешь, как процесс устроен сейчас: in-house или через провайдера','Отправляешь все презентации сразу','Не отвечаешь'], a:1,
+   why:'Не даём диалогу закончиться отправкой PDF: получаем 1-2 факта и назначаем follow-up или звонок. Через 3-5 рабочих дней спрашиваем модель (in-house или provider) и предлагаем 10-минутный звонок.', ref:'Онбординг, раздел 8.4, возражение №19' },
+ { t:'single', q:'«Not interested / not relevant now.» Что делаешь?',
+   o:['Продолжаешь продавать с другой стороны','Спрашиваешь причину («setup already covers everything» или «no current requirement») и когда лучше вернуться, есть ли тендеры или продления контрактов. Фиксируешь дату и причину','Просишь передумать','Удаляешь лид молча'], a:1,
+   why:'Получаем причину и дату следующего касания. Не продолжаем продавать после ясного отказа без нового основания.', ref:'Онбординг, раздел 8.4, возражение №20' },
+ { t:'match', q:'Соедини, что говорит клиент, и что мы в ответ предлагаем.',
+   items:['Есть provider','In-house','Цена','Payment terms','Не хочет новый портал','AI / automation','Редкий IROPS'],
+   o:['Backup + benchmark + one-station pilot','Extension of OCC + живой 24/7','Custom tariff / структура под procurement','Гибкий кредитный лимит + индивидуальный approval','Интеграция в существующую систему','Technology-supported, human-operated','Pre-approved emergency backup'], a:[0,1,2,3,4,5,6],
+   why:'Это шпаргалка маршрутизации аргумента: один ответ = один главный аргумент, который отвечает именно на возражение.', ref:'Онбординг, раздел 8.2 (маршрутизация аргумента)' },
+ { t:'multi', q:'Какие фразы нельзя говорить клиенту? (выбери все верные)',
+   o:['«We are always cheaper.»','«We give unlimited credit.»','«Replace your current provider.» (как первый шаг)','«Keep your current setup. Let us handle the difficult situations.»','«We can start with one station.»','«We can be your backup supplier.»'], a:[0,1,2],
+   why:'Нельзя гарантировать цену без станции, даты и объёма, обещать неограниченный кредит и просить замену провайдера на первом этапе. Лучше: secondary supplier, backup, benchmark, pilot.', ref:'Онбординг, разделы 8 и 12' },
+ { t:'single', q:'В каких трёх областях HotelCompas гибок: что говорим в 20-секундном питче?',
+   o:['Цена, скорость и размер сети','Деньги (кредит и тариф), операции (живая команда 24/7) и IT (интеграция)','Отели, транспорт и питание','Маркетинг, продажи и поддержка'], a:1,
+   why:'Три области, которые авиакомпании обычно трудно менять: money, operations, IT.', ref:'Онбординг, раздел 8 (20-секундный питч)' },
+ { t:'single', q:'Звонок: что ты делаешь в первые 30 секунд?',
+   o:['Читаешь презентацию','Коротко называешь цель: понять текущую HOTAC-модель клиента, а не презентовать','Сразу предлагаешь цену','Просишь контракт'], a:1,
+   why:'Дальше: 30 сек - 2 мин вопросы (in-house/provider, crew/IROPS, где боль), 2-3,5 мин один-два релевантных аргумента, 3,5-4,5 мин low-friction pilot, последняя минута - следующий шаг.', ref:'Онбординг, раздел 8 (структура звонка)' },
+ { t:'multi', q:'Что фиксируем в планере после содержательного контакта? (выбери все верные)',
+   o:['Текущую модель клиента (in-house / провайдер / прямые отели / смешанная)','Главное возражение и боль, которую выяснили','Договорённый следующий шаг и точную дату follow-up','Своё мнение, насколько клиент неправ','Полный текст чужой переписки с другими компаниями'], a:[0,1,2],
+   why:'Фиксируем устройство схемы клиента: так следующее сообщение будет конкретным. Ещё полезно: название провайдера, сроки тендера, условия оплаты.', ref:'Онбординг, раздел 8.6' }
+]},
 { id:6, name:'Планер и ритм дня', sub:'Лидогенерация, сроки, лимиты, отчёт', qs:[
  { t:'single', q:'Клиент ответил. Когда вносишь его в планер?',
    o:['В тот же день','В конце недели','Когда накопится несколько','Только по Interested'], a:0,
@@ -321,6 +390,7 @@ var LEGS = [
 ]}
 ];
 
+LEGS.forEach(function(l,i){ l.num = i+1; });
 /* ---------- Состояние ---------- */
 var KEY = 'hc_sdr_quiz_v1';
 var state = { name:'', res:{} };
@@ -362,7 +432,7 @@ function sendResult(cb){
 function resultText(){
   var p = payload(), lines = ['Тест SDR HotelCompas', 'Имя: '+(p.name||'-'), 'Дата: '+new Date().toLocaleDateString('ru-RU'),
     'Итог: '+p.pct+'% ('+p.correct+' из '+p.total+'), опыт '+p.xp+' XP', 'Пройдено рейсов: '+p.legsDone+' из '+LEGS.length, ''];
-  LEGS.forEach(function(l){ var r=p.legs[l.id]; if(r){ lines.push('Рейс '+l.id+' '+l.name+': '+r.correct+'/'+r.total); r.missed.forEach(function(q){ lines.push('  - ошибка: '+q); }); } });
+  LEGS.forEach(function(l){ var r=p.legs[l.id]; if(r){ lines.push('Рейс '+l.num+' '+l.name+': '+r.correct+'/'+r.total); r.missed.forEach(function(q){ lines.push('  - ошибка: '+q); }); } });
   return lines.join('\n');
 }
 function shareBlock(){
@@ -416,7 +486,7 @@ function screenMap(){
     var r = state.res[l.id], locked = !r && l.id !== nextId;
     var st = r ? '<span class="stars">'+starStr(stars(r.correct/r.total))+'</span><span class="stat">'+r.correct+' из '+r.total+'</span>' : '<span class="stat">'+(locked?'закрыт':'вылет')+'</span>';
     html += '<button class="leg'+(locked?' locked':'')+(l.id===nextId?' next':'')+'" data-id="'+l.id+'"'+(locked?' disabled':'')+'>'+
-      '<span class="code">РЕЙС '+l.id+'/'+LEGS.length+'</span><span><h3>'+l.name+'</h3><small>'+l.sub+' · '+l.qs.length+' вопр.</small></span><span>'+st+'</span></button>';
+      '<span class="code">РЕЙС '+l.num+'/'+LEGS.length+'</span><span><h3>'+l.name+'</h3><small>'+l.sub+' · '+l.qs.length+' вопр.</small></span><span>'+st+'</span></button>';
   });
   html += '</div>';
   if(done() === LEGS.length) html += '<div class="actions"><button class="btn" id="fin">Получить талон</button></div>';
@@ -547,7 +617,7 @@ function endLeg(){
     }
   }
   var msg = pctv>=0.9 ? 'Чисто пролетела.' : pctv>=0.7 ? 'Хороший заход, пара тем ещё шатается.' : pctv>=0.5 ? 'Половину знаешь. Перечитай разделы из подсказок и пересдай.' : 'Рейс пока не взят. Перечитай раздел и попробуй ещё раз, так и задумано.';
-  var html = header() + '<div class="card"><span class="mono">'+(run.practice?'Работа над ошибками':'Рейс '+run.leg.id+' · '+run.leg.name)+' завершён</span>'+
+  var html = header() + '<div class="card"><span class="mono">'+(run.practice?'Работа над ошибками':'Рейс '+run.leg.num+' · '+run.leg.name)+' завершён</span>'+
    '<h2 style="margin:10px 0 6px;font-size:22px">'+msg+'</h2>'+
    '<div class="legres"><div><span class="mono">Верно</span><div class="big">'+run.correct+'/'+total+'</div></div>'+
    (run.practice?'':'<div><span class="mono">Опыт</span><div class="big">+'+run.xp+'</div></div>')+
@@ -608,7 +678,7 @@ function screenResults(){
         var b = document.createElement('span'); b.className='mono'; b.textContent = d.pct+'% · '+d.correct+'/'+d.total+' · '+new Date(d.updatedAt).toLocaleDateString('ru-RU');
         sm.appendChild(a); sm.appendChild(b); det.appendChild(sm);
         Object.keys(d.legs||{}).forEach(function(k){
-          var l = d.legs[k], p = document.createElement('p'); p.style.margin='10px 0 0'; p.textContent = 'Рейс '+k+' '+l.name+': '+l.correct+'/'+l.total; det.appendChild(p);
+          var l = d.legs[k], p = document.createElement('p'); p.style.margin='10px 0 0'; p.textContent = l.name+': '+l.correct+'/'+l.total; det.appendChild(p);
           if(l.missed && l.missed.length){ var ul = document.createElement('ul'); l.missed.forEach(function(q){ var li=document.createElement('li'); li.textContent=q; ul.appendChild(li); }); det.appendChild(ul); }
         });
         box.appendChild(det);
