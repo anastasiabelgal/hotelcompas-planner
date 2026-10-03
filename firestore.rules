@@ -189,5 +189,11 @@ service cloud.firestore {
       allow read: if isRita() || isNastya();
       allow write: if isRita();
     }
+
+    // Результаты теста для SDR (quiz.html): каждый пишет только свой документ, читает Настя
+    match /quizResults/{resultUid} {
+      allow read: if (isMember() && request.auth.uid == resultUid) || isNastya();
+      allow create, update: if isMember() && request.auth.uid == resultUid;
+    }
   }
 }
