@@ -2045,12 +2045,14 @@ const MAX_EMAIL = "m.oxentyuk@hotelcompas.com";
 const NASTYA_EMAIL = "a.belousova@hotelcompas.com";
 function isMaxUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === MAX_EMAIL; }
 function isNastyaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === NASTYA_EMAIL; }
-const RITA_EMAIL = "ritapatriciav@gmail.com";
-function isRitaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === RITA_EMAIL; }
+// Адреса Риты: рабочее пространство Риты (свои данные, без личного и общих данных команды)
+const RITA_EMAILS = ["ritapatriciav@gmail.com", "r.vizuete@hotelcompas.com"];
+function isRitaEmail(email){ return RITA_EMAILS.indexOf((email || '').toLowerCase()) > -1; }
+function isRitaUser(){ return !!(currentUser && currentUser.email && isRitaEmail(currentUser.email)); }
 function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser(); }
 function isAllowedEmail(email){
   var e = (email || '').toLowerCase();
-  return e.endsWith(ALLOWED_DOMAIN) || e === RITA_EMAIL;
+  return e.endsWith(ALLOWED_DOMAIN) || isRitaEmail(e);
 }
 // uid, чьи личные данные (Рабочее/Проекты/Инструменты) сейчас показываются: свои или Риты в режиме просмотра
 let viewAsUid = null;
@@ -2466,16 +2468,34 @@ async function restoreViewAs(){
   try{ want = isNastyaUser() && sessionStorage.getItem('viewAsRita') === '1'; }catch(e){}
   if(!want) return;
   try{
-    var snap = await getDocs(query(collection(db,'users'), where('email','==',RITA_EMAIL)));
-    if(!snap.empty){ viewAsUid = snap.docs[0].id; readOnlyView = true; return; }
+    var snap = await getDocs(query(collection(db,'users'), where('email','in',RITA_EMAILS)));
+    var pick = pickRitaDoc(snap.docs, sessionStorage.getItem('viewAsRitaEmail'));
+    if(pick){ viewAsUid = pick.id; readOnlyView = true; return; }
   }catch(e){}
   try{ sessionStorage.removeItem('viewAsRita'); }catch(e){}
+}
+// Если у Риты несколько адресов в доске, выбираем нужный (по сохранённому выбору или спрашиваем)
+function pickRitaDoc(docs, wantedEmail){
+  if(!docs.length) return null;
+  if(wantedEmail){
+    var m = docs.filter(function(d){ return (d.data().email || '').toLowerCase() === wantedEmail; })[0];
+    if(m) return m;
+  }
+  return docs[0];
 }
 async function toggleViewRita(){
   if(!isNastyaUser()) return;
   if(!viewAsUid){
-    var snap = await getDocs(query(collection(db,'users'), where('email','==',RITA_EMAIL)));
+    var snap = await getDocs(query(collection(db,'users'), where('email','in',RITA_EMAILS)));
     if(snap.empty){ alert('Рита ещё не зарегистрировалась в доске'); return; }
+    var emails = snap.docs.map(function(d){ return (d.data().email || '').toLowerCase(); });
+    var chosen = emails[0];
+    if(emails.length > 1){
+      var ans = prompt('У Риты несколько аккаунтов. Чей показать? Введи номер:\n' + emails.map(function(e, i){ return (i+1) + ' - ' + e; }).join('\n'), '1');
+      if(ans === null) return;
+      chosen = emails[(parseInt(ans, 10) || 1) - 1] || emails[0];
+    }
+    try{ sessionStorage.setItem('viewAsRitaEmail', chosen); }catch(e){}
   }
   try{
     if(viewAsUid) sessionStorage.removeItem('viewAsRita'); else sessionStorage.setItem('viewAsRita','1');
