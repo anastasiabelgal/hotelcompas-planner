@@ -1907,6 +1907,11 @@
         <div class="row2">
           <select id="max-lead-status"></select>
           <select id="max-lead-stage"><option>Ты</option><option>SDR-менеджер</option><option>Представитель</option></select>
+          <select id="max-lead-touch" title="На какое наше сообщение ответил лид"><option value="">Касание (на какое ответил)…</option></select>
+        </div>
+        <div class="row2">
+          <input id="max-lead-firstreply" type="text" placeholder="Первый ответ контакта (что он написал)" style="flex:3;">
+          <input id="max-lead-firstreply-date" type="date" title="Дата первого ответа" style="flex:1;">
         </div>
         <textarea id="max-lead-notes" placeholder="Что написано / заметки" style="width:100%;height:50px;resize:vertical;background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:12.5px;font-family:inherit;color:var(--text);margin-bottom:8px;"></textarea>
         <button class="add-card-submit" id="max-lead-add-btn" style="flex:0 0 auto;width:auto;max-width:120px;">+ Лид</button>
@@ -8292,30 +8297,26 @@ function renderMaxLeadsView(){
           updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
         });
         msgRow.appendChild(msgDateSpan);
-        // Только у первого ответа лида указываем, на какое наше сообщение он ответил: по нему считается статистика по касаниям
-        if(msgIdx === 0){
-          var msgTouchSel = document.createElement('select'); msgTouchSel.style.cssText='font-size:10.5px;padding:2px 4px;flex:0 0 auto;';
-          msgTouchSel.title = 'На какое наше сообщение ответил лид (первый ответ)';
-          var mtEmpty = document.createElement('option'); mtEmpty.value=''; mtEmpty.textContent='ответ на…'; msgTouchSel.appendChild(mtEmpty);
-          var curTouch = msg.touch || lead.touchpoint || '';
-          TOUCH_OPTIONS.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent='ответ на '+t; if(t===curTouch) o.selected=true; msgTouchSel.appendChild(o); });
-          msgTouchSel.addEventListener('change', function(){
-            var newMessages = (lead.messages||[]).map(function(m){ return m.id===msg.id ? Object.assign({}, m, { touch: msgTouchSel.value }) : m; });
-            updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
-          });
-          msgRow.appendChild(msgTouchSel);
-        }
-        msgRow.appendChild(msgTextSpan); msgRow.appendChild(msgDelBtn);
+        var msgEditBtn = document.createElement('button'); msgEditBtn.innerHTML = ICON_EDIT; msgEditBtn.title = 'Изменить сообщение';
+        msgEditBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          var editedText = prompt('Что написал лид:', msg.text || ''); if(editedText === null) return;
+          var editedDate = prompt('Дата (ГГГГ-ММ-ДД):', msg.date || ''); if(editedDate === null) return;
+          if(!editedText.trim() || !editedDate.trim()) return;
+          var newMessages = (lead.messages||[]).map(function(m){ return m.id===msg.id ? Object.assign({}, m, { text: editedText.trim(), date: editedDate.trim() }) : m; });
+          updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
+        });
+        msgRow.appendChild(msgTextSpan); msgRow.appendChild(msgEditBtn); msgRow.appendChild(msgDelBtn);
         messagesWrap.appendChild(msgRow);
       });
       var addMsgBtn = document.createElement('button'); addMsgBtn.className='max-add-contact-btn'; addMsgBtn.textContent = '+ Сообщение';
       addMsgBtn.addEventListener('click', function(e){
         e.stopPropagation();
         var isFirstReply = !(lead.messages||[]).length;
-        if(isFirstReply && !lead.touchpoint && !confirm('Не выбрано, на какое наше сообщение отвечает лид (поле «Касание...»). Без этого ответ не попадёт в аналитику по касаниям (потом можно выбрать у самого сообщения). Всё равно добавить?')) return;
+        if(isFirstReply && !lead.touchpoint && !confirm('Вверху карточки не выбрано «Касание…» (на какое наше сообщение ответил лид). Без этого первый ответ не попадёт в аналитику по касаниям. Всё равно добавить?')) return;
         var msgText = prompt('Что написал лид' + (isFirstReply ? ' (первый ответ, на ' + (lead.touchpoint||'—') + ')' : '') + ':'); if(!msgText) return;
         var msgDate = prompt('Дата (ГГГГ-ММ-ДД):', new Date().toISOString().slice(0,10)); if(!msgDate) return;
-        var newMessages = (lead.messages||[]).concat([{id:'msg'+Math.random().toString(36).slice(2,8), text:msgText.trim(), date:msgDate.trim(), touch: isFirstReply ? (lead.touchpoint||'') : ''}]);
+        var newMessages = (lead.messages||[]).concat([{id:'msg'+Math.random().toString(36).slice(2,8), text:msgText.trim(), date:msgDate.trim()}]);
         updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
       });
       messagesWrap.appendChild(addMsgBtn);
@@ -8449,6 +8450,8 @@ function renderMaxLeadsView(){
 
 function initMaxLeads(){
   MAX_STATUSES.forEach(function(s){ var o=document.createElement('option'); o.value=s.key; o.textContent=s.label; el('max-lead-status').appendChild(o); });
+  TOUCH_OPTIONS.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; el('max-lead-touch').appendChild(o); });
+  el('max-lead-firstreply-date').value = new Date().toISOString().slice(0,10);
   SEGMENTS.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; el('max-lead-segment').appendChild(o); });
   el('max-lead-campaign').addEventListener('input', function(){
     var isExhibition = /выставк/i.test(this.value);
@@ -8471,6 +8474,10 @@ function initMaxLeads(){
     var status = el('max-lead-status').value;
     var stage = el('max-lead-stage').value;
     var notes = el('max-lead-notes').value.trim();
+    var touch = el('max-lead-touch').value;
+    var firstReplyText = el('max-lead-firstreply').value.trim();
+    var firstReplyDate = el('max-lead-firstreply-date').value || new Date().toISOString().slice(0,10);
+    var initialMessages = firstReplyText ? [{ id:'msg'+Math.random().toString(36).slice(2,8), text:firstReplyText, date:firstReplyDate }] : [];
     var sameCompanyCount = maxLeads.filter(function(l){ return l.companyName === company; }).length;
     var todayStr2 = new Date().toISOString().slice(0,10);
     addDoc(collection(db,'maxLeads'), {
@@ -8478,7 +8485,7 @@ function initMaxLeads(){
       campaign:campaign, segment:segment, booth:booth,
       workEmail:workEmail, personalEmail:personalEmail, workPhone:workPhone, personalPhone:personalPhone, whatsapp:whatsapp,
       status:status, statusChangedDate:todayStr2, stage:stage, stageChangedDate:todayStr2, nextContactDate:'', notes:notes,
-      firstContactDate:todayStr2, touchpoint:'', messages:[],
+      firstContactDate:todayStr2, touchpoint:touch, messages:initialMessages,
       agencyName:'', agencyInfo:'',
       otherContacts:[], order:sameCompanyCount, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     });
@@ -8488,6 +8495,7 @@ function initMaxLeads(){
     el('max-lead-workphone').value=''; el('max-lead-personalphone').value=''; el('max-lead-whatsapp').value='';
     el('max-lead-booth').value=''; el('max-lead-booth-row').style.display='none';
     el('max-lead-notes').value='';
+    el('max-lead-touch').value=''; el('max-lead-firstreply').value=''; el('max-lead-firstreply-date').value = new Date().toISOString().slice(0,10);
   });
   el('max-company-search').addEventListener('input', function(){ renderMaxLeadsView(); });
   el('max-name-search').addEventListener('input', function(){ renderMaxLeadsView(); });
@@ -8901,7 +8909,7 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
     var msgsSorted = (l.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
     if(msgsSorted.length){
       var firstMsg = msgsSorted[0];
-      if(inRange(firstMsg.date)) addTouch(firstMsg.touch || l.touchpoint, l.id);
+      if(inRange(firstMsg.date)) addTouch(l.touchpoint, l.id);
     } else {
       addTouch(l.touchpoint, l.id); // лид без лога сообщений: считаем один ответ по текущему касанию
     }
@@ -8944,7 +8952,7 @@ function buildTouchBarsHtml(touchStats, forDownload){
 function dialogForReport(l, fromStr, toStr){
   return (l.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).map(function(m, idx){
     // касание показываем только у первого ответа
-    return { date:m.date||'', text:m.text||'', touch: idx === 0 ? (m.touch || l.touchpoint || '') : '', isNew: !!m.date && m.date >= fromStr && m.date <= toStr };
+    return { date:m.date||'', text:m.text||'', touch: idx === 0 ? (l.touchpoint || '') : '', isNew: !!m.date && m.date >= fromStr && m.date <= toStr };
   });
 }
 
