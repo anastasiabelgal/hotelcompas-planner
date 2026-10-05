@@ -2045,12 +2045,14 @@ const MAX_EMAIL = "m.oxentyuk@hotelcompas.com";
 const NASTYA_EMAIL = "a.belousova@hotelcompas.com";
 function isMaxUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === MAX_EMAIL; }
 function isNastyaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === NASTYA_EMAIL; }
-const RITA_EMAIL = "ritapatriciav@gmail.com";
-function isRitaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === RITA_EMAIL; }
+// Адреса Риты: рабочее пространство Риты (свои данные, без личного и общих данных команды)
+const RITA_EMAILS = ["ritapatriciav@gmail.com", "r.vizuete@hotelcompas.com"];
+function isRitaEmail(email){ return RITA_EMAILS.indexOf((email || '').toLowerCase()) > -1; }
+function isRitaUser(){ return !!(currentUser && currentUser.email && isRitaEmail(currentUser.email)); }
 function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser(); }
 function isAllowedEmail(email){
   var e = (email || '').toLowerCase();
-  return e.endsWith(ALLOWED_DOMAIN) || e === RITA_EMAIL;
+  return e.endsWith(ALLOWED_DOMAIN) || isRitaEmail(e);
 }
 // uid, чьи личные данные (Рабочее/Проекты/Инструменты) сейчас показываются: свои или Риты в режиме просмотра
 let viewAsUid = null;
@@ -2466,16 +2468,34 @@ async function restoreViewAs(){
   try{ want = isNastyaUser() && sessionStorage.getItem('viewAsRita') === '1'; }catch(e){}
   if(!want) return;
   try{
-    var snap = await getDocs(query(collection(db,'users'), where('email','==',RITA_EMAIL)));
-    if(!snap.empty){ viewAsUid = snap.docs[0].id; readOnlyView = true; return; }
+    var snap = await getDocs(query(collection(db,'users'), where('email','in',RITA_EMAILS)));
+    var pick = pickRitaDoc(snap.docs, sessionStorage.getItem('viewAsRitaEmail'));
+    if(pick){ viewAsUid = pick.id; readOnlyView = true; return; }
   }catch(e){}
   try{ sessionStorage.removeItem('viewAsRita'); }catch(e){}
+}
+// Если у Риты несколько адресов в доске, выбираем нужный (по сохранённому выбору или спрашиваем)
+function pickRitaDoc(docs, wantedEmail){
+  if(!docs.length) return null;
+  if(wantedEmail){
+    var m = docs.filter(function(d){ return (d.data().email || '').toLowerCase() === wantedEmail; })[0];
+    if(m) return m;
+  }
+  return docs[0];
 }
 async function toggleViewRita(){
   if(!isNastyaUser()) return;
   if(!viewAsUid){
-    var snap = await getDocs(query(collection(db,'users'), where('email','==',RITA_EMAIL)));
+    var snap = await getDocs(query(collection(db,'users'), where('email','in',RITA_EMAILS)));
     if(snap.empty){ alert('Рита ещё не зарегистрировалась в доске'); return; }
+    var emails = snap.docs.map(function(d){ return (d.data().email || '').toLowerCase(); });
+    var chosen = emails[0];
+    if(emails.length > 1){
+      var ans = prompt('У Риты несколько аккаунтов. Чей показать? Введи номер:\n' + emails.map(function(e, i){ return (i+1) + ' - ' + e; }).join('\n'), '1');
+      if(ans === null) return;
+      chosen = emails[(parseInt(ans, 10) || 1) - 1] || emails[0];
+    }
+    try{ sessionStorage.setItem('viewAsRitaEmail', chosen); }catch(e){}
   }
   try{
     if(viewAsUid) sessionStorage.removeItem('viewAsRita'); else sessionStorage.setItem('viewAsRita','1');
@@ -7619,18 +7639,14 @@ var AUTOSTATS_TREND_SERIES = [
   { key:'messagesOpened',  label:'Сообщений просмотрено', color:'var(--green, #3fae7f)' },
   { key:'messagesReplied', label:'Ответы', color:'var(--sky, #0061FF)' }
 ];
-async function loadAutostatsChart(){
-  if(!el('autostats-chart-wrap')) return;
-  var myToken = ++autostatsChartToken;
-  var WEEKS_BACK = 8;
+// Недельные точки (сумма по аккаунтам) для n недель, заканчивая неделей anchorMonday
+async function fetchWeeklyPoints(anchorMonday, n){
   var weeks = [];
-  var d = new Date(autostatsMonday);
-  for(var i=WEEKS_BACK-1; i>=0; i--){
-    var wd = new Date(d); wd.setDate(d.getDate() - i*7);
+  for(var i=n-1; i>=0; i--){
+    var wd = new Date(anchorMonday); wd.setDate(wd.getDate() - i*7);
     weeks.push(wpDateKey(wd));
   }
-  var points = [];
-  var hasAnyData = false;
+  var points = [], hasAnyData = false;
   for(var j=0;j<weeks.length;j++){
     var sums = {};
     AUTOSTATS_TREND_SERIES.forEach(function(sr){ sums[sr.key] = 0; });
@@ -7647,10 +7663,17 @@ async function loadAutostatsChart(){
     }catch(err){ console.error('chart fetch err', err); }
     points.push({ date: weeks[j], values: sums });
   }
+  return { points: points, hasAnyData: hasAnyData };
+}
+
+async function loadAutostatsChart(){
+  if(!el('autostats-chart-wrap')) return;
+  var myToken = ++autostatsChartToken;
+  var res = await fetchWeeklyPoints(autostatsMonday, 8);
   // Таблица могла перерисоваться, пока грузились данные: берём актуальный контейнер, устаревшие запросы отбрасываем
   if(myToken !== autostatsChartToken) return;
   var chartWrap = el('autostats-chart-wrap'); if(!chartWrap) return;
-  if(!hasAnyData){
+  if(!res.hasAnyData){
     chartWrap.innerHTML = '<div class="empty-col" style="padding:14px;">Заполни пару недель - появится график тренда: заявки, сообщения, просмотры, ответы</div>';
     return;
   }
@@ -7658,49 +7681,86 @@ async function loadAutostatsChart(){
   chartWrap.innerHTML = '';
   chartWrap.appendChild(title);
   var holder = document.createElement('div'); holder.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;';
-  var legend = document.createElement('div'); legend.style.cssText='display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:10px;font-size:11.5px;color:var(--text);';
-  AUTOSTATS_TREND_SERIES.forEach(function(sr){
-    var item = document.createElement('span'); item.style.cssText='display:inline-flex;align-items:center;gap:6px;';
-    var dot = document.createElement('span'); dot.style.cssText='width:10px;height:10px;border-radius:50%;background:'+sr.color+';display:inline-block;';
-    item.appendChild(dot); item.appendChild(document.createTextNode(sr.label));
-    legend.appendChild(item);
-  });
-  holder.appendChild(legend);
-  var svgBox = document.createElement('div'); svgBox.innerHTML = buildWeeklyTrendSvg(points);
-  holder.appendChild(svgBox);
+  var selWeek = wpDateKey(autostatsMonday);
+  holder.innerHTML = buildTrendChartsHtml(res.points, function(date){ return date === selWeek; }, false);
   chartWrap.appendChild(holder);
 }
 
-// Линейный график с несколькими сериями на одной шкале (без второй оси)
-function buildWeeklyTrendSvg(points){
-  var series = AUTOSTATS_TREND_SERIES;
-  var w = 700, h = 240, padL = 34, padB = 30, padT = 12, padR = 46;
+// Шкала с «круглыми» делениями: не больше maxTicks линий, шаг 1/2/5/10...
+function niceScale(maxVal, maxTicks){
+  maxVal = Math.max(maxVal, 1); maxTicks = maxTicks || 6;
+  var steps = [1,2,5,10,20,25,50,100,200,500,1000];
+  var step = steps[steps.length-1];
+  for(var i=0;i<steps.length;i++){ if(Math.ceil(maxVal/steps[i]) <= maxTicks){ step = steps[i]; break; } }
+  return { step: step, top: Math.ceil(maxVal/step)*step };
+}
+
+// Два графика, у каждого своя шкала: крупные числа (заявки, отправлено) не сжимают мелкие (просмотры, ответы)
+function buildTrendChartsHtml(points, highlight, forDownload){
+  var textC = forDownload ? '#1a1f2b' : 'var(--text)';
+  var mutedC = forDownload ? '#6b7280' : 'var(--muted, #6b7280)';
+  var bySeries = function(keys){ return AUTOSTATS_TREND_SERIES.filter(function(sr){ return keys.indexOf(sr.key) > -1; }); };
+  var legend = '<div style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:10px;font-size:11.5px;color:'+textC+';">'+
+    AUTOSTATS_TREND_SERIES.map(function(sr){
+      return '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:'+sr.color+';display:inline-block;"></span>'+sr.label+'</span>';
+    }).join('')+
+    (points.some(function(p){ return highlight && highlight(p.date); }) ? '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:10px;background:rgba(0,97,255,.16);border:1px solid #0061FF;display:inline-block;"></span>Выбранная неделя</span>' : '')+
+    '</div>';
+  var capStyle = 'font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:'+mutedC+';margin:10px 0 2px;';
+  return legend +
+    '<div style="'+capStyle+'">Заявки и сообщения</div>' + buildWeeklyTrendSvg(points, { series: bySeries(['connectionsSent','messagesSent']), highlight: highlight, forDownload: forDownload, labelAll: true }) +
+    '<div style="'+capStyle+'">Просмотры и ответы (своя шкала, детально)</div>' + buildWeeklyTrendSvg(points, { series: bySeries(['messagesOpened','messagesReplied']), highlight: highlight, forDownload: forDownload, labelAll: true });
+}
+
+// Линейный график недельной динамики: своя шкала с круглыми делениями, подписи значений, подсветка выбранной недели
+function buildWeeklyTrendSvg(points, opts){
+  opts = opts || {};
+  var series = opts.series || AUTOSTATS_TREND_SERIES;
+  var forDownload = !!opts.forDownload;
+  var w = 700, h = 250, padL = 36, padB = 30, padT = 20, padR = 40;
   var maxVal = 1;
   points.forEach(function(p){ series.forEach(function(sr){ if(p.values[sr.key] > maxVal) maxVal = p.values[sr.key]; }); });
+  var sc = niceScale(maxVal, 6);
   var plotW = w - padL - padR, plotH = h - padT - padB;
   var stepX = points.length > 1 ? plotW / (points.length-1) : 0;
-  var gridColor = 'var(--border, #e5e8ee)', textColor = 'var(--muted, #6b7280)';
+  var gridColor = forDownload ? '#e5e8ee' : 'var(--border, #e5e8ee)', textColor = forDownload ? '#6b7280' : 'var(--muted, #6b7280)';
+  var yOf = function(v){ return padT + plotH - (v/sc.top)*plotH; };
+  var isHl = function(d){ return !!(opts.highlight && opts.highlight(d)); };
   var svg = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:auto;font-family:sans-serif;">';
-  for(var g=0; g<=4; g++){
-    var gy = padT + plotH - (g/4)*plotH;
-    svg += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(w-padR)+'" y2="'+gy+'" stroke="'+gridColor+'" stroke-width="1" stroke-dasharray="3,3"/>';
-    svg += '<text x="'+(padL-6)+'" y="'+(gy+3)+'" font-size="9" fill="'+textColor+'" text-anchor="end">'+Math.round(maxVal*g/4)+'</text>';
+  // подсветка выбранной недели (полоса за графиком)
+  var hlIdx = []; points.forEach(function(p, i){ if(isHl(p.date)) hlIdx.push(i); });
+  if(hlIdx.length){
+    var half = stepX ? stepX/2 : 20;
+    var x1 = padL + hlIdx[0]*stepX - half, x2 = padL + hlIdx[hlIdx.length-1]*stepX + half;
+    svg += '<rect x="'+x1.toFixed(1)+'" y="'+padT+'" width="'+(x2-x1).toFixed(1)+'" height="'+plotH+'" fill="#0061FF" fill-opacity="0.12" stroke="#0061FF" stroke-opacity="0.45" stroke-width="1"/>';
+  }
+  // деления шкалы
+  for(var v=0; v<=sc.top; v+=sc.step){
+    var gy = yOf(v);
+    svg += '<line x1="'+padL+'" y1="'+gy.toFixed(1)+'" x2="'+(w-padR)+'" y2="'+gy.toFixed(1)+'" stroke="'+gridColor+'" stroke-width="1" stroke-dasharray="3,3"/>';
+    svg += '<text x="'+(padL-6)+'" y="'+(gy+3).toFixed(1)+'" font-size="9" fill="'+textColor+'" text-anchor="end">'+v+'</text>';
   }
   points.forEach(function(p, i){
-    var x = padL + i*stepX;
-    svg += '<text x="'+x.toFixed(1)+'" y="'+(h-8)+'" font-size="8" fill="'+textColor+'" text-anchor="middle">'+p.date.slice(5)+'</text>';
+    var x = padL + i*stepX, hl = isHl(p.date);
+    svg += '<text x="'+x.toFixed(1)+'" y="'+(h-8)+'" font-size="'+(hl?9:8)+'" '+(hl?'font-weight="700" ':'')+'fill="'+(hl?'#0061FF':textColor)+'" text-anchor="middle">'+p.date.slice(5)+'</text>';
   });
-  series.forEach(function(sr){
+  series.forEach(function(sr, si){
     var pts = points.map(function(p, i){
-      return { x: padL + i*stepX, y: padT + plotH - (p.values[sr.key]/maxVal)*plotH, v: p.values[sr.key], date: p.date };
+      return { x: padL + i*stepX, y: yOf(p.values[sr.key]), v: p.values[sr.key], date: p.date };
     });
     var pathD = pts.map(function(q,i){ return (i===0?'M':'L')+q.x.toFixed(1)+','+q.y.toFixed(1); }).join(' ');
     svg += '<path d="'+pathD+'" fill="none" stroke="'+sr.color+'" stroke-width="2"/>';
     pts.forEach(function(q){
-      svg += '<circle cx="'+q.x.toFixed(1)+'" cy="'+q.y.toFixed(1)+'" r="3" fill="'+sr.color+'"><title>'+sr.label+': '+q.v+' ('+q.date+')</title></circle>';
+      var hl = isHl(q.date);
+      svg += '<circle cx="'+q.x.toFixed(1)+'" cy="'+q.y.toFixed(1)+'" r="'+(hl?5:3)+'" fill="'+sr.color+'"'+(hl?' stroke="#fff" stroke-width="1.5"':'')+'><title>'+sr.label+': '+q.v+' ('+q.date+')</title></circle>';
+      if(opts.labelAll || hl){
+        // подписи значений: первая серия над точкой, вторая под ней, чтобы не накладывались
+        var pi = points.map(function(pp){return pp.date;}).indexOf(q.date), rank = 0;
+        series.forEach(function(o, oi){ var ov = points[pi].values[o.key]; if(ov > q.v || (ov === q.v && oi < si)) rank++; });
+        var ly = rank % 2 === 0 ? q.y - 8 : q.y + 14;
+        svg += '<text x="'+q.x.toFixed(1)+'" y="'+ly.toFixed(1)+'" font-size="'+(hl?10:8.5)+'" font-weight="'+(hl?'700':'400')+'" fill="'+sr.color+'" text-anchor="middle">'+q.v+'</text>';
+      }
     });
-    var last = pts[pts.length-1];
-    svg += '<text x="'+(last.x+6).toFixed(1)+'" y="'+(last.y+3).toFixed(1)+'" font-size="9" font-weight="700" fill="'+sr.color+'">'+last.v+'</text>';
   });
   svg += '</svg>';
   return svg;
@@ -8222,25 +8282,40 @@ function renderMaxLeadsView(){
       var messagesWrap = document.createElement('div'); messagesWrap.className='max-messages-log';
       var msgTitle = document.createElement('div'); msgTitle.className='mlc-item'; msgTitle.style.cssText='font-weight:700;margin-bottom:4px;'; msgTitle.textContent='Сообщения';
       messagesWrap.appendChild(msgTitle);
-      (lead.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).forEach(function(msg){
+      (lead.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).forEach(function(msg, msgIdx){
         var msgRow = document.createElement('div'); msgRow.className='max-msg-row';
-        var msgDateSpan = document.createElement('span'); msgDateSpan.className='max-msg-date'; msgDateSpan.textContent = (msg.date||'') + (msg.touch ? ' · ответ на '+msg.touch : '');
+        var msgDateSpan = document.createElement('span'); msgDateSpan.className='max-msg-date'; msgDateSpan.textContent = msg.date||'';
         var msgTextSpan = document.createElement('span'); msgTextSpan.className='max-msg-text'; msgTextSpan.textContent = msg.text||'';
         var msgDelBtn = document.createElement('button'); msgDelBtn.innerHTML = ICON_X;
         msgDelBtn.addEventListener('click', function(){
           var newMessages = (lead.messages||[]).filter(function(m){ return m.id!==msg.id; });
           updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
         });
-        msgRow.appendChild(msgDateSpan); msgRow.appendChild(msgTextSpan); msgRow.appendChild(msgDelBtn);
+        msgRow.appendChild(msgDateSpan);
+        // Только у первого ответа лида указываем, на какое наше сообщение он ответил: по нему считается статистика по касаниям
+        if(msgIdx === 0){
+          var msgTouchSel = document.createElement('select'); msgTouchSel.style.cssText='font-size:10.5px;padding:2px 4px;flex:0 0 auto;';
+          msgTouchSel.title = 'На какое наше сообщение ответил лид (первый ответ)';
+          var mtEmpty = document.createElement('option'); mtEmpty.value=''; mtEmpty.textContent='ответ на…'; msgTouchSel.appendChild(mtEmpty);
+          var curTouch = msg.touch || lead.touchpoint || '';
+          TOUCH_OPTIONS.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent='ответ на '+t; if(t===curTouch) o.selected=true; msgTouchSel.appendChild(o); });
+          msgTouchSel.addEventListener('change', function(){
+            var newMessages = (lead.messages||[]).map(function(m){ return m.id===msg.id ? Object.assign({}, m, { touch: msgTouchSel.value }) : m; });
+            updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
+          });
+          msgRow.appendChild(msgTouchSel);
+        }
+        msgRow.appendChild(msgTextSpan); msgRow.appendChild(msgDelBtn);
         messagesWrap.appendChild(msgRow);
       });
       var addMsgBtn = document.createElement('button'); addMsgBtn.className='max-add-contact-btn'; addMsgBtn.textContent = '+ Сообщение';
       addMsgBtn.addEventListener('click', function(e){
         e.stopPropagation();
-        if(!lead.touchpoint && !confirm('Не выбрано, на какое наше сообщение отвечает лид (поле «Касание...»). Без этого ответ не попадёт в аналитику по касаниям. Всё равно добавить?')) return;
-        var msgText = prompt('Что написал лид (ответ на ' + (lead.touchpoint||'—') + '):'); if(!msgText) return;
+        var isFirstReply = !(lead.messages||[]).length;
+        if(isFirstReply && !lead.touchpoint && !confirm('Не выбрано, на какое наше сообщение отвечает лид (поле «Касание...»). Без этого ответ не попадёт в аналитику по касаниям (потом можно выбрать у самого сообщения). Всё равно добавить?')) return;
+        var msgText = prompt('Что написал лид' + (isFirstReply ? ' (первый ответ, на ' + (lead.touchpoint||'—') + ')' : '') + ':'); if(!msgText) return;
         var msgDate = prompt('Дата (ГГГГ-ММ-ДД):', new Date().toISOString().slice(0,10)); if(!msgDate) return;
-        var newMessages = (lead.messages||[]).concat([{id:'msg'+Math.random().toString(36).slice(2,8), text:msgText.trim(), date:msgDate.trim(), touch:lead.touchpoint||''}]);
+        var newMessages = (lead.messages||[]).concat([{id:'msg'+Math.random().toString(36).slice(2,8), text:msgText.trim(), date:msgDate.trim(), touch: isFirstReply ? (lead.touchpoint||'') : ''}]);
         updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
       });
       messagesWrap.appendChild(addMsgBtn);
@@ -8821,15 +8896,22 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
   // На какое наше сообщение отвечают: уникальные лиды за период по касаниям
   var touchSets = {};
   function addTouch(t, id){ var k = t || 'Не указано'; (touchSets[k] = touchSets[k] || {})[id] = true; }
+  // Считаем только ПЕРВЫЙ ответ лида: на какое наше сообщение он ответил в первый раз (если этот ответ пришёл в период)
   periodLeads.forEach(function(l){
-    var msgsIn = (l.messages||[]).filter(function(m){ return inRange(m.date); });
-    if(msgsIn.length){ msgsIn.forEach(function(m){ addTouch(m.touch || l.touchpoint, l.id); }); }
-    else if(!(l.messages||[]).length){ addTouch(l.touchpoint, l.id); } // лид без лога: считаем один ответ по текущему касанию
+    var msgsSorted = (l.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+    if(msgsSorted.length){
+      var firstMsg = msgsSorted[0];
+      if(inRange(firstMsg.date)) addTouch(firstMsg.touch || l.touchpoint, l.id);
+    } else {
+      addTouch(l.touchpoint, l.id); // лид без лога сообщений: считаем один ответ по текущему касанию
+    }
   });
   var touchLabels = TOUCH_OPTIONS.concat(['Не указано']);
   var touchStats = touchLabels.map(function(t){ return { touch:t, count: touchSets[t] ? Object.keys(touchSets[t]).length : 0 }; });
 
   var dailyTrend = dailyReplyTrend(fromStr, toStr, statusChangedInRange, newMessagesLeads);
+  // Динамика по неделям (все показатели) за ~полтора месяца до выбранной недели включительно
+  var weeklyRes = await fetchWeeklyPoints(getMondayOf(new Date(toStr+'T00:00:00')), 6);
   var autostatsRange = await fetchAutostatsForRange(fromStr, toStr);
 
   return {
@@ -8837,7 +8919,7 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
     createdInRange:createdInRange, statusChangedInRange:statusChangedInRange,
     newMessagesLeads:newMessagesLeads, newMessagesCount:newMessagesCount, touchStats:touchStats,
     periodLeads:periodLeads, statusCounts:statusCounts, campaignSummary:campaignSummary,
-    dailyTrend:dailyTrend, autostatsRange:autostatsRange
+    dailyTrend:dailyTrend, autostatsRange:autostatsRange, weeklyPoints:weeklyRes.points, weeklyHasData:weeklyRes.hasAnyData
   };
 }
 
@@ -8860,9 +8942,19 @@ function buildTouchBarsHtml(touchStats, forDownload){
 
 // Весь диалог лида по датам: сообщения внутри периода помечены как новые
 function dialogForReport(l, fromStr, toStr){
-  return (l.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).map(function(m){
-    return { date:m.date||'', text:m.text||'', touch:m.touch||'', isNew: !!m.date && m.date >= fromStr && m.date <= toStr };
+  return (l.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).map(function(m, idx){
+    // касание показываем только у первого ответа
+    return { date:m.date||'', text:m.text||'', touch: idx === 0 ? (m.touch || l.touchpoint || '') : '', isNew: !!m.date && m.date >= fromStr && m.date <= toStr };
   });
+}
+
+// Какие недели графика входят в выбранный период отчёта (подсвечиваем их)
+function reportWeekHighlight(fromStr, toStr){
+  return function(weekStart){
+    var end = new Date(weekStart+'T00:00:00'); end.setDate(end.getDate()+6);
+    var endStr = end.getFullYear()+'-'+String(end.getMonth()+1).padStart(2,'0')+'-'+String(end.getDate()).padStart(2,'0');
+    return weekStart <= toStr && endStr >= fromStr;
+  };
 }
 
 function contactSummaryStr(l){
@@ -9027,6 +9119,12 @@ async function renderMaxReportView(){
   chartHolder.innerHTML = buildTrendSvg(data.dailyTrend);
   content.appendChild(chartHolder);
 
+  var weeklyTitle = document.createElement('div'); weeklyTitle.className='health-section-title'; weeklyTitle.textContent='Динамика по неделям (выбранный период подсвечен)';
+  content.appendChild(weeklyTitle);
+  var weeklyHolder = document.createElement('div'); weeklyHolder.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;';
+  weeklyHolder.innerHTML = data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), false) : '<div style="color:var(--muted);font-size:12px;">Нет данных автоматизации по неделям: заполни таблицу «Статистика автоматизации»</div>';
+  content.appendChild(weeklyHolder);
+
   var autoTitle = document.createElement('div'); autoTitle.className='health-section-title'; autoTitle.textContent='Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)';
   content.appendChild(autoTitle);
   var autoWrap = document.createElement('div'); autoWrap.className='max-dashboard'; autoWrap.style.marginBottom='16px';
@@ -9106,6 +9204,7 @@ function generateMaxReportHtml(data){
     '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span>'+
     statusTiles+'</div>'+
     '<h2>Ответы по дням</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
+    '<h2>Динамика по неделям (выбранный период подсвечен)</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
     '<h2>На какое наше сообщение отвечают</h2><div class="chartbox">'+buildTouchBarsHtml(data.touchStats, true)+'</div>'+
     '<h2>Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)</h2><div class="tiles">'+autoTiles+'</div>'+
     '<h2>Лиды за период</h2><table><tr>'+leadHeaderCells+'</tr>'+(leadsRows||'<tr><td colspan="'+leadColspan+'">За этот период ничего нет</td></tr>')+'</table>'+
