@@ -1867,7 +1867,9 @@
         <button class="icon-btn" id="autostats-prev-btn">‹</button>
         <span id="autostats-week-label" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;">-</span>
         <button class="icon-btn" id="autostats-next-btn">›</button>
+        <select id="autostats-funnel-select" title="Воронка, для которой вносится и показывается статистика" style="margin-left:10px;max-width:220px;"></select>
       </div>
+      <div id="autostats-funnel-note" style="font-size:11.5px;color:var(--muted);margin:-4px 0 10px;"></div>
       <div id="autostats-table-wrap" style="margin-bottom:20px;"></div>
 
       <div class="health-section-title">Статусы лидов</div>
@@ -7542,12 +7544,40 @@ var autostatsMonday = getMondayOf(new Date());
 var autostatsData = { weekStart:'', perAccount:{}, contactsAdded:0 };
 var unsubAutostats = null;
 
-function autostatsDocId(){ return ownerUid()+'_'+wpDateKey(autostatsMonday); }
+// Воронка статистики автоматизации: '' = «Все воронки» (общая цифра, как раньше), иначе отдельные цифры по воронке
+var autostatsFunnel = '';
+var autostatsExtraFunnels = [];      // воронки, добавленные вручную (ещё без лидов), хранятся в документе uid_funnels
+var autostatsFunnelsLoaded = false;
+function statsDocIdFor(weekKey, funnel){ return ownerUid()+'_'+weekKey+(funnel ? '__'+String(funnel).replace(/\//g,'-') : ''); }
+function autostatsDocId(){ return statsDocIdFor(wpDateKey(autostatsMonday), autostatsFunnel); }
+function autostatsFunnelNames(){
+  var set = {};
+  (maxLeads||[]).forEach(function(l){ if(l.campaign) set[l.campaign] = true; });
+  autostatsExtraFunnels.forEach(function(n){ set[n] = true; });
+  if(autostatsFunnel) set[autostatsFunnel] = true;
+  return Object.keys(set).sort(function(a,b){ return a.localeCompare(b); });
+}
+function renderAutostatsFunnelSelect(){
+  var sel = el('autostats-funnel-select'); if(!sel) return;
+  sel.innerHTML = '';
+  var all = document.createElement('option'); all.value=''; all.textContent='Все воронки (общая цифра)'; sel.appendChild(all);
+  autostatsFunnelNames().forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); });
+  var add = document.createElement('option'); add.value='__new__'; add.textContent='+ Новая воронка…'; sel.appendChild(add);
+  sel.value = autostatsFunnel;
+  var note = el('autostats-funnel-note');
+  if(note) note.textContent = autostatsFunnel ? 'Цифры воронки «'+autostatsFunnel+'» вносятся отдельно от общей цифры.' : '';
+}
 function emptyAccountStats(){
   var o = {}; AUTOSTATS_FIELDS.forEach(function(f){ o[f[0]] = 0; }); return o;
 }
 function subscribeAutostats(){
   if(unsubAutostats){ unsubAutostats(); unsubAutostats=null; }
+  if(!autostatsFunnelsLoaded){
+    autostatsFunnelsLoaded = true;
+    getDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_funnels')).then(function(fs){
+      if(fs.exists() && Array.isArray(fs.data().names)){ autostatsExtraFunnels = fs.data().names; renderAutostatsFunnelSelect(); }
+    }).catch(function(err){ console.error('funnels load err', err); });
+  }
   unsubAutostats = onSnapshot(doc(db,'weeklyAutomationStats',autostatsDocId()), function(snap){
     autostatsData = snap.exists() ? snap.data() : { weekStart: wpDateKey(autostatsMonday), perAccount:{}, contactsAdded:0 };
     if(autostatsData.contactsAdded === undefined) autostatsData.contactsAdded = 0;
@@ -7563,6 +7593,7 @@ function saveAutostats(){
 
 function renderAutostatsTable(){
   var labelEl = el('autostats-week-label'); if(!labelEl) return;
+  renderAutostatsFunnelSelect();
   var pad = function(n){ return String(n).padStart(2,'0'); };
   var sunday = new Date(autostatsMonday); sunday.setDate(autostatsMonday.getDate()+6);
   labelEl.textContent = pad(autostatsMonday.getDate())+'.'+pad(autostatsMonday.getMonth()+1)+' - '+pad(sunday.getDate())+'.'+pad(sunday.getMonth()+1)+'.'+sunday.getFullYear();
@@ -7646,7 +7677,7 @@ var AUTOSTATS_TREND_SERIES = [
   { key:'messagesReplied', label:'Ответы', color:'var(--sky, #0061FF)' }
 ];
 // Недельные точки (сумма по аккаунтам) для n недель, заканчивая неделей anchorMonday
-async function fetchWeeklyPoints(anchorMonday, n){
+async function fetchWeeklyPoints(anchorMonday, n, funnel){
   var weeks = [];
   for(var i=n-1; i>=0; i--){
     var wd = new Date(anchorMonday); wd.setDate(wd.getDate() - i*7);
@@ -7657,7 +7688,7 @@ async function fetchWeeklyPoints(anchorMonday, n){
     var sums = {};
     AUTOSTATS_TREND_SERIES.forEach(function(sr){ sums[sr.key] = 0; });
     try{
-      var snap = await getDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_'+weeks[j]));
+      var snap = await getDoc(doc(db,'weeklyAutomationStats',statsDocIdFor(weeks[j], funnel)));
       if(snap.exists()){
         var data = snap.data();
         AUTOMATION_ACCOUNTS.forEach(function(acc){
@@ -7675,7 +7706,7 @@ async function fetchWeeklyPoints(anchorMonday, n){
 async function loadAutostatsChart(){
   if(!el('autostats-chart-wrap')) return;
   var myToken = ++autostatsChartToken;
-  var res = await fetchWeeklyPoints(autostatsMonday, 8);
+  var res = await fetchWeeklyPoints(autostatsMonday, 8, autostatsFunnel);
   // Таблица могла перерисоваться, пока грузились данные: берём актуальный контейнер, устаревшие запросы отбрасываем
   if(myToken !== autostatsChartToken) return;
   var chartWrap = el('autostats-chart-wrap'); if(!chartWrap) return;
@@ -7683,7 +7714,7 @@ async function loadAutostatsChart(){
     chartWrap.innerHTML = '<div class="empty-col" style="padding:14px;">Заполни пару недель - появится график тренда: заявки, сообщения, просмотры, ответы</div>';
     return;
   }
-  var title = document.createElement('div'); title.className='health-section-title'; title.style.marginTop='0'; title.textContent = 'Тренд по неделям: заявки, сообщения, просмотры, ответы';
+  var title = document.createElement('div'); title.className='health-section-title'; title.style.marginTop='0'; title.textContent = 'Тренд по неделям: заявки, сообщения, просмотры, ответы' + (autostatsFunnel ? ' · воронка ' + autostatsFunnel : '');
   chartWrap.innerHTML = '';
   chartWrap.appendChild(title);
   var holder = document.createElement('div'); holder.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;';
@@ -7773,6 +7804,21 @@ function buildWeeklyTrendSvg(points, opts){
 }
 
 function initAutostats(){
+  el('autostats-funnel-select').addEventListener('change', function(){
+    var v = this.value;
+    if(v === '__new__'){
+      var name = (prompt('Название новой воронки (например JetCompas):') || '').trim();
+      if(!name){ renderAutostatsFunnelSelect(); return; }
+      if(autostatsExtraFunnels.indexOf(name) === -1){
+        autostatsExtraFunnels = autostatsExtraFunnels.concat([name]);
+        setDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_funnels'), { names: autostatsExtraFunnels, ownerId: currentUser.uid });
+      }
+      v = name;
+    }
+    autostatsFunnel = v;
+    renderAutostatsFunnelSelect();
+    subscribeAutostats();
+  });
   el('autostats-prev-btn').addEventListener('click', function(){
     autostatsMonday.setDate(autostatsMonday.getDate()-7);
     subscribeAutostats();
@@ -7785,6 +7831,7 @@ function initAutostats(){
 
 function renderMaxDashboard(){
   var wrap = el('max-dashboard'); wrap.innerHTML = '';
+  renderAutostatsFunnelSelect(); // список воронок зависит от кампаний в лидах
 
   // База для дашборда — с учётом кампании и аккаунта, но БЕЗ учёта статуса
   // (иначе кликая по статусу мы бы теряли остальные цифры для сравнения)
@@ -8863,7 +8910,7 @@ function dailyReplyTrend(fromStr, toStr, statusChangedList, messageLeads){
   return days;
 }
 
-async function fetchAutostatsForRange(fromStr, toStr){
+async function fetchAutostatsForRange(fromStr, toStr, funnel){
   var mondays = [];
   var d = getMondayOf(new Date(fromStr+'T00:00:00'));
   var endD = new Date(toStr+'T00:00:00');
@@ -8878,7 +8925,7 @@ async function fetchAutostatsForRange(fromStr, toStr){
   var contactsAddedTotal = 0;
   for(var i=0;i<mondays.length;i++){
     try{
-      var snap = await getDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_'+mondays[i]));
+      var snap = await getDoc(doc(db,'weeklyAutomationStats',statsDocIdFor(mondays[i], funnel)));
       if(snap.exists()){
         var data = snap.data();
         contactsAddedTotal += Number(data.contactsAdded)||0;
@@ -8958,8 +9005,8 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
 
   var dailyTrend = dailyReplyTrend(fromStr, toStr, statusChangedInRange, newMessagesLeads);
   // Динамика по неделям (все показатели) за ~полтора месяца до выбранной недели включительно
-  var weeklyRes = await fetchWeeklyPoints(getMondayOf(new Date(toStr+'T00:00:00')), 6);
-  var autostatsRange = await fetchAutostatsForRange(fromStr, toStr);
+  var weeklyRes = await fetchWeeklyPoints(getMondayOf(new Date(toStr+'T00:00:00')), 6, campaignFilter || '');
+  var autostatsRange = await fetchAutostatsForRange(fromStr, toStr, campaignFilter || '');
 
   return {
     fromStr:fromStr, toStr:toStr, campaignFilter:campaignFilter,
@@ -9172,13 +9219,13 @@ async function renderMaxReportView(){
   chartHolder.innerHTML = buildTrendSvg(data.dailyTrend);
   content.appendChild(chartHolder);
 
-  var weeklyTitle = document.createElement('div'); weeklyTitle.className='health-section-title'; weeklyTitle.textContent='Динамика по неделям (выбранный период подсвечен)';
+  var weeklyTitle = document.createElement('div'); weeklyTitle.className='health-section-title'; weeklyTitle.textContent='Динамика по неделям (выбранный период подсвечен)'+(data.campaignFilter?' · воронка '+data.campaignFilter:'');
   content.appendChild(weeklyTitle);
   var weeklyHolder = document.createElement('div'); weeklyHolder.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;';
   weeklyHolder.innerHTML = data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), false) : '<div style="color:var(--muted);font-size:12px;">Нет данных автоматизации по неделям: заполни таблицу «Статистика автоматизации»</div>';
   content.appendChild(weeklyHolder);
 
-  var autoTitle = document.createElement('div'); autoTitle.className='health-section-title'; autoTitle.textContent='Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)';
+  var autoTitle = document.createElement('div'); autoTitle.className='health-section-title'; autoTitle.textContent='Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)'+(data.campaignFilter?' · воронка '+data.campaignFilter:'');
   content.appendChild(autoTitle);
   var autoWrap = document.createElement('div'); autoWrap.className='max-dashboard'; autoWrap.style.marginBottom='16px';
   function atile(num, label){ var t=document.createElement('div'); t.className='max-dash-tile'; t.innerHTML='<div class="mdt-num">'+num+'</div><div class="mdt-label">'+label+'</div>'; return t; }
@@ -9257,10 +9304,10 @@ function generateMaxReportHtml(data){
     '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span>'+
     statusTiles+'</div>'+
     '<h2>Ответы по дням</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
-    '<h2>Динамика по неделям (выбранный период подсвечен)</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
+    '<h2>Динамика по неделям (выбранный период подсвечен)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
     '<h2>Статусы ответов за период</h2><div class="chartbox">'+buildTouchBarsHtml(data.replyStatusStats, true, 'За период нет ответов')+'</div>'+
     '<h2>На какое наше сообщение отвечают (первый ответ контакта)</h2><div class="chartbox">'+buildTouchBarsHtml(data.touchStats, true)+'</div>'+
-    '<h2>Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)</h2><div class="tiles">'+autoTiles+'</div>'+
+    '<h2>Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="tiles">'+autoTiles+'</div>'+
     '<h2>Лиды за период</h2><table><tr>'+leadHeaderCells+'</tr>'+(leadsRows||'<tr><td colspan="'+leadColspan+'">За этот период ничего нет</td></tr>')+'</table>'+
     referralsSection+
     '<h2>Сводка по кампаниям (вся база)</h2><table><tr><th>Кампания</th><th>Всего</th><th>По статусам</th></tr>'+campRows+'</table>'+
