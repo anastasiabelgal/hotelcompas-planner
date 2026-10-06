@@ -8317,8 +8317,16 @@ function renderMaxLeadsView(){
         if(maxEditingMsgs[lead.id+'_'+msg.id]){ messagesWrap.appendChild(buildMsgEditor(msg)); return; }
         var msgRow = document.createElement('div'); msgRow.className='max-msg-row';
         var msgDateSpan = document.createElement('span'); msgDateSpan.className='max-msg-date'; msgDateSpan.textContent = msg.date||'';
-        var msgStatusSpan = null;
-        if(msg.status){ msgStatusSpan = document.createElement('span'); msgStatusSpan.className='tag'; msgStatusSpan.style.cssText='font-size:9.5px;flex:0 0 auto;'; msgStatusSpan.textContent = msg.status; msgStatusSpan.title='Статус этого ответа'; }
+        // Статус ответа выбирается прямо в строке сообщения; у старых сообщений без статуса подставлен статус лида (сохранится при выборе)
+        var msgStatusSpan = document.createElement('select'); msgStatusSpan.style.cssText='font-size:10px;padding:2px 4px;flex:0 0 auto;max-width:120px;';
+        msgStatusSpan.title = 'Статус этого ответа: попадает в аналитику ответов за неделю';
+        MAX_STATUSES.forEach(function(st){ var o=document.createElement('option'); o.value=st.key; o.textContent=st.label; msgStatusSpan.appendChild(o); });
+        msgStatusSpan.value = msg.status || lead.status || 'Neutral';
+        msgStatusSpan.addEventListener('click', function(e){ e.stopPropagation(); });
+        msgStatusSpan.addEventListener('change', function(){
+          var newMessages = (lead.messages||[]).map(function(m){ return m.id===msg.id ? Object.assign({}, m, { status: msgStatusSpan.value }) : m; });
+          updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
+        });
         var msgTextSpan = document.createElement('span'); msgTextSpan.className='max-msg-text'; msgTextSpan.textContent = msg.text||'';
         var msgDelBtn = document.createElement('button'); msgDelBtn.innerHTML = ICON_X; msgDelBtn.title = 'Удалить сообщение';
         msgDelBtn.addEventListener('click', function(){
@@ -8328,7 +8336,7 @@ function renderMaxLeadsView(){
         var msgEditBtn = document.createElement('button'); msgEditBtn.innerHTML = ICON_EDIT; msgEditBtn.title = 'Изменить сообщение';
         msgEditBtn.addEventListener('click', function(e){ e.stopPropagation(); maxEditingMsgs[lead.id+'_'+msg.id] = true; renderMaxLeadsView(); });
         msgRow.appendChild(msgDateSpan);
-        if(msgStatusSpan) msgRow.appendChild(msgStatusSpan);
+        msgRow.appendChild(msgStatusSpan);
         msgRow.appendChild(msgTextSpan); msgRow.appendChild(msgEditBtn); msgRow.appendChild(msgDelBtn);
         messagesWrap.appendChild(msgRow);
       });
