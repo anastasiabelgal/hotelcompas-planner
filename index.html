@@ -7512,6 +7512,7 @@ var maxStaleOnly = false;
 var maxShowReferrals = false;
 var maxEditingLeads = {};
 var maxEditingContacts = {}; // ключ leadId+'_'+contactId
+var maxEditingMsgs = {}; // ключ leadId+'_'+messageId (или leadId+'_new' для нового сообщения)
 var STALE_DAYS = 3;
 function isLeadStale(lead){
   if(!lead.updatedAt || !lead.updatedAt.toMillis) return false;
@@ -8287,37 +8288,56 @@ function renderMaxLeadsView(){
       var messagesWrap = document.createElement('div'); messagesWrap.className='max-messages-log';
       var msgTitle = document.createElement('div'); msgTitle.className='mlc-item'; msgTitle.style.cssText='font-weight:700;margin-bottom:4px;'; msgTitle.textContent='Сообщения';
       messagesWrap.appendChild(msgTitle);
-      (lead.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).forEach(function(msg, msgIdx){
+      // Редактор сообщения: дата, статус этого ответа, текст. Статус сообщения идёт в аналитику ответов по неделям
+      var buildMsgEditor = function(msg){
+        var key = lead.id+'_'+(msg ? msg.id : 'new');
+        var row = document.createElement('div'); row.className='max-msg-row'; row.style.cssText='flex-wrap:wrap;gap:6px;align-items:center;';
+        var dIn = document.createElement('input'); dIn.type='date'; dIn.value = msg ? (msg.date||'') : new Date().toISOString().slice(0,10); dIn.title='Дата, когда контакт написал';
+        var stSel = document.createElement('select'); stSel.title='Статус этого ответа';
+        MAX_STATUSES.forEach(function(st){ var o=document.createElement('option'); o.value=st.key; o.textContent=st.label; stSel.appendChild(o); });
+        stSel.value = (msg && msg.status) || lead.status || 'Neutral';
+        var tIn = document.createElement('input'); tIn.type='text'; tIn.placeholder='Что написал контакт'; tIn.value = msg ? (msg.text||'') : ''; tIn.style.cssText='flex:1;min-width:180px;';
+        var saveB = document.createElement('button'); saveB.textContent='Сохранить'; saveB.style.cssText='color:var(--text);';
+        var cancelB = document.createElement('button'); cancelB.textContent='Отмена';
+        saveB.addEventListener('click', function(e){
+          e.stopPropagation();
+          var text = tIn.value.trim(), date = dIn.value;
+          if(!text || !date){ alert('Заполни дату и текст сообщения'); return; }
+          var newMessages;
+          if(msg){ newMessages = (lead.messages||[]).map(function(m){ return m.id===msg.id ? Object.assign({}, m, { text:text, date:date, status:stSel.value }) : m; }); }
+          else { newMessages = (lead.messages||[]).concat([{ id:'msg'+Math.random().toString(36).slice(2,8), text:text, date:date, status:stSel.value }]); }
+          delete maxEditingMsgs[key];
+          updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
+        });
+        cancelB.addEventListener('click', function(e){ e.stopPropagation(); delete maxEditingMsgs[key]; renderMaxLeadsView(); });
+        [dIn, stSel, tIn, saveB, cancelB].forEach(function(x){ row.appendChild(x); });
+        return row;
+      };
+      (lead.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).forEach(function(msg){
+        if(maxEditingMsgs[lead.id+'_'+msg.id]){ messagesWrap.appendChild(buildMsgEditor(msg)); return; }
         var msgRow = document.createElement('div'); msgRow.className='max-msg-row';
         var msgDateSpan = document.createElement('span'); msgDateSpan.className='max-msg-date'; msgDateSpan.textContent = msg.date||'';
+        var msgStatusSpan = null;
+        if(msg.status){ msgStatusSpan = document.createElement('span'); msgStatusSpan.className='tag'; msgStatusSpan.style.cssText='font-size:9.5px;flex:0 0 auto;'; msgStatusSpan.textContent = msg.status; msgStatusSpan.title='Статус этого ответа'; }
         var msgTextSpan = document.createElement('span'); msgTextSpan.className='max-msg-text'; msgTextSpan.textContent = msg.text||'';
-        var msgDelBtn = document.createElement('button'); msgDelBtn.innerHTML = ICON_X;
+        var msgDelBtn = document.createElement('button'); msgDelBtn.innerHTML = ICON_X; msgDelBtn.title = 'Удалить сообщение';
         msgDelBtn.addEventListener('click', function(){
           var newMessages = (lead.messages||[]).filter(function(m){ return m.id!==msg.id; });
           updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
         });
-        msgRow.appendChild(msgDateSpan);
         var msgEditBtn = document.createElement('button'); msgEditBtn.innerHTML = ICON_EDIT; msgEditBtn.title = 'Изменить сообщение';
-        msgEditBtn.addEventListener('click', function(e){
-          e.stopPropagation();
-          var editedText = prompt('Что написал лид:', msg.text || ''); if(editedText === null) return;
-          var editedDate = prompt('Дата (ГГГГ-ММ-ДД):', msg.date || ''); if(editedDate === null) return;
-          if(!editedText.trim() || !editedDate.trim()) return;
-          var newMessages = (lead.messages||[]).map(function(m){ return m.id===msg.id ? Object.assign({}, m, { text: editedText.trim(), date: editedDate.trim() }) : m; });
-          updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
-        });
+        msgEditBtn.addEventListener('click', function(e){ e.stopPropagation(); maxEditingMsgs[lead.id+'_'+msg.id] = true; renderMaxLeadsView(); });
+        msgRow.appendChild(msgDateSpan);
+        if(msgStatusSpan) msgRow.appendChild(msgStatusSpan);
         msgRow.appendChild(msgTextSpan); msgRow.appendChild(msgEditBtn); msgRow.appendChild(msgDelBtn);
         messagesWrap.appendChild(msgRow);
       });
+      if(maxEditingMsgs[lead.id+'_new']) messagesWrap.appendChild(buildMsgEditor(null));
       var addMsgBtn = document.createElement('button'); addMsgBtn.className='max-add-contact-btn'; addMsgBtn.textContent = '+ Сообщение';
       addMsgBtn.addEventListener('click', function(e){
         e.stopPropagation();
-        var isFirstReply = !(lead.messages||[]).length;
-        if(isFirstReply && !lead.touchpoint && !confirm('Вверху карточки не выбрано «Касание…» (на какое наше сообщение ответил лид). Без этого первый ответ не попадёт в аналитику по касаниям. Всё равно добавить?')) return;
-        var msgText = prompt('Что написал лид' + (isFirstReply ? ' (первый ответ, на ' + (lead.touchpoint||'—') + ')' : '') + ':'); if(!msgText) return;
-        var msgDate = prompt('Дата (ГГГГ-ММ-ДД):', new Date().toISOString().slice(0,10)); if(!msgDate) return;
-        var newMessages = (lead.messages||[]).concat([{id:'msg'+Math.random().toString(36).slice(2,8), text:msgText.trim(), date:msgDate.trim()}]);
-        updateDoc(doc(db,'maxLeads',lead.id), touchLead({ messages: newMessages }));
+        if(!(lead.messages||[]).length && !lead.touchpoint && !confirm('Вверху карточки не выбрано «Касание…» (на какое наше сообщение ответил лид). Без этого первый ответ не попадёт в аналитику по касаниям. Всё равно добавить?')) return;
+        maxEditingMsgs[lead.id+'_new'] = true; renderMaxLeadsView();
       });
       messagesWrap.appendChild(addMsgBtn);
       main.appendChild(messagesWrap);
@@ -8477,7 +8497,7 @@ function initMaxLeads(){
     var touch = el('max-lead-touch').value;
     var firstReplyText = el('max-lead-firstreply').value.trim();
     var firstReplyDate = el('max-lead-firstreply-date').value || new Date().toISOString().slice(0,10);
-    var initialMessages = firstReplyText ? [{ id:'msg'+Math.random().toString(36).slice(2,8), text:firstReplyText, date:firstReplyDate }] : [];
+    var initialMessages = firstReplyText ? [{ id:'msg'+Math.random().toString(36).slice(2,8), text:firstReplyText, date:firstReplyDate, status:status }] : [];
     var sameCompanyCount = maxLeads.filter(function(l){ return l.companyName === company; }).length;
     var todayStr2 = new Date().toISOString().slice(0,10);
     addDoc(collection(db,'maxLeads'), {
@@ -8914,6 +8934,17 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
       addTouch(l.touchpoint, l.id); // лид без лога сообщений: считаем один ответ по текущему касанию
     }
   });
+  // Статусы ответов: каждый ответ (сообщение) за период считается со СВОИМ статусом, а не со статусом лида.
+  // У старых сообщений без статуса берётся текущий статус лида.
+  var replyStatusCounts = {}, replyStatusTotal = 0;
+  baseLeads.forEach(function(l){
+    (l.messages||[]).forEach(function(m){
+      if(!inRange(m.date)) return;
+      var st = m.status || l.status || 'Neutral';
+      replyStatusCounts[st] = (replyStatusCounts[st]||0) + 1; replyStatusTotal++;
+    });
+  });
+  var replyStatusStats = MAX_STATUSES.filter(function(st){ return replyStatusCounts[st.key]; }).map(function(st){ return { touch: st.label, count: replyStatusCounts[st.key] }; });
   var touchLabels = TOUCH_OPTIONS.concat(['Не указано']);
   var touchStats = touchLabels.map(function(t){ return { touch:t, count: touchSets[t] ? Object.keys(touchSets[t]).length : 0 }; });
 
@@ -8925,20 +8956,20 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
   return {
     fromStr:fromStr, toStr:toStr, campaignFilter:campaignFilter,
     createdInRange:createdInRange, statusChangedInRange:statusChangedInRange,
-    newMessagesLeads:newMessagesLeads, newMessagesCount:newMessagesCount, touchStats:touchStats,
+    newMessagesLeads:newMessagesLeads, newMessagesCount:newMessagesCount, touchStats:touchStats, replyStatusStats:replyStatusStats,
     periodLeads:periodLeads, statusCounts:statusCounts, campaignSummary:campaignSummary,
     dailyTrend:dailyTrend, autostatsRange:autostatsRange, weeklyPoints:weeklyRes.points, weeklyHasData:weeklyRes.hasAnyData
   };
 }
 
 // Горизонтальные столбики «на какое сообщение отвечают» (HTML, годится для экрана и для скачиваемого файла)
-function buildTouchBarsHtml(touchStats, forDownload){
+function buildTouchBarsHtml(touchStats, forDownload, emptyText){
   var total = touchStats.reduce(function(a,t){ return a + t.count; }, 0);
   var maxC = Math.max.apply(null, touchStats.map(function(t){ return t.count; }).concat([1]));
   var muted = forDownload ? '#6b7280' : 'var(--muted, #6b7280)';
   var track = forDownload ? '#eef0f4' : 'var(--panel-soft, #eef0f4)';
   var color = forDownload ? '#0061FF' : 'var(--sky, #0061FF)';
-  if(total === 0) return '<div style="color:'+muted+';font-size:12px;">За период нет ответов с указанным касанием</div>';
+  if(total === 0) return '<div style="color:'+muted+';font-size:12px;">'+(emptyText || 'За период нет ответов с указанным касанием')+'</div>';
   return touchStats.map(function(t){
     var pct = total ? Math.round(t.count/total*100) : 0;
     return '<div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px;">'+
@@ -8952,7 +8983,7 @@ function buildTouchBarsHtml(touchStats, forDownload){
 function dialogForReport(l, fromStr, toStr){
   return (l.messages||[]).slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); }).map(function(m, idx){
     // касание показываем только у первого ответа
-    return { date:m.date||'', text:m.text||'', touch: idx === 0 ? (l.touchpoint || '') : '', isNew: !!m.date && m.date >= fromStr && m.date <= toStr };
+    return { date:m.date||'', text:m.text||'', status:m.status||'', touch: idx === 0 ? (l.touchpoint || '') : '', isNew: !!m.date && m.date >= fromStr && m.date <= toStr };
   });
 }
 
@@ -9026,7 +9057,13 @@ async function renderMaxReportView(){
   MAX_STATUSES.forEach(function(s){ if(data.statusCounts[s.key]) summaryWrap.appendChild(tile(data.statusCounts[s.key], s.label, s.cls)); });
   content.appendChild(summaryWrap);
 
-  var touchTitle = document.createElement('div'); touchTitle.className='health-section-title'; touchTitle.textContent='На какое наше сообщение отвечают';
+  var rsTitle = document.createElement('div'); rsTitle.className='health-section-title'; rsTitle.textContent='Статусы ответов за период';
+  content.appendChild(rsTitle);
+  var rsBox = document.createElement('div'); rsBox.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;';
+  rsBox.innerHTML = buildTouchBarsHtml(data.replyStatusStats, false, 'За период нет ответов');
+  content.appendChild(rsBox);
+
+  var touchTitle = document.createElement('div'); touchTitle.className='health-section-title'; touchTitle.textContent='На какое наше сообщение отвечают (первый ответ контакта)';
   content.appendChild(touchTitle);
   var touchBox = document.createElement('div'); touchBox.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;';
   touchBox.innerHTML = buildTouchBarsHtml(data.touchStats, false);
@@ -9077,7 +9114,7 @@ async function renderMaxReportView(){
       if(dlg.length === 0){ dialogTd.textContent = '—'; }
       dlg.forEach(function(m){
         var line = document.createElement('div'); line.style.cssText = 'margin-bottom:4px;' + (m.isNew ? 'font-weight:700;' : 'color:var(--muted, #6b7280);');
-        line.textContent = m.date + (m.touch ? ' · на '+m.touch : '') + (m.isNew ? ' · НОВОЕ' : '') + ': ' + m.text;
+        line.textContent = m.date + (m.status ? ' · '+m.status : '') + (m.touch ? ' · на '+m.touch : '') + (m.isNew ? ' · НОВОЕ' : '') + ': ' + m.text;
         dialogTd.appendChild(line);
       });
       tr.appendChild(dialogTd);
@@ -9164,7 +9201,7 @@ function generateMaxReportHtml(data){
     var cells = '<td>'+esc(l.campaign)+'</td><td>'+esc(l.companyName)+'</td><td>'+esc(l.contactName)+'</td><td>'+esc(l.position)+'</td><td>'+esc(l.sender)+'</td><td>'+esc(l.segment)+'</td>';
     if(showBooth) cells += '<td>'+esc(l.booth)+'</td>';
     var dlgHtml = dialogForReport(l, data.fromStr, data.toStr).map(function(m){
-      return m.isNew ? '<div><b>'+esc(m.date)+(m.touch?' · на '+esc(m.touch):'')+' · НОВОЕ: '+esc(m.text)+'</b></div>' : '<div style="color:#6b7280;">'+esc(m.date)+(m.touch?' · на '+esc(m.touch):'')+': '+esc(m.text)+'</div>';
+      return m.isNew ? '<div><b>'+esc(m.date)+(m.status?' · '+esc(m.status):'')+(m.touch?' · на '+esc(m.touch):'')+' · НОВОЕ: '+esc(m.text)+'</b></div>' : '<div style="color:#6b7280;">'+esc(m.date)+(m.status?' · '+esc(m.status):'')+(m.touch?' · на '+esc(m.touch):'')+': '+esc(m.text)+'</div>';
     }).join('') || '—';
     cells += '<td>'+esc(l.status)+'</td><td>'+esc(contactSummaryStr(l))+'</td><td>'+esc(l.notes)+'</td><td>'+dlgHtml+'</td>';
     return '<tr>'+cells+'</tr>';
@@ -9213,7 +9250,8 @@ function generateMaxReportHtml(data){
     statusTiles+'</div>'+
     '<h2>Ответы по дням</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
     '<h2>Динамика по неделям (выбранный период подсвечен)</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
-    '<h2>На какое наше сообщение отвечают</h2><div class="chartbox">'+buildTouchBarsHtml(data.touchStats, true)+'</div>'+
+    '<h2>Статусы ответов за период</h2><div class="chartbox">'+buildTouchBarsHtml(data.replyStatusStats, true, 'За период нет ответов')+'</div>'+
+    '<h2>На какое наше сообщение отвечают (первый ответ контакта)</h2><div class="chartbox">'+buildTouchBarsHtml(data.touchStats, true)+'</div>'+
     '<h2>Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)</h2><div class="tiles">'+autoTiles+'</div>'+
     '<h2>Лиды за период</h2><table><tr>'+leadHeaderCells+'</tr>'+(leadsRows||'<tr><td colspan="'+leadColspan+'">За этот период ничего нет</td></tr>')+'</table>'+
     referralsSection+
