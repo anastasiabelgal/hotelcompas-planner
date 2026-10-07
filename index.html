@@ -7523,6 +7523,10 @@ function isLeadStale(lead){
   var days = (Date.now() - lead.updatedAt.toMillis()) / 86400000;
   return days > STALE_DAYS;
 }
+// Дата, по которой статус лида попадает в отчёт: у проведённого звонка это дата звонка, иначе дата смены статуса
+function leadStatusDate(l){ return (l.status === 'Call done' && l.callDate) ? l.callDate : l.statusChangedDate; }
+function leadStatusLabel(l){ return (l.status || '—') + ((l.status === 'Call done' && l.callDate) ? ' · звонок ' + l.callDate : ''); }
+
 function touchLead(fields){
   return Object.assign({}, fields, { updatedAt: serverTimestamp() });
 }
@@ -8286,7 +8290,10 @@ function renderMaxLeadsView(){
       MAX_STATUSES.forEach(function(s){ var o=document.createElement('option'); o.value=s.key; o.textContent=s.label; if(s.key===lead.status) o.selected=true; statusSel.appendChild(o); });
       statusSel.addEventListener('change', function(){
         var todayStr3 = new Date().toISOString().slice(0,10);
-        updateDoc(doc(db,'maxLeads',lead.id), touchLead({ status: statusSel.value, statusChangedDate: todayStr3 }));
+        var upd = { status: statusSel.value, statusChangedDate: todayStr3 };
+        // Звонок проведён: дату звонка можно поправить в карточке (по умолчанию сегодня)
+        if(statusSel.value === 'Call done' && !lead.callDate) upd.callDate = todayStr3;
+        updateDoc(doc(db,'maxLeads',lead.id), touchLead(upd));
       });
       var stageSel = document.createElement('select');
       MAX_STAGES.forEach(function(s){ var o=document.createElement('option'); o.value=s; o.textContent=s; if(s===lead.stage) o.selected=true; stageSel.appendChild(o); });
@@ -8341,6 +8348,15 @@ function renderMaxLeadsView(){
       });
       nextDateLabel.appendChild(nextDateInput);
       datesRow.appendChild(firstDateLabel); datesRow.appendChild(stageDateLabel); datesRow.appendChild(nextDateLabel);
+      if(lead.status === 'Call done'){
+        var callDateLabel = document.createElement('label');
+        callDateLabel.appendChild(document.createTextNode('Дата звонка:'));
+        var callDateInput = document.createElement('input'); callDateInput.type='date'; callDateInput.value = lead.callDate||'';
+        callDateInput.title = 'Когда звонок состоялся: по этой дате он попадает в отчёт за период';
+        callDateInput.addEventListener('change', function(){ updateDoc(doc(db,'maxLeads',lead.id), touchLead({ callDate: callDateInput.value })); });
+        callDateLabel.appendChild(callDateInput);
+        datesRow.appendChild(callDateLabel);
+      }
       main.appendChild(datesRow);
 
       // Сообщения — отдельный лог, не одна перезаписываемая заметка
@@ -8571,7 +8587,7 @@ function initMaxLeads(){
       companyName:company, contactName:name, position:position, sender:sender,
       campaign:campaign, segment:segment, booth:booth,
       workEmail:workEmail, personalEmail:personalEmail, workPhone:workPhone, personalPhone:personalPhone, whatsapp:whatsapp,
-      status:status, statusChangedDate:todayStr2, stage:stage, stageChangedDate:todayStr2, nextContactDate:'', notes:notes,
+      status:status, statusChangedDate:todayStr2, callDate:(status === 'Call done' ? todayStr2 : ''), stage:stage, stageChangedDate:todayStr2, nextContactDate:'', notes:notes,
       firstContactDate:todayStr2, touchpoint:touch, messages:initialMessages,
       agencyName:'', agencyInfo:'',
       otherContacts:[], order:sameCompanyCount, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
@@ -8917,7 +8933,7 @@ function dailyReplyTrend(fromStr, toStr, statusChangedList, messageLeads){
     (messageLeads||[]).forEach(function(l){
       (l.messages||[]).forEach(function(m){ if(m.date === ds) count++; });
     });
-    count += statusChangedList.filter(function(l){ return l.statusChangedDate === ds && !(l.messages||[]).length; }).length;
+    count += statusChangedList.filter(function(l){ return leadStatusDate(l) === ds && !(l.messages||[]).length; }).length;
     days.push({ date: ds, count: count });
     d.setDate(d.getDate()+1);
   }
@@ -8966,7 +8982,8 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
     var ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     return inRange(ds);
   });
-  var statusChangedInRange = baseLeads.filter(function(l){ return inRange(l.statusChangedDate); });
+  var statusChangedInRange = baseLeads.filter(function(l){ return inRange(leadStatusDate(l)); });
+  var callsDoneInRange = baseLeads.filter(function(l){ return l.status === 'Call done' && inRange(leadStatusDate(l)); });
   // Новые сообщения от лида за период (старые лиды, которые снова ответили, тоже попадают в отчёт)
   var newMessagesLeads = baseLeads.filter(function(l){ return (l.messages||[]).some(function(m){ return inRange(m.date); }); });
   var newMessagesCount = 0;
@@ -9027,7 +9044,7 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
     fromStr:fromStr, toStr:toStr, campaignFilter:campaignFilter,
     createdInRange:createdInRange, statusChangedInRange:statusChangedInRange,
     newMessagesLeads:newMessagesLeads, newMessagesCount:newMessagesCount, touchStats:touchStats, replyStatusStats:replyStatusStats,
-    periodLeads:periodLeads, statusCounts:statusCounts, leadsTotal:baseLeads.length, campaignSummary:campaignSummary,
+    periodLeads:periodLeads, statusCounts:statusCounts, leadsTotal:baseLeads.length, callsDoneInRange:callsDoneInRange, campaignSummary:campaignSummary,
     dailyTrend:dailyTrend, autostatsRange:autostatsRange, weeklyPoints:weeklyRes.points, weeklyHasData:weeklyRes.hasAnyData
   };
 }
@@ -9144,6 +9161,7 @@ async function renderMaxReportView(){
   summaryWrap.appendChild(tile(data.createdInRange.length, 'Новых лидов'));
   summaryWrap.appendChild(tile(data.statusChangedInRange.length, 'Смен статуса'));
   summaryWrap.appendChild(tile(data.newMessagesCount, 'Новых сообщений'));
+  summaryWrap.appendChild(tile(data.callsDoneInRange.length, 'Звонков проведено'));
   content.appendChild(summaryWrap);
 
   var leadStTitle = document.createElement('div'); leadStTitle.className='health-section-title'; leadStTitle.textContent='Статусы лидов' + (campaignFilter ? ' · воронка '+campaignFilter : '');
@@ -9204,7 +9222,7 @@ async function renderMaxReportView(){
         chexVal = colorMap[statusObj.cls];
       }
       statusSpan.style.cssText = chexVal ? 'background:'+chexVal+'26;color:'+chexVal+';font-size:10px;' : 'font-size:10px;';
-      statusSpan.textContent = l.status || '—';
+      statusSpan.textContent = leadStatusLabel(l);
       statusTd.appendChild(statusSpan); tr.appendChild(statusTd);
       var contactsTd = document.createElement('td'); contactsTd.textContent = contactSummaryStr(l); contactsTd.style.fontSize='10.5px'; tr.appendChild(contactsTd);
       var notesTd = document.createElement('td'); notesTd.textContent = l.notes || '—'; notesTd.style.fontSize='11px'; notesTd.style.maxWidth='240px'; tr.appendChild(notesTd);
@@ -9310,7 +9328,7 @@ function generateMaxReportHtml(data){
     var dlgHtml = dialogForReport(l, data.fromStr, data.toStr).map(function(m){
       return m.isNew ? '<div><b>'+esc(m.date)+(m.status?' · '+esc(m.status):'')+(m.touch?' · на '+esc(m.touch):'')+' · НОВОЕ: '+esc(m.text)+'</b></div>' : '<div style="color:#6b7280;">'+esc(m.date)+(m.status?' · '+esc(m.status):'')+(m.touch?' · на '+esc(m.touch):'')+': '+esc(m.text)+'</div>';
     }).join('') || '—';
-    cells += '<td>'+esc(l.status)+'</td><td>'+esc(contactSummaryStr(l))+'</td><td>'+esc(l.notes)+'</td><td>'+dlgHtml+'</td>';
+    cells += '<td>'+esc(leadStatusLabel(l))+'</td><td>'+esc(contactSummaryStr(l))+'</td><td>'+esc(l.notes)+'</td><td>'+dlgHtml+'</td>';
     return '<tr>'+cells+'</tr>';
   }).join('');
   var campRows = Object.keys(data.campaignSummary).sort().map(function(c){
@@ -9356,7 +9374,8 @@ function generateMaxReportHtml(data){
     '<h2>Итоги периода</h2><div class="tiles">'+
     '<span class="tile">'+data.createdInRange.length+'<br><small>Новых лидов</small></span>'+
     '<span class="tile">'+data.statusChangedInRange.length+'<br><small>Смен статуса</small></span>'+
-    '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span></div>'+
+    '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span>'+
+    '<span class="tile">'+data.callsDoneInRange.length+'<br><small>Звонков проведено</small></span></div>'+
     '<h2>Статусы лидов'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+' (основной статус каждого лида, все лиды воронки)</h2><div class="tiles">'+
     statusTiles+'</div>'+
     '<h2>Ответы контактов по дням (полученные сообщения)</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
