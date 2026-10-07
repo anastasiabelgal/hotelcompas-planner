@@ -8979,7 +8979,8 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
   periodLeads.sort(function(a,b){ return (a.companyName||'').localeCompare(b.companyName||''); });
 
   var statusCounts = {};
-  statusChangedInRange.forEach(function(l){ statusCounts[l.status] = (statusCounts[l.status]||0) + 1; });
+  // Основной статус каждого лида из отчёта (новые, со сменой статуса или с новым ответом за период), не статус ответов
+  periodLeads.forEach(function(l){ var st = l.status || 'Neutral'; statusCounts[st] = (statusCounts[st]||0) + 1; });
 
   // Сводка по кампаниям — реальные статусы, не цвета
   var campaignSummary = {};
@@ -9139,13 +9140,14 @@ async function renderMaxReportView(){
   var summaryTitle = document.createElement('div'); summaryTitle.className='health-section-title'; summaryTitle.textContent='Статусы лидов за период';
   content.appendChild(summaryTitle);
   var summaryHint = document.createElement('div'); summaryHint.style.cssText='font-size:11.5px;color:var(--muted);margin:-4px 0 8px;';
-  summaryHint.textContent='Основной статус лида (карточка контакта). Статусы отдельных ответов считаются ниже.';
+  summaryHint.textContent='Основной статус (карточка контакта) каждого лида из отчёта: новые, со сменой статуса или с новым ответом за период. Статусы отдельных ответов считаются ниже.';
   content.appendChild(summaryHint);
   var summaryWrap = document.createElement('div'); summaryWrap.className='max-dashboard'; summaryWrap.style.marginBottom='16px';
   function tile(num, label, cls){ var t=document.createElement('div'); t.className='max-dash-tile'+(cls?' '+cls:''); t.innerHTML='<div class="mdt-num">'+num+'</div><div class="mdt-label">'+label+'</div>'; return t; }
   summaryWrap.appendChild(tile(data.createdInRange.length, 'Новых лидов'));
   summaryWrap.appendChild(tile(data.statusChangedInRange.length, 'Смен статуса'));
   summaryWrap.appendChild(tile(data.newMessagesCount, 'Новых сообщений'));
+  summaryWrap.appendChild(tile(data.periodLeads.length, 'Лидов в отчёте'));
   MAX_STATUSES.forEach(function(s){ if(data.statusCounts[s.key]) summaryWrap.appendChild(tile(data.statusCounts[s.key], s.label, s.cls)); });
   content.appendChild(summaryWrap);
 
@@ -9350,6 +9352,7 @@ function generateMaxReportHtml(data){
     '<span class="tile">'+data.createdInRange.length+'<br><small>Новых лидов</small></span>'+
     '<span class="tile">'+data.statusChangedInRange.length+'<br><small>Смен статуса</small></span>'+
     '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span>'+
+    '<span class="tile">'+data.periodLeads.length+'<br><small>Лидов в отчёте</small></span>'+
     statusTiles+'</div>'+
     '<h2>Ответы контактов по дням (полученные сообщения)</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
     '<h2>Динамика по неделям (выбранный период подсвечен)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
