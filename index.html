@@ -8979,8 +8979,8 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
   periodLeads.sort(function(a,b){ return (a.companyName||'').localeCompare(b.companyName||''); });
 
   var statusCounts = {};
-  // Основной статус каждого лида из отчёта (новые, со сменой статуса или с новым ответом за период), не статус ответов
-  periodLeads.forEach(function(l){ var st = l.status || 'Neutral'; statusCounts[st] = (statusCounts[st]||0) + 1; });
+  // Основной статус (карточка контакта) каждого лида воронки: те же цифры, что в разделе «Лиды». Не зависит от периода и не от статусов ответов.
+  baseLeads.forEach(function(l){ var st = l.status || 'Neutral'; statusCounts[st] = (statusCounts[st]||0) + 1; });
 
   // Сводка по кампаниям — реальные статусы, не цвета
   var campaignSummary = {};
@@ -9027,7 +9027,7 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
     fromStr:fromStr, toStr:toStr, campaignFilter:campaignFilter,
     createdInRange:createdInRange, statusChangedInRange:statusChangedInRange,
     newMessagesLeads:newMessagesLeads, newMessagesCount:newMessagesCount, touchStats:touchStats, replyStatusStats:replyStatusStats,
-    periodLeads:periodLeads, statusCounts:statusCounts, campaignSummary:campaignSummary,
+    periodLeads:periodLeads, statusCounts:statusCounts, leadsTotal:baseLeads.length, campaignSummary:campaignSummary,
     dailyTrend:dailyTrend, autostatsRange:autostatsRange, weeklyPoints:weeklyRes.points, weeklyHasData:weeklyRes.hasAnyData
   };
 }
@@ -9137,19 +9137,24 @@ async function renderMaxReportView(){
   var content = el('max-report-content');
   content.innerHTML = '';
 
-  var summaryTitle = document.createElement('div'); summaryTitle.className='health-section-title'; summaryTitle.textContent='Статусы лидов за период';
+  var summaryTitle = document.createElement('div'); summaryTitle.className='health-section-title'; summaryTitle.textContent='Итоги периода';
   content.appendChild(summaryTitle);
-  var summaryHint = document.createElement('div'); summaryHint.style.cssText='font-size:11.5px;color:var(--muted);margin:-4px 0 8px;';
-  summaryHint.textContent='Основной статус (карточка контакта) каждого лида из отчёта: новые, со сменой статуса или с новым ответом за период. Статусы отдельных ответов считаются ниже.';
-  content.appendChild(summaryHint);
   var summaryWrap = document.createElement('div'); summaryWrap.className='max-dashboard'; summaryWrap.style.marginBottom='16px';
   function tile(num, label, cls){ var t=document.createElement('div'); t.className='max-dash-tile'+(cls?' '+cls:''); t.innerHTML='<div class="mdt-num">'+num+'</div><div class="mdt-label">'+label+'</div>'; return t; }
   summaryWrap.appendChild(tile(data.createdInRange.length, 'Новых лидов'));
   summaryWrap.appendChild(tile(data.statusChangedInRange.length, 'Смен статуса'));
   summaryWrap.appendChild(tile(data.newMessagesCount, 'Новых сообщений'));
-  summaryWrap.appendChild(tile(data.periodLeads.length, 'Лидов в отчёте'));
-  MAX_STATUSES.forEach(function(s){ if(data.statusCounts[s.key]) summaryWrap.appendChild(tile(data.statusCounts[s.key], s.label, s.cls)); });
   content.appendChild(summaryWrap);
+
+  var leadStTitle = document.createElement('div'); leadStTitle.className='health-section-title'; leadStTitle.textContent='Статусы лидов' + (campaignFilter ? ' · воронка '+campaignFilter : '');
+  content.appendChild(leadStTitle);
+  var leadStHint = document.createElement('div'); leadStHint.style.cssText='font-size:11.5px;color:var(--muted);margin:-4px 0 8px;';
+  leadStHint.textContent='Основной статус каждого лида (карточка контакта), как в разделе «Лиды»: все лиды воронки, не зависит от периода. Статусы отдельных ответов ниже.';
+  content.appendChild(leadStHint);
+  var leadStWrap = document.createElement('div'); leadStWrap.className='max-dashboard'; leadStWrap.style.marginBottom='16px';
+  leadStWrap.appendChild(tile(data.leadsTotal, 'Всего лидов'));
+  MAX_STATUSES.forEach(function(s){ leadStWrap.appendChild(tile(data.statusCounts[s.key] || 0, s.label, s.cls)); });
+  content.appendChild(leadStWrap);
 
   var rsTitle = document.createElement('div'); rsTitle.className='health-section-title'; rsTitle.textContent='Статусы ответов за период (статусы сообщений, не лидов)';
   content.appendChild(rsTitle);
@@ -9296,7 +9301,7 @@ async function renderMaxReportView(){
 function generateMaxReportHtml(data){
   var esc = function(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
   var showBooth = !data.campaignFilter || /выставк/i.test(data.campaignFilter);
-  var statusTiles = MAX_STATUSES.map(function(s){ return data.statusCounts[s.key] ? '<span class="tile">'+data.statusCounts[s.key]+'<br><small>'+esc(s.label)+'</small></span>' : ''; }).join('');
+  var statusTiles = '<span class="tile">'+data.leadsTotal+'<br><small>Всего лидов</small></span>' + MAX_STATUSES.map(function(s){ return '<span class="tile">'+(data.statusCounts[s.key]||0)+'<br><small>'+esc(s.label)+'</small></span>'; }).join('');
   var leadHeaderCells = '<th>Воронка</th><th>Компания</th><th>Контакт</th><th>Должность</th><th>Аккаунт</th><th>Сегмент</th>'+(showBooth?'<th>Стенд</th>':'')+'<th>Статус</th><th>Контакты</th><th>Заметки</th><th>Диалог</th>';
   var leadColspan = showBooth ? 10 : 9;
   var leadsRows = data.periodLeads.map(function(l){
@@ -9348,11 +9353,11 @@ function generateMaxReportHtml(data){
     '.chartbox{background:#fff;border:1px solid #dfe3ea;border-radius:10px;padding:14px;margin-bottom:20px;}'+
     '</style></head><body>'+
     '<h1>📊 HotelCompas / JetCompas — Отчёт: '+data.fromStr+' — '+data.toStr+(data.campaignFilter?' · '+esc(data.campaignFilter):'')+'</h1>'+
-    '<h2>Статусы лидов за период (основной статус лида)</h2><div class="tiles">'+
+    '<h2>Итоги периода</h2><div class="tiles">'+
     '<span class="tile">'+data.createdInRange.length+'<br><small>Новых лидов</small></span>'+
     '<span class="tile">'+data.statusChangedInRange.length+'<br><small>Смен статуса</small></span>'+
-    '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span>'+
-    '<span class="tile">'+data.periodLeads.length+'<br><small>Лидов в отчёте</small></span>'+
+    '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span></div>'+
+    '<h2>Статусы лидов'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+' (основной статус каждого лида, все лиды воронки)</h2><div class="tiles">'+
     statusTiles+'</div>'+
     '<h2>Ответы контактов по дням (полученные сообщения)</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
     '<h2>Динамика по неделям (выбранный период подсвечен)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
