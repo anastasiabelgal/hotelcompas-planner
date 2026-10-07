@@ -9106,6 +9106,11 @@ async function renderMaxReportView(){
   var content = el('max-report-content');
   content.innerHTML = '';
 
+  var summaryTitle = document.createElement('div'); summaryTitle.className='health-section-title'; summaryTitle.textContent='Статусы лидов за период';
+  content.appendChild(summaryTitle);
+  var summaryHint = document.createElement('div'); summaryHint.style.cssText='font-size:11.5px;color:var(--muted);margin:-4px 0 8px;';
+  summaryHint.textContent='Основной статус лида (карточка контакта). Статусы отдельных ответов считаются ниже.';
+  content.appendChild(summaryHint);
   var summaryWrap = document.createElement('div'); summaryWrap.className='max-dashboard'; summaryWrap.style.marginBottom='16px';
   function tile(num, label, cls){ var t=document.createElement('div'); t.className='max-dash-tile'+(cls?' '+cls:''); t.innerHTML='<div class="mdt-num">'+num+'</div><div class="mdt-label">'+label+'</div>'; return t; }
   summaryWrap.appendChild(tile(data.createdInRange.length, 'Новых лидов'));
@@ -9114,7 +9119,7 @@ async function renderMaxReportView(){
   MAX_STATUSES.forEach(function(s){ if(data.statusCounts[s.key]) summaryWrap.appendChild(tile(data.statusCounts[s.key], s.label, s.cls)); });
   content.appendChild(summaryWrap);
 
-  var rsTitle = document.createElement('div'); rsTitle.className='health-section-title'; rsTitle.textContent='Статусы ответов за период';
+  var rsTitle = document.createElement('div'); rsTitle.className='health-section-title'; rsTitle.textContent='Статусы ответов за период (статусы сообщений, не лидов)';
   content.appendChild(rsTitle);
   var rsBox = document.createElement('div'); rsBox.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;';
   rsBox.innerHTML = buildTouchBarsHtml(data.replyStatusStats, false, 'За период нет ответов');
@@ -9300,14 +9305,14 @@ function generateMaxReportHtml(data){
     '.chartbox{background:#fff;border:1px solid #dfe3ea;border-radius:10px;padding:14px;margin-bottom:20px;}'+
     '</style></head><body>'+
     '<h1>📊 HotelCompas / JetCompas — Отчёт: '+data.fromStr+' — '+data.toStr+(data.campaignFilter?' · '+esc(data.campaignFilter):'')+'</h1>'+
-    '<h2>Итоги периода</h2><div class="tiles">'+
+    '<h2>Статусы лидов за период (основной статус лида)</h2><div class="tiles">'+
     '<span class="tile">'+data.createdInRange.length+'<br><small>Новых лидов</small></span>'+
     '<span class="tile">'+data.statusChangedInRange.length+'<br><small>Смен статуса</small></span>'+
     '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span>'+
     statusTiles+'</div>'+
     '<h2>Ответы по дням</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
     '<h2>Динамика по неделям (выбранный период подсвечен)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
-    '<h2>Статусы ответов за период</h2><div class="chartbox">'+buildTouchBarsHtml(data.replyStatusStats, true, 'За период нет ответов')+'</div>'+
+    '<h2>Статусы ответов за период (статусы сообщений, не лидов)</h2><div class="chartbox">'+buildTouchBarsHtml(data.replyStatusStats, true, 'За период нет ответов')+'</div>'+
     '<h2>На какое наше сообщение отвечают (первый ответ контакта)</h2><div class="chartbox">'+buildTouchBarsHtml(data.touchStats, true)+'</div>'+
     '<h2>Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="tiles">'+autoTiles+'</div>'+
     '<h2>Лиды за период</h2><table><tr>'+leadHeaderCells+'</tr>'+(leadsRows||'<tr><td colspan="'+leadColspan+'">За этот период ничего нет</td></tr>')+'</table>'+
