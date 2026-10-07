@@ -7542,6 +7542,14 @@ var AUTOSTATS_FIELDS = [
   ['messagesSent','Msg. Sent'], ['messagesOpened','Msg. Opened'], ['messagesReplied','Msg. Replied'],
   ['inmailsSent','InMails Sent'], ['inmailsReplied','InMails Replied']
 ];
+// Проценты как в GetSales: от какого показателя считается каждый
+var AUTOSTATS_PCT_BASE = { connectionsAccepted:'connectionsSent', messagesSent:'connectionsAccepted', messagesOpened:'messagesSent', messagesReplied:'messagesSent', inmailsReplied:'inmailsSent' };
+function autostatsPctNum(key, src){
+  var baseKey = AUTOSTATS_PCT_BASE[key]; if(!baseKey) return null;
+  var base = Number(src[baseKey])||0; if(!(base > 0)) return null;
+  return Math.round((Number(src[key])||0)/base*1000)/10;
+}
+function autostatsFieldLabel(key){ var f = AUTOSTATS_FIELDS.filter(function(x){ return x[0]===key; })[0]; return f ? f[1] : key; }
 var autostatsMonday = getMondayOf(new Date());
 var autostatsData = { weekStart:'', perAccount:{}, contactsAdded:0 };
 var unsubAutostats = null;
@@ -7626,10 +7634,11 @@ function renderAutostatsTable(){
       });
       td.appendChild(inp);
       // Процент для Accepted/Opened/Replied от соответствующего Sent
-      if(f[0]==='connectionsAccepted' || f[0]==='messagesOpened' || f[0]==='messagesReplied' || f[0]==='inmailsReplied'){
-        var base = f[0]==='connectionsAccepted' ? accData.connectionsSent : (f[0]==='inmailsReplied' ? accData.inmailsSent : accData.messagesSent);
+      if(AUTOSTATS_PCT_BASE[f[0]]){
+        var pctVal = autostatsPctNum(f[0], accData);
         var pctSpan = document.createElement('span'); pctSpan.className='autostats-pct';
-        pctSpan.textContent = base>0 ? Math.round((Number(accData[f[0]])||0)/base*1000)/10+'%' : '-';
+        pctSpan.textContent = pctVal === null ? '-' : pctVal+'%';
+        pctSpan.title = 'От показателя ' + autostatsFieldLabel(AUTOSTATS_PCT_BASE[f[0]]);
         td.appendChild(pctSpan);
       }
       tr.appendChild(td);
@@ -7641,10 +7650,11 @@ function renderAutostatsTable(){
   var totalTdLabel = document.createElement('td'); totalTdLabel.textContent='Всего'; totalTr.appendChild(totalTdLabel);
   AUTOSTATS_FIELDS.forEach(function(f){
     var td = document.createElement('td'); td.textContent = totals[f[0]];
-    if(f[0]==='connectionsAccepted' || f[0]==='messagesOpened' || f[0]==='messagesReplied' || f[0]==='inmailsReplied'){
-      var base2 = f[0]==='connectionsAccepted' ? totals.connectionsSent : (f[0]==='inmailsReplied' ? totals.inmailsSent : totals.messagesSent);
+    if(AUTOSTATS_PCT_BASE[f[0]]){
+      var pctVal2 = autostatsPctNum(f[0], totals);
       var pctSpan2 = document.createElement('span'); pctSpan2.className='autostats-pct';
-      pctSpan2.textContent = base2>0 ? ' ('+Math.round(totals[f[0]]/base2*1000)/10+'%)' : '';
+      pctSpan2.textContent = pctVal2 === null ? '' : ' ('+pctVal2+'%)';
+      pctSpan2.title = 'От показателя ' + autostatsFieldLabel(AUTOSTATS_PCT_BASE[f[0]]);
       td.appendChild(pctSpan2);
     }
     totalTr.appendChild(td);
@@ -8943,7 +8953,7 @@ async function fetchAutostatsForRange(fromStr, toStr, funnel){
       }
     }catch(err){ console.error('autostats fetch err', err); }
   }
-  return { totals: totals, perAccount: perAccTotals, weeksCount: mondays.length, contactsAdded: contactsAddedTotal };
+  return { totals: totals, perAccount: perAccTotals, weeksCount: mondays.length, contactsAdded: contactsAddedTotal, firstWeek: mondays[0], lastWeek: mondays[mondays.length-1] };
 }
 
 async function buildMaxReportData(fromStr, toStr, campaignFilter){
@@ -9022,6 +9032,24 @@ async function buildMaxReportData(fromStr, toStr, campaignFilter){
 }
 
 // Горизонтальные столбики «на какое сообщение отвечают» (HTML, годится для экрана и для скачиваемого файла)
+// Таблица статистики автоматизации по аккаунтам за период, с процентами как в GetSales
+function buildAutostatsPeriodTableHtml(range, forDownload){
+  var esc2 = function(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var muted = forDownload ? '#6b7280' : 'var(--muted, #6b7280)';
+  var cell = function(src, key){
+    var pct = autostatsPctNum(key, src);
+    return (Number(src[key])||0) + (pct === null ? '' : ' <span style="color:'+muted+';font-size:10.5px;">('+pct+'%)</span>');
+  };
+  var head = '<th>Аккаунт</th>' + AUTOSTATS_FIELDS.map(function(f){ return '<th>'+esc2(f[1])+'</th>'; }).join('');
+  var rows = AUTOMATION_ACCOUNTS.map(function(acc){
+    var src = range.perAccount[acc] || {};
+    return '<tr><td style="font-weight:600;">'+esc2(acc)+'</td>' + AUTOSTATS_FIELDS.map(function(f){ return '<td>'+cell(src, f[0])+'</td>'; }).join('') + '</tr>';
+  }).join('');
+  var total = '<tr style="font-weight:700;"><td>Всего</td>' + AUTOSTATS_FIELDS.map(function(f){ return '<td>'+cell(range.totals, f[0])+'</td>'; }).join('') + '</tr>';
+  return '<div class="comp-table-wrap" style="overflow-x:auto;"><table class="comp-table"><thead><tr>'+head+'</tr></thead><tbody>'+rows+total+'</tbody></table></div>' +
+    '<div style="font-size:11px;color:'+muted+';margin-top:6px;">Проценты как в GetSales: Accepted от Conn. Sent, Msg. Sent от Accepted, Opened и Replied от Msg. Sent, InMails Replied от InMails Sent. Учтены недели с '+esc2(range.firstWeek||'')+' по '+esc2(range.lastWeek||'')+' (всего '+range.weeksCount+').</div>';
+}
+
 function buildTouchBarsHtml(touchStats, forDownload, emptyText){
   var total = touchStats.reduce(function(a,t){ return a + t.count; }, 0);
   var maxC = Math.max.apply(null, touchStats.map(function(t){ return t.count; }).concat([1]));
@@ -9238,9 +9266,17 @@ async function renderMaxReportView(){
   content.appendChild(autoTitle);
   var autoWrap = document.createElement('div'); autoWrap.className='max-dashboard'; autoWrap.style.marginBottom='16px';
   function atile(num, label){ var t=document.createElement('div'); t.className='max-dash-tile'; t.innerHTML='<div class="mdt-num">'+num+'</div><div class="mdt-label">'+label+'</div>'; return t; }
-  AUTOSTATS_FIELDS.forEach(function(f){ autoWrap.appendChild(atile(data.autostatsRange.totals[f[0]], f[1])); });
+  AUTOSTATS_FIELDS.forEach(function(f){
+    var pv = autostatsPctNum(f[0], data.autostatsRange.totals);
+    var t = atile(data.autostatsRange.totals[f[0]], f[1]);
+    if(pv !== null){ var sm = document.createElement('div'); sm.style.cssText='font-size:10.5px;color:var(--muted);margin-top:2px;'; sm.textContent = pv+'% от '+autostatsFieldLabel(AUTOSTATS_PCT_BASE[f[0]]); t.appendChild(sm); }
+    autoWrap.appendChild(t);
+  });
   autoWrap.appendChild(atile(data.autostatsRange.contactsAdded, 'Контактов добавлено'));
   content.appendChild(autoWrap);
+  var autoTableBox = document.createElement('div'); autoTableBox.style.marginBottom='16px';
+  autoTableBox.innerHTML = buildAutostatsPeriodTableHtml(data.autostatsRange, false);
+  content.appendChild(autoTableBox);
 
   var campTitle = document.createElement('div'); campTitle.className='health-section-title'; campTitle.textContent='Сводка по кампаниям (вся база)';
   content.appendChild(campTitle);
@@ -9292,7 +9328,10 @@ function generateMaxReportHtml(data){
     ? '<h2>Рекомендованные контакты</h2><table><tr><th>От кого</th><th>Компания</th><th>Имя</th><th>Должность</th><th>Контакты</th><th>Заметки</th></tr>'+referralRows+'</table>'
     : '';
 
-  var autoTiles = AUTOSTATS_FIELDS.map(function(f){ return '<span class="tile">'+data.autostatsRange.totals[f[0]]+'<br><small>'+esc(f[1])+'</small></span>'; }).join('')+
+  var autoTiles = AUTOSTATS_FIELDS.map(function(f){
+    var pv = autostatsPctNum(f[0], data.autostatsRange.totals);
+    return '<span class="tile">'+data.autostatsRange.totals[f[0]]+'<br><small>'+esc(f[1])+'</small>'+(pv !== null ? '<small>'+pv+'% от '+esc(autostatsFieldLabel(AUTOSTATS_PCT_BASE[f[0]]))+'</small>' : '')+'</span>';
+  }).join('')+
     '<span class="tile">'+data.autostatsRange.contactsAdded+'<br><small>Контактов добавлено</small></span>';
 
   return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Отчёт '+data.fromStr+' — '+data.toStr+'</title>'+
@@ -9316,7 +9355,7 @@ function generateMaxReportHtml(data){
     '<h2>Динамика по неделям (выбранный период подсвечен)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
     '<h2>Статусы ответов за период (статусы сообщений, не лидов)</h2><div class="chartbox">'+buildTouchBarsHtml(data.replyStatusStats, true, 'За период нет ответов')+'</div>'+
     '<h2>На какое наше сообщение отвечают (первый ответ контакта)</h2><div class="chartbox">'+buildTouchBarsHtml(data.touchStats, true)+'</div>'+
-    '<h2>Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="tiles">'+autoTiles+'</div>'+
+    '<h2>Автоматизация за период ('+data.autostatsRange.weeksCount+' нед.)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="tiles">'+autoTiles+'</div>'+buildAutostatsPeriodTableHtml(data.autostatsRange, true)+
     '<h2>Лиды за период</h2><table><tr>'+leadHeaderCells+'</tr>'+(leadsRows||'<tr><td colspan="'+leadColspan+'">За этот период ничего нет</td></tr>')+'</table>'+
     referralsSection+
     '<h2>Сводка по кампаниям (вся база)</h2><table><tr><th>Кампания</th><th>Всего</th><th>По статусам</th></tr>'+campRows+'</table>'+
