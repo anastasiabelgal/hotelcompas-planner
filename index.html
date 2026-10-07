@@ -8901,11 +8901,13 @@ function dailyReplyTrend(fromStr, toStr, statusChangedList, messageLeads){
   var end = new Date(toStr+'T00:00:00');
   while(d <= end){
     var ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    var count = statusChangedList.filter(function(l){ return l.statusChangedDate === ds; }).length;
-    // + лиды, у которых в этот день появилось сообщение (если статус в тот же день не менялся - не считаем дважды)
+    // Ответы контактов: каждое сообщение от контакта с датой этого дня.
+    // Для старых лидов без лога сообщений ответом считаем смену статуса в этот день.
+    var count = 0;
     (messageLeads||[]).forEach(function(l){
-      if(l.statusChangedDate !== ds && (l.messages||[]).some(function(m){ return m.date === ds; })) count++;
+      (l.messages||[]).forEach(function(m){ if(m.date === ds) count++; });
     });
+    count += statusChangedList.filter(function(l){ return l.statusChangedDate === ds && !(l.messages||[]).length; }).length;
     days.push({ date: ds, count: count });
     d.setDate(d.getDate()+1);
   }
@@ -9220,7 +9222,7 @@ async function renderMaxReportView(){
     content.appendChild(refWrap);
   }
 
-  var trendTitle = document.createElement('div'); trendTitle.className='health-section-title'; trendTitle.textContent='Ответы по дням';
+  var trendTitle = document.createElement('div'); trendTitle.className='health-section-title'; trendTitle.textContent='Ответы контактов по дням (полученные сообщения)';
   content.appendChild(trendTitle);
   var chartHolder = document.createElement('div'); chartHolder.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;';
   chartHolder.innerHTML = buildTrendSvg(data.dailyTrend);
@@ -9310,7 +9312,7 @@ function generateMaxReportHtml(data){
     '<span class="tile">'+data.statusChangedInRange.length+'<br><small>Смен статуса</small></span>'+
     '<span class="tile">'+data.newMessagesCount+'<br><small>Новых сообщений</small></span>'+
     statusTiles+'</div>'+
-    '<h2>Ответы по дням</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
+    '<h2>Ответы контактов по дням (полученные сообщения)</h2><div class="chartbox">'+buildTrendSvg(data.dailyTrend, true)+'</div>'+
     '<h2>Динамика по неделям (выбранный период подсвечен)'+(data.campaignFilter?' · воронка '+esc(data.campaignFilter):'')+'</h2><div class="chartbox">'+(data.weeklyHasData ? buildTrendChartsHtml(data.weeklyPoints, reportWeekHighlight(data.fromStr, data.toStr), true) : 'Нет данных автоматизации по неделям')+'</div>'+
     '<h2>Статусы ответов за период (статусы сообщений, не лидов)</h2><div class="chartbox">'+buildTouchBarsHtml(data.replyStatusStats, true, 'За период нет ответов')+'</div>'+
     '<h2>На какое наше сообщение отвечают (первый ответ контакта)</h2><div class="chartbox">'+buildTouchBarsHtml(data.touchStats, true)+'</div>'+
