@@ -13,12 +13,12 @@ service cloud.firestore {
         !(request.auth.token.email.lower() in ['r.vizuete@hotelcompas.com']);
     }
 
-    // Рита: два адреса (внешний gmail и рабочий @hotelcompas.com), допущена только к своим данным и разделу Лидогенерация
+    // Рита: только рабочий адрес @hotelcompas.com, допущена только к своим данным и разделу Лидогенерация
     function isRita() {
       return request.auth != null &&
         request.auth.token.email != null &&
         request.auth.token.email_verified == true &&
-        request.auth.token.email.lower() in ['ritapatriciav@gmail.com', 'r.vizuete@hotelcompas.com'];
+        request.auth.token.email.lower() == 'r.vizuete@hotelcompas.com';
     }
 
     function isNastya() {

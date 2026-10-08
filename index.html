@@ -2053,7 +2053,7 @@ const NASTYA_EMAIL = "a.belousova@hotelcompas.com";
 function isMaxUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === MAX_EMAIL; }
 function isNastyaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === NASTYA_EMAIL; }
 // Адреса Риты: рабочее пространство Риты (свои данные, без личного и общих данных команды)
-const RITA_EMAILS = ["ritapatriciav@gmail.com", "r.vizuete@hotelcompas.com"];
+const RITA_EMAILS = ["r.vizuete@hotelcompas.com"];
 function isRitaEmail(email){ return RITA_EMAILS.indexOf((email || '').toLowerCase()) > -1; }
 function isRitaUser(){ return !!(currentUser && currentUser.email && isRitaEmail(currentUser.email)); }
 function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser(); }
