@@ -1218,6 +1218,53 @@
     .weekplan-progress-wrap{flex-direction:column;text-align:center;}
   }
   @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+
+  /* Карта (доска) */
+  .board-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
+  .board-bar .btn-secondary{height:36px;padding:0 14px;}
+  .board-bar .btn-secondary.on{border-color:var(--navy);color:var(--navy);}
+  .board-zoom{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);}
+  .board-zoom .btn-secondary{padding:0 10px;}
+  .board-hint{font-size:12px;color:var(--muted);flex:1;min-width:200px;}
+  .board-wrap{display:flex;gap:12px;align-items:stretch;}
+  #board-canvas{position:relative;flex:1;min-width:0;height:calc(100vh - 250px);min-height:480px;overflow:hidden;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);touch-action:none;cursor:grab;background-image:radial-gradient(var(--border) 1px,transparent 1px);background-size:20px 20px;}
+  #board-canvas:active{cursor:grabbing;}
+  #board-world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;}
+  #board-svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;}
+  #board-svg path.be-hit{pointer-events:stroke;cursor:pointer;}
+  .bn{position:absolute;box-sizing:border-box;background:var(--panel);border:1px solid var(--border);border-left:5px solid var(--cc);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow-1);cursor:move;overflow:hidden;display:flex;flex-direction:column;gap:4px;user-select:none;}
+  .bn.sel{outline:2px solid var(--navy);outline-offset:1px;overflow:visible;}
+  .bn.up{background:color-mix(in srgb,var(--red) 10%,var(--panel));}
+  .bn.dn{background:color-mix(in srgb,var(--navy) 12%,var(--panel));}
+  .bn.dim{opacity:.35;}
+  .bn.bneck{border-color:var(--red);border-left-color:var(--red);}
+  .bn.done{opacity:.55;}
+  .bn.done .bn-t{text-decoration:line-through;}
+  .bn.cfrom{outline:2px dashed var(--amber);}
+  .bn-t{font-size:12.5px;font-weight:700;line-height:1.3;color:var(--text);}
+  .bn-n{font-size:11.5px;color:var(--muted);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .bn-m{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:auto;}
+  .bp{background:var(--navy);color:#fff;border-radius:6px;padding:0 7px;font-size:11px;font-variant-numeric:tabular-nums;}
+  .bp2{background:var(--panel-soft);border:1px solid var(--border);border-radius:6px;padding:0 6px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .bpb{color:var(--navy);}
+  .bpr{color:var(--red);border-color:var(--red);}
+  .bn-o{font-size:11px;color:var(--muted);margin-left:auto;}
+  .bn-label{background:var(--panel-soft);border-left-width:5px;align-items:center;justify-content:center;text-align:center;font-weight:800;font-size:14px;color:var(--text);}
+  .bn-rs{position:absolute;right:-6px;bottom:-6px;width:14px;height:14px;background:var(--navy);border-radius:4px;cursor:nwse-resize;}
+  #board-panel{width:280px;flex:0 0 280px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;overflow:auto;max-height:calc(100vh - 250px);min-height:480px;display:flex;flex-direction:column;gap:10px;font-size:13px;}
+  #board-panel h4{margin:0;font-size:15px;}
+  #board-panel label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:600;}
+  #board-panel input:not([type=checkbox]),#board-panel textarea{font:inherit;font-size:13px;color:var(--text);background:var(--panel-soft);border:1px solid var(--border);border-radius:8px;padding:7px 9px;width:100%;box-sizing:border-box;resize:vertical;}
+  #board-panel .bp-row{display:flex;gap:8px;}
+  #board-panel .bp-row label{flex:1;min-width:0;}
+  #board-panel .bp-ck{flex-direction:row;align-items:center;gap:8px;color:var(--text);font-weight:500;}
+  .bp-colors{display:flex;gap:6px;}
+  .bp-c{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;}
+  .bp-c.on{border-color:var(--text);}
+  .bp-rel{display:flex;flex-direction:column;gap:3px;}
+  .bp-rel a{color:var(--navy);cursor:pointer;font-size:12px;line-height:1.3;}
+  .bp-help ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--muted);}
+  @media (max-width:900px){.board-wrap{flex-direction:column;}#board-panel{width:auto;flex:none;max-height:none;min-height:0;}#board-canvas{height:60vh;}}
 </style>
 </head>
 <body>
@@ -1322,6 +1369,7 @@
     <button class="tab-btn" data-tab="chat">Чат</button>
     <button class="tab-btn" data-tab="calls">Звонки</button>
     <button class="tab-btn" data-tab="projects">Проекты</button>
+    <button class="tab-btn" data-tab="board">Карта</button>
     <button class="tab-btn" data-tab="tools" title="Инструменты" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94Z"></path></svg></button>
     <button class="tab-btn" data-tab="knowledge" title="База знаний" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg></button>
     <button class="tab-btn" data-tab="research" title="Исследования" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v3l2 2"></path></svg></button>
@@ -1806,6 +1854,24 @@
     <div id="prio-accordion"></div>
     <div id="proj-zones-container"></div>
     <button class="btn-secondary" id="proj-add-zone-btn" style="margin-top:10px;">+ Новая зона</button>
+  </div>
+
+  <!-- BOARD TAB -->
+  <div id="tab-board" class="hidden">
+    <div class="board-bar">
+      <button class="btn-primary" id="board-add" style="height:36px;">+ Карточка</button>
+      <button class="btn-secondary" id="board-add-label">+ Заголовок</button>
+      <button class="btn-secondary" id="board-connect-btn" title="Нажми на карточку, которая должна быть раньше, потом на ту, что от неё зависит">Стрелка</button>
+      <button class="btn-secondary on" id="board-snap" title="Привязка к сетке">Сетка</button>
+      <span class="board-zoom"><button class="btn-secondary" id="board-zout">−</button><span id="board-zoom">100%</span><button class="btn-secondary" id="board-zin">+</button></span>
+      <button class="btn-secondary" id="board-fit">По размеру</button>
+      <button class="btn-secondary" id="board-seed">Заполнить моим планом</button>
+      <span class="board-hint" id="board-hint"></span>
+    </div>
+    <div class="board-wrap">
+      <div id="board-canvas"><div id="board-world"></div></div>
+      <div id="board-panel"></div>
+    </div>
   </div>
 
   <!-- COMPETITORS TAB -->
@@ -2391,6 +2457,7 @@ function subscribeOwnerData(){
   subscribeRoutine();
   subscribeFollowupReminders();
   subscribeProjects();
+  subscribeBoard();
   subscribeTools();
   subscribeKnowledge();
   subscribeResearch();
@@ -2412,6 +2479,8 @@ function teardownOwnerListeners(){
   if(unsubProjZones){ unsubProjZones(); unsubProjZones = null; }
   if(unsubProjCards){ unsubProjCards(); unsubProjCards = null; }
   if(unsubProjPriorities){ unsubProjPriorities(); unsubProjPriorities = null; }
+  if(unsubBoard){ unsubBoard(); unsubBoard = null; }
+  boardItems = []; bSel = null; bFitted = false;
   if(unsubTools){ unsubTools(); unsubTools = null; }
   if(unsubKnowledge){ unsubKnowledge(); unsubKnowledge = null; }
   if(unsubResearch){ unsubResearch(); unsubResearch = null; }
@@ -2431,7 +2500,7 @@ function applyRoleVisibility(){
     // Сразу открываем вкладку Макс
     document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
     if(maxTabBtn) maxTabBtn.classList.add('active');
-    document.querySelectorAll('#tab-tasks,#tab-leads,#tab-leadlist,#tab-competitors,#tab-chat,#tab-calls,#tab-projects,#tab-tools,#tab-knowledge').forEach(function(elx){ elx.classList.add('hidden'); });
+    document.querySelectorAll('#tab-tasks,#tab-leads,#tab-leadlist,#tab-competitors,#tab-chat,#tab-calls,#tab-projects,#tab-board,#tab-tools,#tab-knowledge').forEach(function(elx){ elx.classList.add('hidden'); });
     el('tab-maxsection').classList.remove('hidden');
     renderMaxLeadsView();
     return;
@@ -2453,7 +2522,7 @@ function applyRoleVisibility(){
   var noteLine = document.querySelector('#board-screen .note-line');
   if(noteLine) noteLine.style.display = isRitaUser() ? 'none' : '';
   document.querySelectorAll('.tab-bar .tab-btn').forEach(function(b){
-    var hide = (ritaWorkspace && b.dataset.tab === 'personal') || (b.dataset.tab === 'maxsection' && !canSeeMaxTab());
+    var hide = (ritaWorkspace && (b.dataset.tab === 'personal' || b.dataset.tab === 'board')) || (b.dataset.tab === 'maxsection' && !canSeeMaxTab());
     b.style.display = hide ? 'none' : '';
   });
   var activeBtn = document.querySelector('.tab-bar .tab-btn.active');
@@ -9428,6 +9497,299 @@ function initAuthUI(){
   setAuthMode('login');
 }
 
+/* ---------- Карта: свободное поле с карточками, приоритетами и стрелками ---------- */
+var boardItems = [], unsubBoard = null;
+var BCOL = {blue:'#3D82FF', red:'#dd5c56', amber:'#ef9b3d', green:'#3fae7f', purple:'#8a63c8', gray:'#8592a1'};
+var BCOL_NAME = {blue:'Синий', red:'Красный', amber:'Жёлтый', green:'Зелёный', purple:'Фиолетовый', gray:'Серый'};
+var bv = {x:40, y:30, s:1};
+var bSel = null, bConnect = false, bConnectFrom = null, bSnap = true, bDrag = null, bBound = false, bFitted = false;
+var bSaveTimers = {};
+var BSEED = [["A3","Свести цифры с Максимом: срок фоллоу-апа, срок оплаты, число компаний и отелей",0.5,30.4,2,1,"red","Настя+Максим","На сверке 15 минут"],["A2","Критерий «готов к самостоятельной работе» (квиз, ответы, поиск, планер)",1.0,22.0,3,1,"red","Настя",""],["A1","Дописать регламент: вставить 3.7, 3.8–3.9, 9.1.1, 9.6, статусы, дату звонка",3.0,18.2,7,1,"red","Настя","Готовые тексты уже есть в чате"],["B1","Просроченные и сегодняшние напоминания только по Interested / Call scheduled",1.0,17.5,0,1,"green","Настя",""],["A4","Безопасность: пароли в менеджер, NDA для Риты, quiz без названий, Notion гость",1.0,15.5,0,1,"amber","Настя",""],["A5","2FA: Леонид, Мария, Анис; убрать лишние сессии Марии",1.0,15.5,0,1,"amber","Настя","Потеря аккаунта = потеря базы"],["B3","Звонок с Татьяной (букинг), определить сотрудника на поиск отелей",1.0,22.0,4,2,"red","Настя+букинг","Блокирует 4 блока"],["B2","Остальные просроченные напоминания (≈20) — передать Рите как практику",0.0,19.8,0,2,"green","Рита","Это часть обучения Риты, не твоё время"],["B5","Martinaire: оффер (ждёт букинг) и Fly91: письмо (ход Максима) — только пинг",0.5,19.8,0,2,"green","Букинг/Максим","Только пинг, оформление делает владелец"],["A6","Домен и общий ящик для SDR + правило передачи Максиму",3.0,9.5,2,2,"red","Настя+Максим",""],["B4","Закрыть пайплайн: заполнить статус и решение по 40 компаниям",3.0,9.2,0,2,"green","Настя",""],["C1","ICP v0 из отчёта за 3 месяца",3.0,9.2,1,2,"blue","Настя",""],["C3","Профили LinkedIn: Ноэль, Мария, Леонид, HotelCompas, JetCompas",2.5,6.6,0,2,"blue","Настя",""],["B7","Старые напоминания в followupReminders (30 шт., авг–сент): архив или в работу",1.5,5.7,0,2,"blue","Настя",""],["C7","Подготовка к встрече в Гонконге (начало ноября)",3.0,10.1,0,3,"green","Настя+Максим","Дата встречи подтвердить"],["C4","Выбрать систему для контактов (CRM)",3.0,8.4,1,3,"blue","Настя","После этого — решение по списку инструментов"],["C2","Выставки: стратегия захода, текстовки по каналам, сравнение с лидгеном",5.0,6.3,0,3,"green","Настя+Ноэль","Гонконг: начало ноября"],["C6","Текстовки: выбрать лучшую цепочку из 2-х, цепочка C custdev, хуки",4.0,6.2,0,3,"blue","Настя",""],["C5","Трекер для поиска компаний",3.0,6.1,0,3,"blue","Настя",""],["B6","Реактивация молчащих: звонок/WhatsApp 18 компаниям + выяснить чей ход у 20",5.0,5.6,0,3,"green","Настя→Рита","Часть писем передать Рите после онбординга"],["D1","План контента с Ноэль, календарь авиапраздников",3.0,5.2,0,3,"purple","Настя+Ноэль",""],["A7","Проверить тестовые, пригласить на второй звонок (найм)",2.0,7.8,1,4,"red","Настя","Уточнить: идёт ли ещё найм при наличии Риты"],["D4","Полный анализ → ICP-портрет",8.0,6.7,3,4,"blue","Настя","После обучения Риты"],["D3","Анализ клиентов: почему уходят, к кому, почему остаются (LTV)",4.0,5.5,0,4,"blue","Настя+COO",""],["D5","Презентации: заменить старые, одностраничники",4.0,4.5,0,4,"purple","Настя",""],["D2","Сайт JetFuel/JetCompas: ТЗ Макса, правки, профиль LinkedIn JetFuel",6.0,3.7,0,4,"purple","Настя","Зависит от базы отелей"],["D8","Конкуренты: контент-анализ, что у них есть, а у нас нет",3.0,5.2,0,5,"purple","Настя",""],["D12","Автоматизации: send always, auto-withdraw, ежемесячная сверка",3.0,5.2,0,5,"blue","Настя",""],["D7","Каналы: как привлечь клиентов, inbound-стратегия через Claude",4.0,4.5,0,5,"purple","Настя",""],["D6","JetCompas: список компаний, текстовки, выход, suppliers (Галина)",10.0,2.8,0,5,"purple","Настя","После базы отелей"],["D10","AEO-анализ и публикации в журналах",3.0,3.2,0,6,"purple","Настя",""],["D9","Отзывы: плашка на сайте, 2ГИС, Яндекс",4.0,2.8,0,6,"purple","Настя",""],["D11","GTM + GA4 + Search Console",4.0,2.8,0,6,"purple","Настя","Нет трафика — отложено в самом проекте"],["P3","Планер: мобильный вид, интеграция Telegram",4.0,2.8,0,0,"gray","Настя",""],["P2","Тест инструментов: make, n8n, clay, trigify, vector, wsender, FLO, freckle",10.0,1.7,0,0,"gray","Настя","Не раньше решения по CRM (C4)"],["P1","Курсы и книги: Claude, HubSpot, GA4, April Dunford и др.",20.0,1.2,0,0,"gray","Настя","Максимум 2 часа в неделю с недели 4"]];
+var BSEED_DEPS = [['A3','A1'],['A1','A2'],['A2','B6'],['A6','B6'],['A2','D4'],['C1','D4'],['B3','D6'],['C4','P2']];
+function bEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function bFmt(n){ return (Math.round(n*10)/10).toString().replace('.',','); }
+
+function subscribeBoard(){
+  var q = query(collection(db,'boardItems'), where('ownerId','==',ownerUid()));
+  unsubBoard = onSnapshot(q, function(snap){
+    boardItems = []; snap.forEach(function(d){ boardItems.push(Object.assign({id:d.id}, d.data())); });
+    if(!bDrag){ renderBoardCanvas(); var p = el('board-panel'); if(p && !p.contains(document.activeElement)) renderBoardPanel(); }
+  });
+}
+function bNodes(){ return boardItems.filter(function(i){ return i.kind !== 'edge'; }); }
+function bEdges(){ return boardItems.filter(function(i){ return i.kind === 'edge'; }); }
+function bById(id){ for(var i=0;i<boardItems.length;i++){ if(boardItems[i].id === id) return boardItems[i]; } return null; }
+function bRelated(id){
+  var edges = bEdges(), up = {}, dn = {};
+  (function walk(x){ edges.forEach(function(e){ if(e.to === x && !up[e.from]){ up[e.from] = 1; walk(e.from); } }); })(id);
+  (function walk(x){ edges.forEach(function(e){ if(e.from === x && !dn[e.to]){ dn[e.to] = 1; walk(e.to); } }); })(id);
+  return {up:up, dn:dn};
+}
+function bSave(id, fields){
+  var it = bById(id); if(it) Object.assign(it, fields);
+  var t = bSaveTimers[id]; if(t){ clearTimeout(t.h); fields = Object.assign(t.f, fields); }
+  var h = setTimeout(function(){ delete bSaveTimers[id]; updateDoc(doc(db,'boardItems',id), fields); }, 350);
+  bSaveTimers[id] = {h:h, f:fields};
+}
+function bSaveNow(id, fields){
+  var it = bById(id); if(it) Object.assign(it, fields);
+  updateDoc(doc(db,'boardItems',id), fields);
+}
+function bSnapV(v){ return bSnap ? Math.round(v/20)*20 : Math.round(v); }
+
+function renderBoardCanvas(){
+  var world = el('board-world'); if(!world) return;
+  if(el('tab-board').classList.contains('hidden')) return;
+  var nodes = bNodes(), edges = bEdges();
+  var rel = (bSel && bById(bSel) && bById(bSel).kind !== 'edge') ? bRelated(bSel) : null;
+  var h = '<svg id="board-svg" width="1" height="1"></svg>';
+  nodes.forEach(function(n){
+    var cls = 'bn' + (n.kind === 'label' ? ' bn-label' : '');
+    if(n.id === bSel) cls += ' sel';
+    if(rel && n.id !== bSel){ if(rel.up[n.id]) cls += ' up'; else if(rel.dn[n.id]) cls += ' dn'; else cls += ' dim'; }
+    if(n.bottleneck) cls += ' bneck';
+    if(n.done) cls += ' done';
+    if(bConnectFrom === n.id) cls += ' cfrom';
+    var st = 'left:'+n.x+'px;top:'+n.y+'px;width:'+n.w+'px;height:'+n.h+'px;--cc:'+(BCOL[n.color]||BCOL.gray);
+    if(n.kind === 'label'){ h += '<div class="'+cls+'" data-id="'+n.id+'" style="'+st+'"><span>'+bEsc(n.title)+'</span>'+(n.id===bSel?'<i class="bn-rs" data-rs="'+n.id+'"></i>':'')+'</div>'; return; }
+    var down = Object.keys(bRelated(n.id).dn).length;
+    var pills = '';
+    if(n.prio !== '' && n.prio != null) pills += '<b class="bp" title="Приоритет">'+bEsc(n.prio)+'</b>';
+    if(n.hours) pills += '<span class="bp2">'+bEsc(n.hours)+' ч</span>';
+    if(down) pills += '<span class="bp2 bpb" title="Сколько задач ждут эту">блок. '+down+'</span>';
+    if(n.bottleneck) pills += '<span class="bp2 bpr">узкое место</span>';
+    h += '<div class="'+cls+'" data-id="'+n.id+'" style="'+st+'"><div class="bn-t">'+bEsc(n.title)+'</div>'+(n.note?'<div class="bn-n">'+bEsc(n.note)+'</div>':'')+'<div class="bn-m">'+pills+(n.owner?'<span class="bn-o">'+bEsc(n.owner)+'</span>':'')+'</div>'+(n.id===bSel?'<i class="bn-rs" data-rs="'+n.id+'"></i>':'')+'</div>';
+  });
+  world.innerHTML = h;
+  drawBoardEdges();
+  applyBoardView();
+  var hint = el('board-hint');
+  if(hint){
+    hint.textContent = bConnect ? (bConnectFrom ? 'Теперь нажми на карточку, которая ждёт эту. Esc — выйти.' : 'Нажми на карточку, которая должна быть сделана раньше. Esc — выйти.') : (nodes.length ? 'Двойной клик по пустому месту: новая карточка. Колесо: масштаб. Тяни фон: двигать поле.' : 'Доска пустая. Нажми «Заполнить моим планом» или «+ Карточка».');
+  }
+  var cb = el('board-connect-btn'); if(cb) cb.classList.toggle('on', bConnect);
+}
+function bAnchor(n, other){
+  var cx = n.x + n.w/2, cy = n.y + n.h/2, ox = other.x + other.w/2, oy = other.y + other.h/2;
+  var dx = ox - cx, dy = oy - cy;
+  if(Math.abs(dx) * n.h >= Math.abs(dy) * n.w) return dx >= 0 ? {x:n.x+n.w, y:cy, d:'r'} : {x:n.x, y:cy, d:'l'};
+  return dy >= 0 ? {x:cx, y:n.y+n.h, d:'b'} : {x:cx, y:n.y, d:'t'};
+}
+function drawBoardEdges(){
+  var svg = el('board-svg'); if(!svg) return;
+  var p = '', rel = (bSel && bById(bSel) && bById(bSel).kind !== 'edge') ? bRelated(bSel) : null;
+  svg.setAttribute('width', 6000); svg.setAttribute('height', 4000);
+  bEdges().forEach(function(e){
+    var a = bById(e.from), b = bById(e.to); if(!a || !b) return;
+    var A = bAnchor(a, b), B = bAnchor(b, a), k = 60;
+    function ctl(P){ return P.d==='r' ? [P.x+k,P.y] : P.d==='l' ? [P.x-k,P.y] : P.d==='b' ? [P.x,P.y+k] : [P.x,P.y-k]; }
+    var c1 = ctl(A), c2 = ctl(B);
+    var d = 'M'+A.x+' '+A.y+' C'+c1[0]+' '+c1[1]+' '+c2[0]+' '+c2[1]+' '+B.x+' '+B.y;
+    var hot = (bSel === e.id) || (rel && (e.from === bSel || e.to === bSel || (rel.up[e.from] && (rel.up[e.to] || e.to === bSel)) || (rel.dn[e.to] && (rel.dn[e.from] || e.from === bSel))));
+    var dim = rel && !hot;
+    p += '<path class="be-hit" data-eid="'+e.id+'" d="'+d+'" fill="none" stroke="transparent" stroke-width="16"/>';
+    p += '<path d="'+d+'" fill="none" stroke="'+(bSel===e.id?'var(--red)':'var(--navy)')+'" stroke-width="'+(hot?2.6:1.8)+'" opacity="'+(dim?0.15:0.9)+'" marker-end="url(#bah)"/>';
+    if(e.label){ p += '<text x="'+((A.x+B.x)/2)+'" y="'+(((A.y+B.y)/2)-6)+'" text-anchor="middle" font-size="12" font-weight="600" fill="var(--muted)">'+bEsc(e.label)+'</text>'; }
+  });
+  svg.innerHTML = '<defs><marker id="bah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--navy)"/></marker></defs>' + p;
+}
+function applyBoardView(){
+  var w = el('board-world'); if(w) w.style.transform = 'translate('+bv.x+'px,'+bv.y+'px) scale('+bv.s+')';
+  var z = el('board-zoom'); if(z) z.textContent = Math.round(bv.s*100) + '%';
+}
+function bFit(){
+  var cv = el('board-canvas'); var ns = bNodes(); if(!cv) return;
+  if(!ns.length){ bv = {x:40, y:30, s:1}; applyBoardView(); return; }
+  var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+  ns.forEach(function(n){ x1 = Math.min(x1,n.x); y1 = Math.min(y1,n.y); x2 = Math.max(x2,n.x+n.w); y2 = Math.max(y2,n.y+n.h); });
+  var W = cv.clientWidth, H = cv.clientHeight, pad = 30;
+  var sf = Math.min((W-2*pad)/(x2-x1), (H-2*pad)/(y2-y1), 1.2); if(!(sf > 0)) sf = 1;
+  var s = Math.max(0.45, Math.min(1.2, sf));
+  bv.s = s; bv.y = pad - y1*s;
+  bv.x = s > sf ? pad - x1*s : (W-(x2-x1)*s)/2 - x1*s;
+  applyBoardView();
+}
+function bToWorld(cx, cy){ var r = el('board-canvas').getBoundingClientRect(); return {x:(cx - r.left - bv.x)/bv.s, y:(cy - r.top - bv.y)/bv.s}; }
+function bSelect(id){ bSel = id; renderBoardCanvas(); renderBoardPanel(); }
+
+function bAddNode(kind, x, y){
+  var ref = doc(collection(db,'boardItems'));
+  var item = kind === 'label'
+    ? {ownerId:ownerUid(), kind:'label', x:bSnapV(x), y:bSnapV(y), w:240, h:56, title:'Заголовок', color:'gray'}
+    : {ownerId:ownerUid(), kind:'node', x:bSnapV(x), y:bSnapV(y), w:220, h:100, title:'Новая задача', note:'', prio:'', hours:'', owner:'', color:'blue', bottleneck:false, done:false};
+  boardItems.push(Object.assign({id:ref.id}, item));
+  setDoc(ref, Object.assign({createdAt: serverTimestamp()}, item));
+  bSel = ref.id; renderBoardCanvas(); renderBoardPanel();
+  var t = el('bp-title'); if(t){ t.focus(); t.select(); }
+}
+function bAddEdge(from, to){
+  if(!from || !to || from === to) return;
+  var dup = bEdges().some(function(e){ return e.from === from && e.to === to; });
+  if(dup) return;
+  var ref = doc(collection(db,'boardItems'));
+  var item = {ownerId:ownerUid(), kind:'edge', from:from, to:to, label:''};
+  boardItems.push(Object.assign({id:ref.id}, item));
+  setDoc(ref, Object.assign({createdAt: serverTimestamp()}, item));
+}
+function bDelete(id){
+  var it = bById(id); if(!it) return;
+  var kill = [id];
+  if(it.kind !== 'edge') bEdges().forEach(function(e){ if(e.from === id || e.to === id) kill.push(e.id); });
+  kill.forEach(function(k){ boardItems = boardItems.filter(function(x){ return x.id !== k; }); deleteDoc(doc(db,'boardItems',k)); });
+  if(bSel === id) bSel = null;
+  renderBoardCanvas(); renderBoardPanel();
+}
+function bSeedPlan(){
+  if(bNodes().length && !confirm('Добавить мой план приоритетов к текущей доске? Существующие карточки останутся.')) return;
+  var colX = {}, rowY = {}, ids = {};
+  var baseX = bNodes().length ? Math.max.apply(null, bNodes().map(function(n){ return n.x + n.w; })) + 120 : 40;
+  var order = BSEED.slice().sort(function(a,b){ return a[5]-b[5] || b[3]-a[3]; });
+  var heads = {};
+  order.forEach(function(r){
+    var col = r[5] === 0 ? 6 : r[5]-1;
+    if(!heads[col]){
+      heads[col] = true;
+      var hr = doc(collection(db,'boardItems'));
+      var title = r[5] === 0 ? 'Паркинг: не делаем сейчас' : 'Неделя ' + r[5];
+      setDoc(hr, {ownerId:ownerUid(), kind:'label', x:baseX + col*260, y:20, w:240, h:56, title:title, color:r[5]===0?'gray':'blue', createdAt:serverTimestamp()});
+      boardItems.push({id:hr.id, ownerId:ownerUid(), kind:'label', x:baseX + col*260, y:20, w:240, h:56, title:title, color:r[5]===0?'gray':'blue'});
+      rowY[col] = 100;
+    }
+    var ref = doc(collection(db,'boardItems')); ids[r[0]] = ref.id;
+    var item = {ownerId:ownerUid(), kind:'node', x:baseX + col*260, y:rowY[col], w:240, h:112, title:r[1], note:r[8]||'', prio:bFmt(r[3]), hours:r[2] ? bFmt(r[2]) : '', owner:r[7], color:r[6], bottleneck:r[4] >= 3, done:false};
+    rowY[col] += 128;
+    boardItems.push(Object.assign({id:ref.id}, item));
+    setDoc(ref, Object.assign({createdAt:serverTimestamp()}, item));
+  });
+  BSEED_DEPS.forEach(function(d){ if(ids[d[0]] && ids[d[1]]) bAddEdge(ids[d[0]], ids[d[1]]); });
+  renderBoardCanvas(); setTimeout(bFit, 60);
+}
+
+function renderBoardPanel(){
+  var p = el('board-panel'); if(!p) return;
+  var it = bSel ? bById(bSel) : null;
+  if(!it){ p.innerHTML = '<div class="bp-help"><b>Как пользоваться</b><ul><li>Двойной клик по пустому месту создаёт карточку.</li><li>Нажми на карточку: справа напишешь название, приоритет, часы, кто делает, и отметишь узкое место.</li><li>Кнопка «Стрелка»: нажми на карточку, которая должна быть сделана раньше, потом на ту, что от неё зависит.</li><li>Выбранная карточка: красным подсвечивается то, без чего её нельзя сделать, синим то, что она блокирует.</li><li>Delete удаляет выбранное.</li></ul></div>'; return; }
+  if(it.kind === 'edge'){
+    var a = bById(it.from), b = bById(it.to);
+    p.innerHTML = '<h4>Стрелка</h4><p class="note-line">'+bEsc(a?a.title:'?')+' → '+bEsc(b?b.title:'?')+'</p><label>Подпись<input id="bp-elabel" value="'+bEsc(it.label||'')+'" placeholder="Почему зависит"></label><div class="bp-row"><button class="btn-secondary" id="bp-swap">Развернуть</button><button class="btn-secondary" id="bp-del">Удалить</button></div>';
+    el('bp-elabel').addEventListener('input', function(){ bSave(it.id, {label:this.value}); drawBoardEdges(); });
+    el('bp-swap').onclick = function(){ bSaveNow(it.id, {from:it.to, to:it.from}); drawBoardEdges(); };
+    el('bp-del').onclick = function(){ bDelete(it.id); };
+    return;
+  }
+  var rel = bRelated(it.id), up = Object.keys(rel.up), dn = Object.keys(rel.dn);
+  var h = '<h4>'+(it.kind==='label'?'Заголовок':'Карточка')+'</h4>';
+  h += '<label>Название<textarea id="bp-title" rows="3">'+bEsc(it.title)+'</textarea></label>';
+  if(it.kind !== 'label'){
+    h += '<label>Заметка<textarea id="bp-note" rows="3" placeholder="Что именно сделать, почему важно">'+bEsc(it.note||'')+'</textarea></label>';
+    h += '<div class="bp-row"><label>Приоритет<input id="bp-prio" value="'+bEsc(it.prio)+'" placeholder="число"></label><label>Часы<input id="bp-hours" value="'+bEsc(it.hours)+'" placeholder="3"></label></div>';
+    h += '<label>Чей ход<input id="bp-owner" value="'+bEsc(it.owner||'')+'" placeholder="Настя, Рита, Максим"></label>';
+    h += '<label class="bp-ck"><input type="checkbox" id="bp-bn"'+(it.bottleneck?' checked':'')+'> Узкое место (блокирует других)</label>';
+    h += '<label class="bp-ck"><input type="checkbox" id="bp-done"'+(it.done?' checked':'')+'> Сделано</label>';
+  }
+  h += '<div class="bp-colors">'+Object.keys(BCOL).map(function(k){ return '<button class="bp-c'+(it.color===k?' on':'')+'" data-col="'+k+'" title="'+BCOL_NAME[k]+'" style="background:'+BCOL[k]+'"></button>'; }).join('')+'</div>';
+  if(it.kind !== 'label'){
+    if(up.length) h += '<div class="bp-rel"><b>Нужно сначала</b>'+up.map(function(i){ var o = bById(i); return o ? '<a data-go="'+i+'">'+bEsc(o.title)+'</a>' : ''; }).join('')+'</div>';
+    if(dn.length) h += '<div class="bp-rel"><b>Откроет</b>'+dn.map(function(i){ var o = bById(i); return o ? '<a data-go="'+i+'">'+bEsc(o.title)+'</a>' : ''; }).join('')+'</div>';
+  }
+  h += '<div class="bp-row" style="margin-top:12px">'+(it.kind!=='label'?'<button class="btn-secondary" id="bp-conn">Стрелка от неё</button>':'')+'<button class="btn-secondary" id="bp-del">Удалить</button></div>';
+  p.innerHTML = h;
+  function bind(id, f, num){ var e = el(id); if(!e) return; e.addEventListener('input', function(){ var o = {}; o[f] = this.value; bSave(it.id, o); renderBoardCanvas(); }); }
+  bind('bp-title','title'); bind('bp-note','note'); bind('bp-prio','prio'); bind('bp-hours','hours'); bind('bp-owner','owner');
+  if(el('bp-bn')) el('bp-bn').addEventListener('change', function(){ bSaveNow(it.id, {bottleneck:this.checked}); renderBoardCanvas(); });
+  if(el('bp-done')) el('bp-done').addEventListener('change', function(){ bSaveNow(it.id, {done:this.checked}); renderBoardCanvas(); });
+  Array.prototype.forEach.call(p.querySelectorAll('.bp-c'), function(b){ b.onclick = function(){ bSaveNow(it.id, {color:b.dataset.col}); renderBoardCanvas(); renderBoardPanel(); }; });
+  Array.prototype.forEach.call(p.querySelectorAll('[data-go]'), function(a){ a.onclick = function(){ bSelect(a.dataset.go); }; });
+  if(el('bp-conn')) el('bp-conn').onclick = function(){ bConnect = true; bConnectFrom = it.id; renderBoardCanvas(); };
+  el('bp-del').onclick = function(){ bDelete(it.id); };
+}
+
+function initBoardOnce(){
+  if(bBound) return; bBound = true;
+  var cv = el('board-canvas');
+  cv.addEventListener('pointerdown', function(e){
+    if(e.button !== undefined && e.button > 0) return;
+    var rs = e.target.closest('[data-rs]');
+    var nd = e.target.closest('.bn');
+    var eg = e.target.closest('[data-eid]');
+    if(rs){
+      var n = bById(rs.dataset.rs); if(!n) return;
+      bDrag = {type:'resize', id:n.id, sx:e.clientX, sy:e.clientY, ow:n.w, oh:n.h}; cv.setPointerCapture(e.pointerId); e.preventDefault(); return;
+    }
+    if(nd){
+      var id = nd.dataset.id;
+      if(bConnect){
+        if(!bConnectFrom){ bConnectFrom = id; renderBoardCanvas(); }
+        else { bAddEdge(bConnectFrom, id); bConnectFrom = null; renderBoardCanvas(); renderBoardPanel(); }
+        e.preventDefault(); return;
+      }
+      var n2 = bById(id); if(!n2) return;
+      bDrag = {type:'node', id:id, sx:e.clientX, sy:e.clientY, ox:n2.x, oy:n2.y, moved:false};
+      if(bSel !== id){ bSel = id; renderBoardCanvas(); renderBoardPanel(); }
+      cv.setPointerCapture(e.pointerId); e.preventDefault(); return;
+    }
+    if(eg){ bSelect(eg.dataset.eid); e.preventDefault(); return; }
+    bDrag = {type:'pan', sx:e.clientX, sy:e.clientY, ox:bv.x, oy:bv.y, moved:false};
+    cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointermove', function(e){
+    if(!bDrag) return;
+    var dx = e.clientX - bDrag.sx, dy = e.clientY - bDrag.sy;
+    if(Math.abs(dx) + Math.abs(dy) > 3) bDrag.moved = true;
+    if(bDrag.type === 'pan'){ bv.x = bDrag.ox + dx; bv.y = bDrag.oy + dy; applyBoardView(); return; }
+    var n = bById(bDrag.id); if(!n) return;
+    var nel = el('board-world').querySelector('[data-id="'+n.id+'"]');
+    if(bDrag.type === 'node'){
+      if(!bDrag.moved) return;
+      n.x = bSnapV(bDrag.ox + dx/bv.s); n.y = bSnapV(bDrag.oy + dy/bv.s);
+      if(nel){ nel.style.left = n.x+'px'; nel.style.top = n.y+'px'; }
+    } else {
+      n.w = Math.max(100, bSnapV(bDrag.ow + dx/bv.s)); n.h = Math.max(40, bSnapV(bDrag.oh + dy/bv.s));
+      if(nel){ nel.style.width = n.w+'px'; nel.style.height = n.h+'px'; }
+    }
+    drawBoardEdges();
+  });
+  function end(e){
+    if(!bDrag) return;
+    var d = bDrag; bDrag = null;
+    try{ cv.releasePointerCapture(e.pointerId); }catch(x){}
+    if(d.type === 'pan' && !d.moved && bSel){ bSel = null; renderBoardCanvas(); renderBoardPanel(); return; }
+    if(d.type === 'node' && d.moved){ var n = bById(d.id); if(n) bSaveNow(n.id, {x:n.x, y:n.y}); }
+    if(d.type === 'resize'){ var m = bById(d.id); if(m) bSaveNow(m.id, {w:m.w, h:m.h}); }
+  }
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+  cv.addEventListener('dblclick', function(e){
+    if(e.target.closest('.bn') || e.target.closest('[data-eid]')) return;
+    var w = bToWorld(e.clientX, e.clientY); bAddNode('node', w.x - 110, w.y - 50);
+  });
+  cv.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var r = cv.getBoundingClientRect(), f = e.deltaY < 0 ? 1.1 : 1/1.1;
+    var ns = Math.max(0.2, Math.min(2.5, bv.s * f)), px = e.clientX - r.left, py = e.clientY - r.top;
+    bv.x = px - (px - bv.x) * (ns/bv.s); bv.y = py - (py - bv.y) * (ns/bv.s); bv.s = ns; applyBoardView();
+  }, {passive:false});
+  document.addEventListener('keydown', function(e){
+    if(el('tab-board').classList.contains('hidden')) return;
+    var tg = (e.target && e.target.tagName) || '';
+    if(e.key === 'Escape'){ bConnect = false; bConnectFrom = null; renderBoardCanvas(); return; }
+    if((e.key === 'Delete' || e.key === 'Backspace') && bSel && tg !== 'INPUT' && tg !== 'TEXTAREA'){ e.preventDefault(); bDelete(bSel); }
+  });
+  el('board-add').onclick = function(){ var cv2 = el('board-canvas'); var w = bToWorld(cv2.getBoundingClientRect().left + cv2.clientWidth/2, cv2.getBoundingClientRect().top + cv2.clientHeight/3); bAddNode('node', w.x - 110, w.y - 50); };
+  el('board-add-label').onclick = function(){ var cv2 = el('board-canvas'); var w = bToWorld(cv2.getBoundingClientRect().left + cv2.clientWidth/2, cv2.getBoundingClientRect().top + 60); bAddNode('label', w.x - 120, w.y); };
+  el('board-connect-btn').onclick = function(){ bConnect = !bConnect; bConnectFrom = null; renderBoardCanvas(); };
+  el('board-snap').onclick = function(){ bSnap = !bSnap; this.classList.toggle('on', bSnap); };
+  el('board-fit').onclick = bFit;
+  el('board-zin').onclick = function(){ bv.s = Math.min(2.5, bv.s*1.2); applyBoardView(); };
+  el('board-zout').onclick = function(){ bv.s = Math.max(0.2, bv.s/1.2); applyBoardView(); };
+  el('board-seed').onclick = bSeedPlan;
+}
+function renderBoardTab(){
+  initBoardOnce();
+  renderBoardCanvas(); renderBoardPanel();
+  if(!bFitted && bNodes().length){ bFitted = true; setTimeout(bFit, 30); }
+}
+
+
 function initTabs(){
   document.querySelectorAll('.tab-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -9440,6 +9802,7 @@ function initTabs(){
       el('tab-chat').classList.add('hidden');
       el('tab-calls').classList.add('hidden');
       el('tab-projects').classList.add('hidden');
+      el('tab-board').classList.add('hidden');
       el('tab-competitors').classList.add('hidden');
       el('tab-tools').classList.add('hidden');
       el('tab-knowledge').classList.add('hidden');
@@ -9518,6 +9881,9 @@ function initTabs(){
         } else if(tab === 'projects'){
           el('tab-projects').classList.remove('hidden');
           renderProjectsTab();
+        } else if(tab === 'board'){
+          el('tab-board').classList.remove('hidden');
+          renderBoardTab();
         } else if(tab === 'competitors'){
           el('tab-competitors').classList.remove('hidden');
           renderCompetitorsTab();

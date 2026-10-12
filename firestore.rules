@@ -87,6 +87,11 @@ service cloud.firestore {
       allow update, delete: if ownsDoc();
       allow create: if ownsNew();
     }
+    match /boardItems/{itemId} {
+      allow read: if canReadOwned();
+      allow update, delete: if ownsDoc();
+      allow create: if ownsNew();
+    }
     match /knowledgeBase/{entryId} {
       allow read: if canReadOwned();
       allow update, delete: if ownsDoc();
