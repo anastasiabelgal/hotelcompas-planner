@@ -2126,9 +2126,12 @@ const RITA_EMAILS = ["r.vizuete@hotelcompas.com"];
 function isRitaEmail(email){ return RITA_EMAILS.indexOf((email || '').toLowerCase()) > -1; }
 function isRitaUser(){ return !!(currentUser && currentUser.email && isRitaEmail(currentUser.email)); }
 function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser(); }
+// Доступ Риты к планеру: false = отключён (квиз работает отдельно). Чтобы вернуть доступ, поставь true и верни правила Firestore.
+const RITA_PLANNER_ENABLED = false;
 function isAllowedEmail(email){
   var e = (email || '').toLowerCase();
-  return e.endsWith(ALLOWED_DOMAIN) || isRitaEmail(e);
+  if(isRitaEmail(e)) return RITA_PLANNER_ENABLED;
+  return e.endsWith(ALLOWED_DOMAIN);
 }
 // uid, чьи личные данные (Рабочее/Проекты/Инструменты) сейчас показываются: свои или Риты в режиме просмотра
 let viewAsUid = null;
@@ -2321,7 +2324,7 @@ async function handleAuthSubmit(){
   setAuthError(null);
   if(!email || !password){ setAuthError('Введите email и пароль'); return; }
   if(!isAllowedEmail(email)){
-    setAuthError('Только адреса ' + ALLOWED_DOMAIN);
+    setAuthError(isRitaEmail(email) ? 'Доступ к планеру для этого адреса отключён.' : 'Только адреса ' + ALLOWED_DOMAIN);
     return;
   }
   try{
@@ -2373,7 +2376,8 @@ onAuthStateChanged(auth, async function(user){
     return;
   }
   if(!user.email || !isAllowedEmail(user.email)){
-    signOut(auth);
+    var blocked = !!user.email && isRitaEmail(user.email);
+    signOut(auth).then(function(){ if(blocked) setAuthError('Доступ к планеру для этого адреса отключён.'); });
     return;
   }
   if(!user.emailVerified){
