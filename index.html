@@ -2122,15 +2122,15 @@ const NASTYA_EMAIL = "a.belousova@hotelcompas.com";
 function isMaxUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === MAX_EMAIL; }
 function isNastyaUser(){ return currentUser && currentUser.email && currentUser.email.toLowerCase() === NASTYA_EMAIL; }
 // Адреса Риты: рабочее пространство Риты (свои данные, без личного и общих данных команды)
+// Бывший сотрудник: вход закрыт полностью. Адрес оставлен только для чтения архива её данных (режим просмотра у Насти).
 const RITA_EMAILS = ["r.vizuete@hotelcompas.com"];
-function isRitaEmail(email){ return RITA_EMAILS.indexOf((email || '').toLowerCase()) > -1; }
-function isRitaUser(){ return !!(currentUser && currentUser.email && isRitaEmail(currentUser.email)); }
+const BLOCKED_EMAILS = ["r.vizuete@hotelcompas.com"];
+function isBlockedEmail(email){ return BLOCKED_EMAILS.indexOf((email || '').toLowerCase()) > -1; }
+function isRitaUser(){ return false; }
 function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser(); }
-// Доступ Риты к планеру: false = отключён (квиз работает отдельно). Чтобы вернуть доступ, поставь true и верни правила Firestore.
-const RITA_PLANNER_ENABLED = false;
 function isAllowedEmail(email){
   var e = (email || '').toLowerCase();
-  if(isRitaEmail(e)) return RITA_PLANNER_ENABLED;
+  if(isBlockedEmail(e)) return false;
   return e.endsWith(ALLOWED_DOMAIN);
 }
 // uid, чьи личные данные (Рабочее/Проекты/Инструменты) сейчас показываются: свои или Риты в режиме просмотра
@@ -2324,7 +2324,7 @@ async function handleAuthSubmit(){
   setAuthError(null);
   if(!email || !password){ setAuthError('Введите email и пароль'); return; }
   if(!isAllowedEmail(email)){
-    setAuthError(isRitaEmail(email) ? 'Доступ к планеру для этого адреса отключён.' : 'Только адреса ' + ALLOWED_DOMAIN);
+    setAuthError(isBlockedEmail(email) ? 'Доступ для этого адреса закрыт.' : 'Только адреса ' + ALLOWED_DOMAIN);
     return;
   }
   try{
@@ -2376,8 +2376,8 @@ onAuthStateChanged(auth, async function(user){
     return;
   }
   if(!user.email || !isAllowedEmail(user.email)){
-    var blocked = !!user.email && isRitaEmail(user.email);
-    signOut(auth).then(function(){ if(blocked) setAuthError('Доступ к планеру для этого адреса отключён.'); });
+    var blocked = !!user.email && isBlockedEmail(user.email);
+    signOut(auth).then(function(){ if(blocked) setAuthError('Доступ для этого адреса закрыт.'); });
     return;
   }
   if(!user.emailVerified){
