@@ -25,12 +25,13 @@ service cloud.firestore {
       return isHotelCompasUser() && request.auth.token.email.lower() == 'a.belousova@hotelcompas.com';
     }
 
-    // Кто вообще может пользоваться своими личными данными
-    function isMember() { return isHotelCompasUser() || isRita(); }
+    // Кто вообще может пользоваться своими личными данными.
+    // Доступ Риты к планеру отключён (остался только квиз, см. quizResults внизу).
+    function isMember() { return isHotelCompasUser(); }
 
     // Раздел Лидогенерация (бывший "Макс"): Макс, Настя, Рита
     function isLeadgenUser() {
-      return isNastya() || isRita() ||
+      return isNastya() ||
         (isHotelCompasUser() && request.auth.token.email.lower() == 'm.oxentyuk@hotelcompas.com');
     }
 
@@ -47,7 +48,7 @@ service cloud.firestore {
 
     // Профили: Рита видит и пишет только свой, остальные коллеги читают всех
     match /users/{userId} {
-      allow read: if isHotelCompasUser() || (isRita() && request.auth.uid == userId);
+      allow read: if isHotelCompasUser();
       allow write: if isMember() && request.auth.uid == userId;
     }
 
@@ -188,19 +189,18 @@ service cloud.firestore {
     // Рита читает и пишет, Настя только читает (режим просмотра).
     match /{coll}/{docId} {
       allow read: if coll in ['rita_leads','rita_teamChat','rita_reports','rita_calls','rita_weeklyReports','rita_settings','rita_accessLinks']
-                     && (isRita() || isNastya());
-      allow write: if coll in ['rita_leads','rita_teamChat','rita_reports','rita_calls','rita_weeklyReports','rita_settings','rita_accessLinks']
-                      && isRita();
+                     && isNastya();
+      allow write: if false;
     }
     match /rita_leads/{leadId}/comments/{commentId} {
-      allow read: if isRita() || isNastya();
-      allow write: if isRita();
+      allow read: if isNastya();
+      allow write: if false;
     }
 
     // Результаты теста для SDR (quiz.html): каждый пишет только свой документ, читает Настя
     match /quizResults/{resultUid} {
-      allow read: if (isMember() && request.auth.uid == resultUid) || isNastya();
-      allow create, update: if isMember() && request.auth.uid == resultUid;
+      allow read: if ((isMember() || isRita()) && request.auth.uid == resultUid) || isNastya();
+      allow create, update: if (isMember() || isRita()) && request.auth.uid == resultUid;
     }
   }
 }
