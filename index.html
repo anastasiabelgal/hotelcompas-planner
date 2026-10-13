@@ -1865,7 +1865,10 @@
       <button class="btn-secondary on" id="board-snap" title="Привязка к сетке">Сетка</button>
       <span class="board-zoom"><button class="btn-secondary" id="board-zout">−</button><span id="board-zoom">100%</span><button class="btn-secondary" id="board-zin">+</button></span>
       <button class="btn-secondary" id="board-fit">По размеру</button>
-      <button class="btn-secondary" id="board-seed">Заполнить моим планом</button>
+      <span class="board-zoom">Заполнить:</span>
+      <button class="btn-secondary" id="board-seed">План приоритетов</button>
+      <button class="btn-secondary" id="board-seed-year">Карта года</button>
+      <button class="btn-secondary" id="board-seed-work">Карта работы</button>
       <span class="board-hint" id="board-hint"></span>
     </div>
     <div class="board-wrap">
@@ -9565,7 +9568,7 @@ function renderBoardCanvas(){
   applyBoardView();
   var hint = el('board-hint');
   if(hint){
-    hint.textContent = bConnect ? (bConnectFrom ? 'Теперь нажми на карточку, которая ждёт эту. Esc — выйти.' : 'Нажми на карточку, которая должна быть сделана раньше. Esc — выйти.') : (nodes.length ? 'Двойной клик по пустому месту: новая карточка. Колесо: масштаб. Тяни фон: двигать поле.' : 'Доска пустая. Нажми «Заполнить моим планом» или «+ Карточка».');
+    hint.textContent = bConnect ? (bConnectFrom ? 'Теперь нажми на карточку, которая ждёт эту. Esc — выйти.' : 'Нажми на карточку, которая должна быть сделана раньше. Esc — выйти.') : (nodes.length ? 'Двойной клик по пустому месту: новая карточка. Колесо: масштаб. Тяни фон: двигать поле.' : 'Доска пустая. Нажми «Карта года», «Карта работы», «План приоритетов» или «+ Карточка».');
   }
   var cb = el('board-connect-btn'); if(cb) cb.classList.toggle('on', bConnect);
 }
@@ -9639,30 +9642,142 @@ function bDelete(id){
   if(bSel === id) bSel = null;
   renderBoardCanvas(); renderBoardPanel();
 }
+/* Заполнение доски готовыми схемами. items: {k,kind,x,y,w,h,title,note,prio,hours,owner,color,bottleneck}; edges: [k1,k2,label] */
+function bRightEdge(){ var ns = bNodes(); return ns.length ? Math.max.apply(null, ns.map(function(n){ return n.x + n.w; })) + 160 : 40; }
+function bPlace(items, edges, seedKey, label){
+  if(bNodes().some(function(n){ return n.seed === seedKey; }) && !confirm('«'+label+'» уже есть на доске. Добавить ещё раз?')) return;
+  var ox = bRightEdge(), ids = {};
+  items.forEach(function(it){
+    var ref = doc(collection(db,'boardItems')); ids[it.k] = ref.id;
+    var base = it.kind === 'label'
+      ? {ownerId:ownerUid(), kind:'label', x:ox+it.x, y:it.y, w:it.w, h:it.h, title:it.title, color:it.color||'gray', seed:seedKey}
+      : {ownerId:ownerUid(), kind:'node', x:ox+it.x, y:it.y, w:it.w, h:it.h, title:it.title, note:it.note||'', prio:it.prio||'', hours:it.hours||'', owner:it.owner||'', color:it.color||'blue', bottleneck:!!it.bottleneck, done:false, seed:seedKey};
+    boardItems.push(Object.assign({id:ref.id}, base));
+    setDoc(ref, Object.assign({createdAt:serverTimestamp()}, base));
+  });
+  edges.forEach(function(e){
+    if(!ids[e[0]] || !ids[e[1]]) return;
+    var ref = doc(collection(db,'boardItems'));
+    var ed = {ownerId:ownerUid(), kind:'edge', from:ids[e[0]], to:ids[e[1]], label:e[2]||''};
+    boardItems.push(Object.assign({id:ref.id}, ed));
+    setDoc(ref, Object.assign({createdAt:serverTimestamp()}, ed));
+  });
+  renderBoardCanvas(); renderBoardPanel(); setTimeout(bFit, 80);
+}
+
+/* 1. План приоритетов по неделям */
 function bSeedPlan(){
-  if(bNodes().length && !confirm('Добавить мой план приоритетов к текущей доске? Существующие карточки останутся.')) return;
-  var colX = {}, rowY = {}, ids = {};
-  var baseX = bNodes().length ? Math.max.apply(null, bNodes().map(function(n){ return n.x + n.w; })) + 120 : 40;
+  var items = [], edges = [], rowY = {}, heads = {};
   var order = BSEED.slice().sort(function(a,b){ return a[5]-b[5] || b[3]-a[3]; });
-  var heads = {};
   order.forEach(function(r){
     var col = r[5] === 0 ? 6 : r[5]-1;
     if(!heads[col]){
-      heads[col] = true;
-      var hr = doc(collection(db,'boardItems'));
-      var title = r[5] === 0 ? 'Паркинг: не делаем сейчас' : 'Неделя ' + r[5];
-      setDoc(hr, {ownerId:ownerUid(), kind:'label', x:baseX + col*260, y:20, w:240, h:56, title:title, color:r[5]===0?'gray':'blue', createdAt:serverTimestamp()});
-      boardItems.push({id:hr.id, ownerId:ownerUid(), kind:'label', x:baseX + col*260, y:20, w:240, h:56, title:title, color:r[5]===0?'gray':'blue'});
-      rowY[col] = 100;
+      heads[col] = true; rowY[col] = 100;
+      items.push({k:'h'+col, kind:'label', x:col*260, y:20, w:240, h:56, title:r[5]===0 ? 'Паркинг: не делаем сейчас' : 'Неделя '+r[5], color:r[5]===0?'gray':'blue'});
     }
-    var ref = doc(collection(db,'boardItems')); ids[r[0]] = ref.id;
-    var item = {ownerId:ownerUid(), kind:'node', x:baseX + col*260, y:rowY[col], w:240, h:112, title:r[1], note:r[8]||'', prio:bFmt(r[3]), hours:r[2] ? bFmt(r[2]) : '', owner:r[7], color:r[6], bottleneck:r[4] >= 3, done:false};
+    items.push({k:r[0], kind:'node', x:col*260, y:rowY[col], w:240, h:112, title:r[1], note:r[8]||'', prio:bFmt(r[3]), hours:r[2] ? bFmt(r[2]) : '', owner:r[7], color:r[6], bottleneck:r[4] >= 3});
     rowY[col] += 128;
-    boardItems.push(Object.assign({id:ref.id}, item));
-    setDoc(ref, Object.assign({createdAt:serverTimestamp()}, item));
   });
-  BSEED_DEPS.forEach(function(d){ if(ids[d[0]] && ids[d[1]]) bAddEdge(ids[d[0]], ids[d[1]]); });
-  renderBoardCanvas(); setTimeout(bFit, 60);
+  BSEED_DEPS.forEach(function(d){ edges.push([d[0], d[1]]); });
+  bPlace(items, edges, 'plan', 'План приоритетов');
+}
+
+/* 2. Карта года */
+function bSeedYear(){
+  var SX = 1.15, SY = 1.35, CH = 76;
+  var lanes = [['Найм и обучение SDR','red',70,128],['Пайплайн и передача','purple',198,128],['Лидген HotelCompas','blue',326,128],['Букинг и отели','amber',454,72],['JetCompas','green',526,72],['Выставки и контент','purple',598,72],['Бренд и позиционирование','gray',670,72]];
+  var cols = [['Окт 2026',164,220],['Ноя 2026',384,220],['Дек 2026',604,220],['Q1 2027',824,330],['Q2 2027',1154,330],['Q3 2027',1484,330]];
+  var hz = [['Now',164,440,'blue'],['Next',604,550,'gray'],['Later',1154,660,'gray']];
+  var HN = {now:'Now: подтверждено', next:'Next: вероятно', later:'Later: направление'};
+  var cards = [
+    ['sdr',0,0,242,604,'Выбрать SDR (150+ кандидатов)','now','Настя · нужна дата решения',1],
+    ['reg',0,1,384,824,'Регламент и обучение SDR','now','Настя → SDR',0],
+    ['pass',1,0,242,384,'Ящик и правило передачи','now','Настя, Максим',0],
+    ['pipe',1,1,242,604,'Закрыть пайплайн: 40 компаний','now','Настя',0],
+    ['react',1,0,604,1154,'Реактивация молчащих: звонок, WhatsApp, письма','next','SDR (письма после онбординга)',0],
+    ['crm',1,1,604,1154,'Система для контактов','next','Настя',0],
+    ['icp0',2,0,242,384,'ICP v0 из отчёта','now','Настя',0],
+    ['full',2,0,824,1154,'Полный анализ → ICP-портрет','next','Настя · после обучения SDR',0],
+    ['mkts',2,0,1154,1814,'Новые рынки: Азия, LatAm, Сингапур','later','после ICP',0],
+    ['ltv',2,1,1154,1484,'Разбор потерь клиентов (LTV)','later','COO + Настя',0],
+    ['book',3,0,384,1154,'Букинг: звонок с Татьяной, сотрудник, база отелей','next','Настя, букинг',0],
+    ['jet',4,0,824,1484,'JetCompas: поиск подрядчиков по топливу (после отелей)','next','Настя',0],
+    ['exp',5,0,242,604,'Выставки: отработка контактов','now','Настя, Ноэль',0],
+    ['media',5,0,1154,1814,'Публикации и медиа','later','Настя',0],
+    ['brand',6,0,604,1154,'Бренд, позиционирование, дизайн, презентации','next','Настя, Максим',0]
+  ];
+  var items = [], edges = [];
+  hz.forEach(function(h,i){ items.push({k:'hz'+i, kind:'label', x:Math.round(h[1]*SX), y:0, w:Math.round(h[2]*SX), h:28, title:h[0], color:h[3]}); });
+  cols.forEach(function(c,i){ items.push({k:'col'+i, kind:'label', x:Math.round(c[1]*SX), y:34, w:Math.round(c[2]*SX)-6, h:34, title:c[0], color:'gray'}); });
+  lanes.forEach(function(l,i){ items.push({k:'ln'+i, kind:'label', x:0, y:Math.round(l[2]*SY), w:Math.round(150*SX), h:Math.round(l[3]*SY)-8, title:l[0], color:l[1]}); });
+  cards.forEach(function(c){
+    var L = lanes[c[1]];
+    items.push({k:c[0], kind:'node', x:Math.round(c[3]*SX)+4, y:Math.round(L[2]*SY)+10+c[2]*(CH+6), w:Math.round((c[4]-c[3])*SX)-10, h:CH, title:c[5], note:HN[c[6]], owner:c[7], color:L[1], bottleneck:!!c[8]});
+  });
+  [[428,'Гонконг: встреча (начало ноября)',0],[604,'Решение по SDR: нужна дата',1],[1484,'UPS: тендер (около июля 2027)',0]].forEach(function(m,i){
+    items.push({k:'ms'+i, kind:'label', x:Math.round(m[0]*SX), y:Math.round(752*SY)+m[2]*40, w:300, h:34, title:m[1], color:'amber'});
+  });
+  items.push({k:'today', kind:'label', x:Math.round(248*SX), y:72, w:110, h:22, title:'Сегодня 12.10', color:'blue'});
+  [['sdr','reg'],['reg','react'],['pass','react'],['book','jet'],['full','mkts'],['icp0','full','пока нет полного анализа']].forEach(function(a){ edges.push(a); });
+  bPlace(items, edges, 'year', 'Карта года');
+}
+
+/* 3. Карта работы: пайплайн, зоны ответственности, зависимости */
+function bSeedWork(){
+  var items = [], edges = [];
+  var Y1 = 40, Y2 = 540, Y3 = 0;
+  items.push({k:'t1', kind:'label', x:0, y:Y1-40, w:520, h:34, title:'1. Пайплайн и где он стопорится', color:'blue'});
+  var pipe = [
+    ['Найти компании','база: 104 компании ответили','Нет ICP-портрета, список заканчивается','ICP v0, затем полный анализ'],
+    ['Найти контакты','поиск выстроен','Некому вести: нет SDR','Найм и обучение SDR'],
+    ['Аутрич в LinkedIn','2 910 заявок → 388 приняли','Широкие должности: 29% лидов не по адресу','Сузить таргет, список «правильных отделов»'],
+    ['Ответы','148 первичных ответов','55% диалогов закончились одним касанием','Правило «чей ход», пинг'],
+    ['Ведение и передача','47 позитивных лидов','Максим не успевает, контакты теряются','Общий ящик, правило передачи'],
+    ['Звонок','8 звонков, 7 клиентов','',''],
+    ['Оффер','Martinaire ждёт','Букинг не успевает, нет базы отелей и инструментов','Звонок с Татьяной, сотрудник, база отелей'],
+    ['Клиент','Easy Charter (со слов)','','']
+  ];
+  pipe.forEach(function(p,i){
+    var x = i*250;
+    items.push({k:'ps'+i, kind:'node', x:x, y:Y1, w:230, h:90, title:p[0], note:p[1], color:'blue'});
+    if(p[2]){ items.push({k:'pb'+i, kind:'node', x:x, y:Y1+110, w:230, h:100, title:p[2], note:'Блокатор', color:'red', bottleneck:true}); }
+    else { items.push({k:'pb'+i, kind:'node', x:x, y:Y1+110, w:230, h:60, title:'Нет блокатора', color:'gray'}); }
+    if(p[3]){ items.push({k:'pf'+i, kind:'node', x:x, y:Y1+230, w:230, h:100, title:p[3], note:'Решение', color:'green'}); edges.push(['pb'+i,'pf'+i,'']); }
+    if(i>0) edges.push(['ps'+(i-1),'ps'+i]);
+  });
+  items.push({k:'t2', kind:'label', x:0, y:Y2-40, w:520, h:34, title:'2. Зоны ответственности: чей сейчас ход', color:'blue'});
+  var zones = [
+    ['Настя','blue',[['b','Созвониться с кандидатами в SDR'],['b','Назначить срок решения по SDR'],['b','Дописать регламент задач SDR'],['b','Критерий «готов к самостоятельной работе»'],['b','Правило передачи Максиму'],['b','ICP v0 из отчёта за 3 месяца'],['b','Созвон с Татьяной (букинг)'],['b','Домен и ящик для SDR'],['w','Завести общий почтовый ящик'],['w','Заполнить статус и решение по 40 компаниям'],['w','Рутина HOTAC: 1–2 ч в день'],['','Закрепить ответственность с Максимом'],['','Звонок или WhatsApp 18 компаниям'],['','Выяснить, чей ход, у 20 молчащих'],['','Анализ компании'],['','Анализ конкурентов'],['','Выбрать систему для контактов'],['','Разобрать выставки: куда и зачем']]],
+    ['Максим','purple',[['p','Fly91: письмо про звонок'],['','Сверка раз в неделю, 15 минут']]],
+    ['Букинг','amber',[['p','Martinaire: оффер'],['','Определить сотрудника на поиск']]],
+    ['SDR','green',[['b','Обучение: отработка возражений'],['','Пилот писем (после онбординга)']]],
+    ['Клиент','gray',[['p','Результаты по визиткам, через 1–2 недели']]]
+  ];
+  var zy = Y2, zi = 0;
+  zones.forEach(function(z){
+    var rows = Math.ceil(z[2].length/6);
+    items.push({k:'zl'+zi, kind:'label', x:0, y:zy, w:140, h:rows*86-8, title:z[0]+' · '+z[2].length, color:z[1]});
+    z[2].forEach(function(c,ci){
+      var col = ci%6, row = Math.floor(ci/6);
+      var color = c[0]==='b' ? 'red' : c[0]==='w' ? 'blue' : c[0]==='p' ? 'amber' : 'gray';
+      items.push({k:'zc'+zi+'_'+ci, kind:'node', x:160+col*230, y:zy+row*86, w:216, h:78, title:c[1], owner:z[0], color:color, bottleneck:c[0]==='b'});
+    });
+    zy += rows*86 + 14; zi++;
+  });
+  Y3 = zy + 80;
+  items.push({k:'t3', kind:'label', x:0, y:Y3-40, w:520, h:34, title:'3. Что невозможно без чего (стрелка: левое раньше правого)', color:'blue'});
+  var dag = [
+    ['sdr','Выбор SDR из 150+',12,70,1],['icp0','ICP v0 из отчёта',12,160,0],['box','Общий почтовый ящик',12,250,0],['tat','Звонок с Татьяной (букинг)',12,340,0],['dom','Домен и ящик для SDR',12,430,0],
+    ['reg','Регламент задач SDR',217,70,0],['rule','Правило передачи Максиму',217,250,0],['bk','Сотрудник на поиск в букинге',217,340,0],
+    ['train','Обучение SDR и возражения',422,70,0],['hotels','База отелей по регионам',422,340,0],
+    ['ops','SDR ведёт операционку лидгена',627,70,0],['offer','Быстрые офферы по Interested',627,340,0],['fuel','Подрядчики по топливу (JetCompas)',627,430,0],
+    ['free','Освобождается время Насти',832,70,0],['react','Реактивация молчащих',832,190,0],
+    ['full','Полный анализ → ICP-портрет',1037,70,0],['list','Список компаний для поиска',1242,160,0],['mkts','Новые рынки: Азия, LatAm, Сингапур',1242,70,0]
+  ];
+  dag.forEach(function(d){ items.push({k:'d_'+d[0], kind:'node', x:Math.round(d[2]*1.3), y:Y3+Math.round((d[3]-70)*1.3), w:210, h:84, title:d[1], color:d[4]?'red':'blue', bottleneck:!!d[4]}); });
+  [['sdr','reg'],['reg','train'],['train','ops'],['ops','free'],['free','full'],['full','mkts'],['full','list'],['ops','react'],['rule','react'],['dom','react'],['box','rule'],['tat','bk'],['bk','hotels'],['hotels','offer'],['hotels','fuel']].forEach(function(e){ edges.push(['d_'+e[0],'d_'+e[1]]); });
+  edges.push(['d_icp0','d_list','временная замена']);
+  bPlace(items, edges, 'work', 'Карта работы');
 }
 
 function renderBoardPanel(){
@@ -9782,6 +9897,8 @@ function initBoardOnce(){
   el('board-zin').onclick = function(){ bv.s = Math.min(2.5, bv.s*1.2); applyBoardView(); };
   el('board-zout').onclick = function(){ bv.s = Math.max(0.2, bv.s/1.2); applyBoardView(); };
   el('board-seed').onclick = bSeedPlan;
+  el('board-seed-year').onclick = bSeedYear;
+  el('board-seed-work').onclick = bSeedWork;
 }
 function renderBoardTab(){
   initBoardOnce();
