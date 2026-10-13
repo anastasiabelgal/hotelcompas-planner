@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Подтверждённый email с доменом @hotelcompas.com
-    // Адреса Риты исключены: у неё свои данные и только раздел Лидогенерация
+    // Уволенный сотрудник исключён из списка: вход закрыт (адрес остаётся в домене, поэтому нужен явный запрет)
     function isHotelCompasUser() {
       return request.auth != null &&
         request.auth.token.email != null &&
@@ -13,23 +13,14 @@ service cloud.firestore {
         !(request.auth.token.email.lower() in ['r.vizuete@hotelcompas.com']);
     }
 
-    // Рита: только рабочий адрес @hotelcompas.com, допущена только к своим данным и разделу Лидогенерация
-    function isRita() {
-      return request.auth != null &&
-        request.auth.token.email != null &&
-        request.auth.token.email_verified == true &&
-        request.auth.token.email.lower() == 'r.vizuete@hotelcompas.com';
-    }
-
     function isNastya() {
       return isHotelCompasUser() && request.auth.token.email.lower() == 'a.belousova@hotelcompas.com';
     }
 
-    // Кто вообще может пользоваться своими личными данными.
-    // Доступ Риты к планеру отключён (остался только квиз, см. quizResults внизу).
+    // Кто вообще может пользоваться своими личными данными
     function isMember() { return isHotelCompasUser(); }
 
-    // Раздел Лидогенерация (бывший "Макс"): Макс, Настя, Рита
+    // Раздел Лидогенерация (бывший "Макс"): Макс, Настя
     function isLeadgenUser() {
       return isNastya() ||
         (isHotelCompasUser() && request.auth.token.email.lower() == 'm.oxentyuk@hotelcompas.com');
@@ -46,7 +37,7 @@ service cloud.firestore {
     match /maxCalls/{callId} { allow read, write: if isLeadgenUser(); }
     match /maxCompanies/{companyId} { allow read, write: if isLeadgenUser(); }
 
-    // Профили: Рита видит и пишет только свой, остальные коллеги читают всех
+    // Профили: каждый пишет только свой, коллеги читают всех
     match /users/{userId} {
       allow read: if isHotelCompasUser();
       allow write: if isMember() && request.auth.uid == userId;
@@ -159,7 +150,7 @@ service cloud.firestore {
       allow write: if isMember() && statsId.matches(request.auth.uid + '_.*');
     }
 
-    // Общие для команды @hotelcompas.com (Рите недоступны)
+    // Общие для команды @hotelcompas.com
     match /leads/{leadId} {
       allow read, write: if isHotelCompasUser();
     }
@@ -185,8 +176,7 @@ service cloud.firestore {
       allow read, write: if isHotelCompasUser();
     }
 
-    // Рабочее пространство Риты: свои копии общих разделов (Лиды, Список, Чат, Звонки, Конкуренты, Отчётность, Доступы).
-    // Рита читает и пишет, Настя только читает (режим просмотра).
+    // Архив данных бывшего сотрудника (rita_*): читает только Настя, писать нельзя.
     match /{coll}/{docId} {
       allow read: if coll in ['rita_leads','rita_teamChat','rita_reports','rita_calls','rita_weeklyReports','rita_settings','rita_accessLinks']
                      && isNastya();
@@ -199,8 +189,8 @@ service cloud.firestore {
 
     // Результаты теста для SDR (quiz.html): каждый пишет только свой документ, читает Настя
     match /quizResults/{resultUid} {
-      allow read: if ((isMember() || isRita()) && request.auth.uid == resultUid) || isNastya();
-      allow create, update: if (isMember() || isRita()) && request.auth.uid == resultUid;
+      allow read: if (isMember() && request.auth.uid == resultUid) || isNastya();
+      allow create, update: if isMember() && request.auth.uid == resultUid;
     }
   }
 }

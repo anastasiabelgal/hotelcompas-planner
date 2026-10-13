@@ -136,7 +136,7 @@ var fbApp = initializeApp(firebaseConfig);
 var auth = getAuth(fbApp);
 var fdb = getFirestore(fbApp);
 var NASTYA_EMAIL = 'a.belousova@hotelcompas.com';
-var RITA_EMAILS = ['r.vizuete@hotelcompas.com'];
+var BLOCKED_EMAILS = ['r.vizuete@hotelcompas.com']; // бывший сотрудник, вход закрыт
 /* ---------- Вопросы ----------
    t: single | multi | match; a: индекс верного (single), массив индексов (multi), массив по строкам (match) */
 var LEGS = [
@@ -416,7 +416,8 @@ var remote = { id:null, owner:false, status:'unknown', email:'' };
 function allowedUser(u){
   if(!u || !u.email || !u.emailVerified) return false;
   var e = u.email.toLowerCase();
-  return RITA_EMAILS.indexOf(e) > -1 || /@hotelcompas\.com$/.test(e);
+  if(BLOCKED_EMAILS.indexOf(e) > -1) return false;
+  return /@hotelcompas\.com$/.test(e);
 }
 
 function payload(){
