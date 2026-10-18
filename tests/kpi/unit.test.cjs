@@ -343,7 +343,9 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  const L=(id,by,extra)=>Object.assign({id,companyName:id,status:'Neutral',messages:[{date:'2026-11-03',by},{date:'2026-11-04',by}],statusChangedDate:'2026-11-03'},extra);
  x.setLeads([L('A','sdr@hotelcompas.com'),L('B','nastya@hotelcompas.com'),L('C',undefined)]);
  const f=x.kpiFacts('2026-11-01','2026-11-30');
- ok(f.live.n===1,'only SDR-authored messages count: 1 active lead got '+f.live.n);
+ ok(f.live.n===2,'filter excludes B (other author) but keeps unattributed C and own A: 2 got '+f.live.n);
+ x.setData({startDate:'2026-10-19',firstProrate:false,authorOnly:true,sdrEmail:'sdr@hotelcompas.com',unattr:false});
+ ok(x.kpiFacts('2026-11-01','2026-11-30').live.n===1,'with unattributed records off: only own A counts');
  x.setData({startDate:'2026-10-19',firstProrate:false});
  const g=x.kpiFacts('2026-11-01','2026-11-30'); ok(g.live.n===3,'filter off: all 3 leads');
  x.setLeads([L('A','s',{status:'Irrelevant'}),L('B','s',{status:'Irrelevant',listSource:'nastya'}),L('C','s'),L('D','s',{listSource:'sdr'})]);
@@ -425,6 +427,18 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  const m=x.kpiModel('2026-11-01','2026-11-30'); const r=m.rows.find(q=>q.def.key==='contacts');
  ok(r.th.min===1500*m.scale && r.th.plan===1800*m.scale && r.th.excl===2700*m.scale,'contacts norms 1500/1800/2700 scaled by '+m.scale);
  ok(r.val===1640 && r.tier==='min','4 full weeks (1600) + 1/5 of the week 30 Nov (200*1/5=40) = 1640 -> Минимум (>=1500, <1800) got '+r.val+' '+r.tier);
+}
+
+// ---- 23. older leads: calls come from status + dates; scheduled falls back to the call date
+{
+ const {x}=mk('2026-11-20'); x.setData({startDate:'2026-07-01',firstProrate:false,authorOnly:true,sdrEmail:'new@hotelcompas.com'});
+ const L=(id,status,extra)=>Object.assign({id,companyName:id,status,messages:[{date:'2026-07-10'}],statusChangedDate:'2026-07-10'},extra);
+ x.setLeads([L('A','Call done',{callDate:'2026-07-15'}),L('B','Call done',{callDate:'2026-07-20',statusChangedDate:'2026-07-20'}),L('C','Call scheduled',{statusChangedDate:'2026-07-22'})]);
+ const f=x.kpiFacts('2026-07-01','2026-07-31');
+ ok(f.meetings.val===2,'old Call done leads (no author, no scheduledDate) are counted as held in July: 2 got '+f.meetings.val);
+ ok(f.scheduled.val===3,'scheduled falls back: A,B by call date, C by status change = 3 got '+f.scheduled.val);
+ x.setData({startDate:'2026-07-01',firstProrate:false,authorOnly:true,sdrEmail:'new@hotelcompas.com',unattr:false});
+ ok(x.kpiFacts('2026-07-01','2026-07-31').meetings.val===0,'unattributed off: nothing counted (expected with this setting)');
 }
 console.log(fails?('FAILED '+fails):'ALL PASSED');
 process.exit(fails?1:0);

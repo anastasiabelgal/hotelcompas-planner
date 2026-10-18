@@ -10206,7 +10206,8 @@ function kpiConfOf(c){
     liveMin: kNum(c.liveMin) != null && kNum(c.liveMin) >= 2 ? kNum(c.liveMin) : 2,
     livePre: c.livePre === true,
     minN: kNum(c.minN) != null ? kNum(c.minN) : 10,
-    authorOnly: c.authorOnly === true
+    authorOnly: c.authorOnly === true,
+    unattr: c.unattr !== false
   };
 }
 function kHolSet(){ var o = {}; kpiConf().holidays.forEach(function(h){ o[h] = 1; }); return o; }
@@ -10334,18 +10335,20 @@ function kpiContacts(f, t){
 function kLeadMine(l, cf){
   if(!(cf.authorOnly && cf.sdrEmail)) return true;
   var em = cf.sdrEmail.toLowerCase();
+  var hasAuthor = !!l.createdBy || (l.messages || []).some(function(m){ return !!m.by; });
+  if(!hasAuthor) return cf.unattr;   // старые записи без автора: по настройке считаются или нет
   return (l.createdBy || '').toLowerCase() === em || (l.messages || []).some(function(m){ return (m.by || '').toLowerCase() === em; });
 }
 function kRems(){
   var cf = kpiConf();
   if(!(cf.authorOnly && cf.sdrEmail)) return maxRemindersAll;
   var em = cf.sdrEmail.toLowerCase();
-  return maxRemindersAll.filter(function(r){ return (r.authorEmail || '').toLowerCase() === em; });
+  return maxRemindersAll.filter(function(r){ return r.authorEmail ? (r.authorEmail || '').toLowerCase() === em : cf.unattr; });
 }
 // Сообщения лида для KPI: при включённой настройке только те, что внёс сам сотрудник (по полю «кто внёс» у сообщения)
 function kMsgsKpi(l, cf){
   var all = kEffMsgs(l);
-  if(cf.authorOnly && cf.sdrEmail){ var em = cf.sdrEmail.toLowerCase(); return all.filter(function(m){ return (m.by || '').toLowerCase() === em; }); }
+  if(cf.authorOnly && cf.sdrEmail){ var em = cf.sdrEmail.toLowerCase(); return all.filter(function(m){ return m.by ? (m.by || '').toLowerCase() === em : cf.unattr; }); }
   return all;
 }
 function kpiFacts(f, t){
@@ -10366,7 +10369,8 @@ function kpiFacts(f, t){
     }
     // Назначено: по дате назначения (у лидов без неё, всё ещё Call scheduled, берётся дата смены статуса)
     if(l.status === 'Call scheduled' || l.status === 'Call done'){
-      var sdt = l.scheduledDate || (l.status === 'Call scheduled' ? l.statusChangedDate : '');
+      // дата назначения: своя дата; у старых лидов без неё Call scheduled берёт дату смены статуса, Call done дату звонка
+      var sdt = l.scheduledDate || (l.status === 'Call scheduled' ? l.statusChangedDate : (l.callDate || l.statusChangedDate));
       if(sdt && sdt >= f && sdt <= t){ var ck2 = kCompany(l) || ('id:'+l.id); sched[ck2] = 1; L.scheduled[ck2] = (l.companyName || ck2)+' — назначена '+kFmtDY(sdt)+(l.meetingDate ? ', на '+kFmtDY(l.meetingDate) : ''); }
     }
   });
@@ -10859,7 +10863,8 @@ function kpiSettingsHtml(c){
     + '<label>На «Отлично», %<input type="number" min="0" data-f="cfg:lvExcl" data-kid="s-lvexcl" value="'+c.lvExcl+'"></label>'
     + '<label>Если верных статусов меньше, %, то живой диалог и R→I не засчитываются (пусто = не применять)<input type="number" min="0" max="100" data-f="cfg:gateAcc" data-kid="s-gate" value="'+(c.gateAcc == null ? '' : c.gateAcc)+'"></label>'
     + '<label>Минимум лидов в выборке для оценки процента (меньше: «мало данных»)<input type="number" min="1" max="100" data-f="cfg:minN" data-kid="s-minn" value="'+c.minN+'"></label>'
-    + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-f="cfg:authorOnly" '+(c.authorOnly ? 'checked' : '')+'> Считать только сообщения, которые внесла сама сотрудница (нужна её почта выше). Старые сообщения без автора не считаются</label>'
+    + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-f="cfg:authorOnly" '+(c.authorOnly ? 'checked' : '')+'> Не считать записи, которые внёс другой человек (по почте автора, нужна почта выше). Включай, когда в разделе лидов работают несколько сотрудников сразу</label>'
+    + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-f="cfg:unattr" '+(c.unattr ? 'checked' : '')+'> Считать старые записи без автора (внесены до появления поля «кто внёс»). Если снять, при включённом фильтре они не считаются никому</label>'
     + '<label>Живой диалог: с какого по счёту ответа контакта (2 = второй и далее)<input type="number" min="2" max="10" data-f="cfg:liveMin" data-kid="s-live" value="'+c.liveMin+'"></label>'
     + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-f="cfg:livePre" '+(c.livePre ? 'checked' : '')+'> Живой диалог: учитывать и лиды, у которых первый ответ был до даты старта сотрудника (по умолчанию нет)</label>'
     + '<label>Follow-up: не больше раб. дней без касания<input type="number" min="1" max="20" data-f="cfg:fuDays" data-kid="s-fud" value="'+c.fuDays+'"></label>'
@@ -10912,9 +10917,9 @@ function kpiSwitcherHtml(){
       + '<label>Почта в планере<input type="text" data-kid="ne-email" placeholder="name@hotelcompas.com"></label>'
       + '<label>Первый рабочий день<input type="date" data-kid="ne-start"></label>'
       + '<label>Скопировать пороги, веса и бонус у<select data-kid="ne-copy"><option value="">Стандартные</option>'+ids.map(function(i){ return '<option value="'+kE(i)+'">'+kE(kpiEmpName(i))+'</option>'; }).join('')+'</select></label>'
-      + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-kid="ne-author" checked> Считать только записи этого сотрудника (по автору: лиды, сообщения и напоминания, внесённые под его почтой)</label>'
+      + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-kid="ne-author"> Не считать записи других людей (по автору). Включай, только когда в лидах уже работают несколько сотрудников; старые записи без автора при этом считаются</label>'
       + '</div><div class="kpi-actions" style="margin-top:10px;"><button class="btn-primary" style="height:36px;" data-act="emp-create">Добавить</button></div>'
-      + '<div class="kpi-note">Данные («Лидогенерация») общие для всех, поэтому чтобы цифры разных сотрудников не смешивались, записи должны вноситься под их почтами. Старые записи без автора будут считаться только у первого сотрудника без этого фильтра.</div></div>';
+      + '<div class="kpi-note">Данные («Лидогенерация») общие для всех. Пока работает один человек, фильтр по автору не нужен. Когда сотрудников несколько, включи его и вноси записи под своими почтами: тогда чужие записи не попадут в цифры.</div></div>';
   }
   return h;
 }
@@ -10963,6 +10968,12 @@ function renderKpiTab(){
       + (m.t < rg.to ? '<br>Период ещё идёт: расчёт до '+kFmtDY(m.t)+', нормы подогнаны под этот срок' : '')
       + '</div>';
     if(!maxLeads.length) h += '<div class="kpi-note">Лиды ещё загружаются или раздел «Лидогенерация» пуст: показатели по ответам пока нулевые.</div>';
+    else {
+      var z = function(k){ var r = m.rows.filter(function(x){ return x.def.key === k; })[0]; return !r || !r.val; };
+      if(z('meetings') && z('companies') && z('live') && z('scheduled')){
+        h += '<div class="kpi-note kpi-warn">В «Лидогенерации» лидов: '+maxLeads.length+', но за этот период по выбранному сотруднику ничего не найдено. Проверь: дату старта ('+kFmtDY(c.startDate)+'), период, и в настройках фильтр по автору ('+(c.authorOnly ? 'включён' : 'выключен')+')'+(c.authorOnly ? ', а также «считать старые записи без автора» ('+(c.unattr ? 'включено' : 'выключено')+')' : '')+'.</div>';
+      }
+    }
     h += '<div class="kpi-card"><h3>План и факт · '+kE(rg.label)+'</h3>'+kpiSummaryHtml(m)
       + '<div class="kpi-note">Замечания: лиды берутся по дате первого ответа; в разделе «Лидогенерация» записи общие (нет поля «кто внёс»), поэтому считается всё, что внесено за период. Подсказка по каждому показателю: наведи на название.</div></div>';
     if(kpiView.mode === 'month') h += kpiSnapHtml(m, kMonthKey(rg.from));
@@ -11051,6 +11062,7 @@ function kpiOnChange(e){
     if(key === 'firstProrate'){ kpiSave({ firstProrate: !!v }); return; }
     if(key === 'fuDays' || key === 'fuLimit'){ var of = {}; of[key] = kNum(v) == null ? 3 : kNum(v); kpiSave(of); return; }
     if(key === 'authorOnly'){ kpiSave({ authorOnly: !!v }); return; }
+    if(key === 'unattr'){ kpiSave({ unattr: !!v }); return; }
     if(key === 'minN'){ kpiSave({ minN: Math.max(1, kNum(v) == null ? 10 : kNum(v)) }); return; }
     if(key === 'livePre'){ kpiSave({ livePre: !!v }); return; }
     if(key === 'liveMin'){ kpiSave({ liveMin: Math.max(2, kNum(v) == null ? 2 : kNum(v)) }); return; }
