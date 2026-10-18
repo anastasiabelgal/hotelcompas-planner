@@ -10377,7 +10377,10 @@ function kpiFacts(f, t){
   var sig = cohort.filter(function(l){ return l.status !== 'Irrelevant'; });
   var sla = kpiSla(f, t);
   var lname = function(l){ return (l.contactName ? l.contactName+', ' : '')+(l.companyName || ''); };
-  facts.sla = { val: sla.pct, base: sla.pct == null ? 'нет проверенных дней' : 'проверено дней: '+sla.checked };
+  var slaHave = sla.rows.filter(function(r){ return r.d.on && r.avg != null; }).length, slaAll = sla.rows.filter(function(r){ return r.d.on; }).length;
+  facts.sla = { val: sla.pct, base: sla.pct == null
+    ? 'нет данных: заполни блок «Ежедневная проверка» ниже (неотвеченные, follow-up) и задержку недельного отчёта'
+    : 'считается по процессам: '+slaHave+' из '+slaAll+(slaHave < slaAll ? ' (остальные не заполнены)' : '')+', дней проверено полностью: '+sla.checked };
   facts.meetings = { val: Object.keys(meet).length, base: 'уникальных компаний, звонок проведён в периоде', list: Object.keys(L.meetings).map(function(k){ return L.meetings[k]; }) };
   facts.scheduled = { val: Object.keys(sched).length, base: 'встречи, назначенные в периоде', list: Object.keys(L.scheduled).map(function(k){ return L.scheduled[k]; }) };
   // Живой диалог: из лидов, у которых в периоде был хотя бы один ответ (активные), доля тех, у кого в периоде пришёл ответ №liveMin и дальше (по умолчанию второй и далее).
