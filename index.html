@@ -10152,6 +10152,8 @@ var KPI_DEFS = [
   {key:'complete', name:'Внесённость диалогов в планер',   unit:'%',  kind:'rate',  dir:'up',   from:2, min:80,   plan:90,   excl:95,   hint:'Из блока «Проверка статусов»: диалоги из GetSales, которые есть в планере'}
 ];
 // Веса для выплаты (доли бонуса среди включённых показателей, нормируются); 0 = показатель не оплачивается, а только контролируется
+// Встречи: норма растёт со стажем (месяц работы с которого действует, минимум, план, отлично). Правится в настройках.
+var KPI_MEET_STAGES = [{from:1,min:3,plan:4,excl:5},{from:4,min:8,plan:10,excl:12},{from:7,min:12,plan:15,excl:18}];
 var KPI_W = { sla:20, scheduled:0, meetings:30, live:20, companies:10, contacts:10, r2i:10, wrongicp:0, statusacc:0, complete:0 };
 var KPI_SLA_DEFS = [
   {key:'unanswered', name:'Неотвеченные ответы лидов на конец рабочего дня', unit:'шт', per:'day',  field:'u',  min:3, plan:1, excl:0},
@@ -10164,6 +10166,9 @@ var KPI_MONTHS_GEN = ['января','февраля','марта','апреля
 var KPI_WD = ['вс','пн','вт','ср','чт','пт','сб'];
 
 var kpiData = {}, unsubKpi = null, kpiLoadErr = null, kpiTimer = null;
+// Несколько сотрудников: каждый хранится отдельным документом коллекции kpiTracker (старый документ «data» остаётся первым сотрудником)
+var kpiAll = {}, kpiActive = null, kpiPending = null, kpiAdding = false;
+var KPI_COPY_KEYS = ['meetingStages','metrics','sla','bonus','lvMin','lvPlan','lvExcl','gateAcc','minN','liveMin','livePre','fuDays','fuLimit','firstProrate','deadlineDay','remindDays','holidays'];
 var kpiStats = {}, kpiStatsLoading = {}, kpiStatsErr = false;
 var kpiView = null, kpiDrill = null;
 
@@ -10185,8 +10190,9 @@ function kNum(v){ if(v === '' || v == null) return null; var n = Number(String(v
 function kn(x){ if(x == null) return '—'; var r = Math.round(x*10)/10; return String(r).replace('.',','); }
 function kSum(a){ return a.reduce(function(s,x){ return s+x; }, 0); }
 
-function kpiConf(){
-  var c = kpiData || {};
+function kpiConf(){ return kpiConfOf(kpiData); }
+function kpiConfOf(c){
+  c = c || {};
   var hol = Array.isArray(c.holidays) ? c.holidays : [];
   return {
     sdrName: c.sdrName || '', sdrEmail: c.sdrEmail || '', startDate: c.startDate || '', statsUid: c.statsUid || '',
@@ -10248,11 +10254,18 @@ function kMondays(f, t){ var out = [], m = kMonday(f); if(m < f) m = kAdd(m,7); 
 function kWeeksOverlap(f, t){ var out = [], m = kMonday(f); for(; m <= t; m = kAdd(m,7)) out.push(m); return out; }
 
 /* --- настройки показателей --- */
-function kpiCfg(def){
+function kMeetStages(){
+  var s = kpiData && Array.isArray(kpiData.meetingStages) ? kpiData.meetingStages.filter(function(x){ return x && kNum(x.from) != null; }) : [];
+  if(!s.length) s = KPI_MEET_STAGES;
+  return s.slice().sort(function(a, b){ return kNum(a.from) - kNum(b.from); });
+}
+function kMeetStage(idx){ var pick = null; kMeetStages().forEach(function(x){ if(kNum(x.from) <= idx) pick = x; }); return pick || kMeetStages()[0]; }
+function kpiCfg(def, idx){
   var o = (kpiData.metrics && kpiData.metrics[def.key]) || {};
   function g(f){ return o[f] !== undefined ? o[f] : (def[f] == null ? null : def[f]); }
   return { key:def.key, name:def.name, unit:def.unit, kind:def.kind, dir:def.dir, hint:def.hint,
-    on: o.on !== false, from: o.from != null && o.from !== '' ? +o.from : def.from, min:kNum(g('min')), plan:kNum(g('plan')), excl:kNum(g('excl')),
+    on: o.on !== false, from: o.from != null && o.from !== '' ? +o.from : def.from,
+    min: def.key === 'meetings' ? kNum(kMeetStage(idx || 1).min) : kNum(g('min')), plan: def.key === 'meetings' ? kNum(kMeetStage(idx || 1).plan) : kNum(g('plan')), excl: def.key === 'meetings' ? kNum(kMeetStage(idx || 1).excl) : kNum(g('excl')),
     w: o.w !== undefined ? (kNum(o.w) == null ? 0 : kNum(o.w)) : (KPI_W[def.key] || 0) };
 }
 function kpiSlaCfg(def){
@@ -10316,6 +10329,18 @@ function kpiContacts(f, t){
   });
   return missing ? undefined : Math.round(total);
 }
+// Чьи записи считаются: при включённой настройке «только записи сотрудника» берём лиды, которые он создал или в которых есть его сообщения, и его напоминания
+function kLeadMine(l, cf){
+  if(!(cf.authorOnly && cf.sdrEmail)) return true;
+  var em = cf.sdrEmail.toLowerCase();
+  return (l.createdBy || '').toLowerCase() === em || (l.messages || []).some(function(m){ return (m.by || '').toLowerCase() === em; });
+}
+function kRems(){
+  var cf = kpiConf();
+  if(!(cf.authorOnly && cf.sdrEmail)) return maxRemindersAll;
+  var em = cf.sdrEmail.toLowerCase();
+  return maxRemindersAll.filter(function(r){ return (r.authorEmail || '').toLowerCase() === em; });
+}
 // Сообщения лида для KPI: при включённой настройке только те, что внёс сам сотрудник (по полю «кто внёс» у сообщения)
 function kMsgsKpi(l, cf){
   var all = kEffMsgs(l);
@@ -10326,6 +10351,7 @@ function kpiFacts(f, t){
   var cfk = kpiConf(), cohort = [], comp = {}, meet = {}, sched = {}, facts = {}, L = {};
   L.companies = {}; L.meetings = {}; L.scheduled = {}; L.live = []; L.r2i = []; L.wrongicp = [];
   maxLeads.forEach(function(l){
+    if(!kLeadMine(l, cfk)) return;
     var ms = kMsgsKpi(l, cfk);
     if(ms.length){
       var dates = ms.map(function(m){ return m.date; }).sort();
@@ -10353,7 +10379,7 @@ function kpiFacts(f, t){
   // Новый лид, написавший один раз, не живой; лид из прошлых месяцев, написавший снова, живой. Молчащий лид в период не попадает вовсе.
   var cf2 = kpiConf(), lm = cf2.liveMin, act = 0, newN = 0, contN = 0, liveN = 0;
   maxLeads.forEach(function(l){
-    if(l.status === 'Irrelevant') return;
+    if(l.status === 'Irrelevant' || !kLeadMine(l, cf2)) return;
     var ds = kMsgsKpi(l, cf2).map(function(m){ return m.date; }).sort();
     if(!ds.length) return;
     if(!cf2.livePre && cf2.startDate && ds[0] < cf2.startDate) return;
@@ -10434,7 +10460,7 @@ function kpiModel(from, to){
   m.f = f; m.t = t;
   if(f > t){ m.err = 'empty'; return m; }
   m.ok = true; m.idx = kMonthIdx(t); m.wd = kWorked(f, t); m.absDays = kWork(f, t) - m.wd; m.scale = kScale(f, t);
-  var defs = KPI_DEFS.map(kpiCfg);
+  var defs = KPI_DEFS.map(function(d0){ return kpiCfg(d0, m.idx); });
   m.active = defs.filter(function(d){ return d.on && d.from <= m.idx; });
   m.later = defs.filter(function(d){ return d.on && d.from > m.idx; });
   var facts = kpiFacts(f, t);
@@ -10488,7 +10514,7 @@ function kFuName(r){ var l = kFuLead(r); return (l ? ((l.contactName ? l.contact
 // С какого дня ведётся журнал: самая ранняя запись у напоминания, созданного уже с историей
 function kFuJournalStart(){
   var min = '';
-  maxRemindersAll.forEach(function(r){ var h = kFuEvents(r); if(h.length && h[0].d && (!min || h[0].d < min)) min = h[0].d; });
+  kRems().forEach(function(r){ var h = kFuEvents(r); if(h.length && h[0].d && (!min || h[0].d < min)) min = h[0].d; });
   return min;
 }
 // Состояние напоминания на конец дня D, восстановленное по журналу (null, если его в тот день ещё не было)
@@ -10504,7 +10530,7 @@ function kFuStateAt(r, D){
 // Сколько follow-up не зачёркнуто на конец дня D (срок наступил, галочки нет)
 function kFuMissedAt(D){
   var n = 0;
-  maxRemindersAll.forEach(function(r){ var s = kFuStateAt(r, D); if(s && !s.deleted && !s.done && s.date && s.date <= D) n++; });
+  kRems().forEach(function(r){ var s = kFuStateAt(r, D); if(s && !s.deleted && !s.done && s.date && s.date <= D) n++; });
   return n;
 }
 function kFuAutoOn(D){ var js = kFuJournalStart(); return !!js && D >= js && D <= kToday(); }
@@ -10517,7 +10543,7 @@ function kDayVal(s, field){
 // Итоги по follow-up, у которых исходная дата попала в период
 function kpiFollowups(f, t){
   var today = kToday(), c = { total:0, ontime:0, late:0, missed:0, open:0, moved:0, deleted:0, nolog:0 }, rows = [];
-  maxRemindersAll.forEach(function(r){
+  kRems().forEach(function(r){
     var orig = kFuOrig(r); if(!orig || orig < f || orig > t) return;
     var h = kFuEvents(r), moves = h.filter(function(e){ return e.type === 'date'; }), st;
     if(r.deleted && !r.done) st = 'deleted';
@@ -10534,9 +10560,9 @@ function kLastMsg(l){ var last = ''; kEffMsgs(l).forEach(function(m){ if(m.date 
 function kpiNoTouch(){
   var cf = kpiConf(), today = kToday(), out = [];
   maxLeads.forEach(function(l){
-    if(KPI_TERMINAL.indexOf(l.status) > -1) return;
+    if(KPI_TERMINAL.indexOf(l.status) > -1 || !kLeadMine(l, cf)) return;
     var last = kLastMsg(l) || l.firstContactDate || '';
-    var rs = maxRemindersAll.filter(function(r){ return r.leadId === l.id && !r.deleted; });
+    var rs = kRems().filter(function(r){ return r.leadId === l.id && !r.deleted; });
     rs.forEach(function(r){ if(r.done && r.doneDate && r.doneDate > last) last = r.doneDate; });
     if(!last) return;
     var plan = rs.filter(function(r){ return !r.done && r.date && r.date >= today; }).map(function(r){ return r.date; }).sort();
@@ -10555,9 +10581,9 @@ function kpiNoTouch(){
 function kpiFuLimit(){
   var cf = kpiConf(), today = kToday(), out = [];
   maxLeads.forEach(function(l){
-    if(KPI_TERMINAL.indexOf(l.status) > -1) return;
+    if(KPI_TERMINAL.indexOf(l.status) > -1 || !kLeadMine(l, cf)) return;
     var lastMsg = kLastMsg(l);
-    var rs = maxRemindersAll.filter(function(r){ return r.leadId === l.id && !r.deleted; });
+    var rs = kRems().filter(function(r){ return r.leadId === l.id && !r.deleted; });
     var done = rs.filter(function(r){ return r.done && r.doneDate && r.doneDate > lastMsg; }).length;
     var planned = rs.filter(function(r){ return !r.done && r.date && r.date >= today; }).length;
     if(done + planned > cf.fuLimit) out.push({ l:l, done:done, planned:planned, why:'превышен лимит: сделано '+done+(planned ? ', ещё запланировано '+planned : '')+' (максимум '+cf.fuLimit+')' });
@@ -10581,16 +10607,32 @@ function kpiRange(){
 function kpiTabOpen(){ var t = el('tab-kpi'); return !!t && !t.classList.contains('hidden'); }
 
 /* --- сохранение --- */
+function kpiEmpIds(){
+  var ids = Object.keys(kpiAll);
+  if(!ids.length) ids = ['data'];
+  ids.sort(function(a, b){ return ((kpiAll[a] && kpiAll[a].createdAtMs) || 0) - ((kpiAll[b] && kpiAll[b].createdAtMs) || 0) || a.localeCompare(b); });
+  return ids;
+}
+function kpiEmpName(id){ var d = kpiAll[id] || {}; return d.sdrName || d.sdrEmail || 'Сотрудник'; }
+function kpiUse(id){
+  kpiActive = id; kpiData = kpiAll[id] || {}; kpiDrill = null; kpiStats = {};
+  try{ localStorage.setItem('kpiActive', id); }catch(e){}
+}
 function kpiSave(patch){
   patch.ownerId = currentUser.uid;
-  return setDoc(doc(db, KPI_COLL, KPI_DOC_ID), patch, { merge:true }).catch(function(err){ kpiLoadErr = err; console.error('kpi save err', err); if(kpiTabOpen()) renderKpiTab(); });
+  return setDoc(doc(db, KPI_COLL, kpiActive || KPI_DOC_ID), patch, { merge:true }).catch(function(err){ kpiLoadErr = err; console.error('kpi save err', err); if(kpiTabOpen()) renderKpiTab(); });
 }
 function subscribeKpi(){
   if(unsubKpi){ unsubKpi(); unsubKpi = null; }
   if(!isNastyaUser() || viewAsUid) return;
   initKpiOnce();
-  unsubKpi = onSnapshot(doc(db, KPI_COLL, KPI_DOC_ID), function(snap){
-    kpiData = snap.exists() ? snap.data() : {}; kpiLoadErr = null;
+  unsubKpi = onSnapshot(collection(db, KPI_COLL), function(snap){
+    kpiAll = {}; snap.forEach(function(d){ kpiAll[d.id] = d.data(); });
+    var ids = kpiEmpIds();
+    if(kpiPending && kpiAll[kpiPending]){ kpiActive = kpiPending; kpiPending = null; }
+    if(!kpiActive){ try{ kpiActive = localStorage.getItem('kpiActive'); }catch(e){} }
+    if(!kpiActive || ids.indexOf(kpiActive) < 0) kpiActive = ids[0];
+    kpiData = kpiAll[kpiActive] || {}; kpiLoadErr = null;
     kpiCheckReminder(); if(kpiTabOpen()) kpiRenderKeepFocus();
   }, function(err){ kpiLoadErr = err; console.error('kpi err', err); if(kpiTabOpen()) renderKpiTab(); });
   if(!kpiTimer) kpiTimer = setInterval(kpiCheckReminder, 30*60*1000);
@@ -10599,20 +10641,26 @@ function subscribeKpi(){
 /* --- напоминание: за N дней до срока (по умолчанию за 3 дня до 10-го) --- */
 function kpiCheckReminder(){
   var b = el('kpi-banner'); if(!b) return;
-  var cfg = kpiConf(), now = new Date();
-  if(!isNastyaUser() || viewAsUid || !cfg.startDate){ b.classList.add('hidden'); return; }
-  var prev = new Date(now.getFullYear(), now.getMonth()-1, 1), ym = prev.getFullYear()+'-'+kPad(prev.getMonth()+1);
-  var prevEnd = kMonthRange(ym)[1];
-  if(prevEnd < cfg.startDate || (kpiData.done && kpiData.done[ym])){ b.classList.add('hidden'); return; }
-  var dom = now.getDate(), dl = cfg.deadlineDay, from = dl - cfg.remindDays;
-  if(dom < from){ b.classList.add('hidden'); return; }
-  var name = KPI_MONTHS[prev.getMonth()];
-  var txt = dom <= dl
-    ? 'KPI за '+name+': подведи итоги и отправь до '+dl+' '+KPI_MONTHS_GEN[now.getMonth()]+(dom === dl ? ' (сегодня последний день)' : ' (осталось дн.: '+(dl-dom)+')')
-    : 'KPI за '+name+' не закрыт: срок был '+dl+' '+KPI_MONTHS_GEN[now.getMonth()];
+  if(!isNastyaUser() || viewAsUid){ b.classList.add('hidden'); return; }
+  var now = new Date(), prev = new Date(now.getFullYear(), now.getMonth()-1, 1), ym = prev.getFullYear()+'-'+kPad(prev.getMonth()+1);
+  var prevEnd = kMonthRange(ym)[1], dom = now.getDate(), list = [];
+  kpiEmpIds().forEach(function(id){
+    var d = kpiAll[id]; if(!d || d.archived) return;
+    var cfg = kpiConfOf(d); if(!cfg.startDate) return;
+    if(prevEnd < cfg.startDate || (d.done && d.done[ym])) return;
+    if(dom < cfg.deadlineDay - cfg.remindDays) return;
+    list.push({ id:id, name:(d.sdrName || d.sdrEmail || 'сотрудник'), dl:cfg.deadlineDay, over:dom > cfg.deadlineDay });
+  });
+  if(!list.length){ b.classList.add('hidden'); return; }
+  list.sort(function(a, c){ return (c.over ? 1 : 0) - (a.over ? 1 : 0); });
+  var f = list[0], name = KPI_MONTHS[prev.getMonth()];
+  var txt = (f.over
+    ? 'KPI за '+name+' ('+f.name+') не закрыт: срок был '+f.dl+' '+KPI_MONTHS_GEN[now.getMonth()]
+    : 'KPI за '+name+' ('+f.name+'): подведи итоги и отправь до '+f.dl+' '+KPI_MONTHS_GEN[now.getMonth()]+(dom === f.dl ? ' (сегодня последний день)' : ' (осталось дн.: '+(f.dl-dom)+')'))
+    + (list.length > 1 ? '. Ещё сотрудников: '+(list.length-1) : '');
   b.innerHTML = '<span>'+kE(txt)+'</span><button class="close-x" title="Отметить: итоги подведены">✓</button>';
-  b.dataset.month = ym;
-  b.classList.toggle('deadline-banner', dom > dl);
+  b.dataset.month = ym; b.dataset.emp = f.id;
+  b.classList.toggle('deadline-banner', f.over);
   b.classList.remove('hidden');
 }
 
@@ -10787,12 +10835,20 @@ function kpiSettingsHtml(c){
       + '<td><input type="checkbox" data-f="m:'+k+':on" '+(d.on ? 'checked' : '')+'></td>'
       + '<td><input type="number" min="1" data-f="m:'+k+':from" data-kid="mf-'+k+'" value="'+d.from+'"></td>'
       + '<td><input type="number" min="0" step="any" data-f="m:'+k+':w" data-kid="mw-'+k+'" value="'+d.w+'"></td>'
-      + '<td><input type="number" step="any" data-f="m:'+k+':min" data-kid="mn-'+k+'" value="'+(d.min == null ? '' : d.min)+'"></td>'
-      + '<td><input type="number" step="any" data-f="m:'+k+':plan" data-kid="mp-'+k+'" value="'+(d.plan == null ? '' : d.plan)+'"></td>'
-      + '<td><input type="number" step="any" data-f="m:'+k+':excl" data-kid="me-'+k+'" value="'+(d.excl == null ? '' : d.excl)+'"></td>'
+      + (k === 'meetings'
+        ? '<td colspan="3" class="kpi-base">по стажу, таблица ниже</td>'
+        : '<td><input type="number" step="any" data-f="m:'+k+':min" data-kid="mn-'+k+'" value="'+(d.min == null ? '' : d.min)+'"></td>'
+          + '<td><input type="number" step="any" data-f="m:'+k+':plan" data-kid="mp-'+k+'" value="'+(d.plan == null ? '' : d.plan)+'"></td>'
+          + '<td><input type="number" step="any" data-f="m:'+k+':excl" data-kid="me-'+k+'" value="'+(d.excl == null ? '' : d.excl)+'"></td>')
       + '<td>'+d.unit+(d.kind === 'count' ? ' / мес.' : '')+'</td></tr>';
   });
   h += '</tbody></table></div><div class="kpi-note">Пороги для «шт» задаются на полный месяц и автоматически пересчитываются под число отработанных дней периода. Проценты не пересчитываются. Пустое поле = порог не задан (показатель считается, но без оценки). Вес 0 = показатель только контролируется и не входит в выплату; веса среди включённых на этот месяц показателей нормируются к бонусу.</div>';
+  h += '<div class="kpi-sub">Встречи: нормы на месяц по стажу (с какого месяца работы действует строка)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>С месяца работы №</th><th>Минимум</th><th>План</th><th>Отлично</th></tr></thead><tbody>';
+  kMeetStages().forEach(function(s, i){
+    h += '<tr><td><input type="number" min="1" data-f="mst:'+i+':from" data-kid="ms-f'+i+'" value="'+kE(s.from)+'"></td>'
+      + ['min','plan','excl'].map(function(f){ return '<td><input type="number" step="any" data-f="mst:'+i+':'+f+'" data-kid="ms-'+f+i+'" value="'+kE(s[f] == null ? '' : s[f])+'"></td>'; }).join('')+'</tr>';
+  });
+  h += '</tbody></table></div><div class="kpi-note">Нормы встреч задаются на полный месяц и пересчитываются под отработанные дни. По умолчанию: 1–3 месяц 3 / 4 / 5, с 4-го месяца 8 / 10 / 12, с 7-го месяца 12 / 15 / 18.</div>';
   h += '<div class="kpi-sub">SLA: процессы и пороги (значение, не больше)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Процесс</th><th>В среднем</th><th>Минимум</th><th>План</th><th>Отлично</th></tr></thead><tbody>';
   KPI_SLA_DEFS.forEach(function(d0){
     var d = kpiSlaCfg(d0), k = d.key;
@@ -10801,7 +10857,25 @@ function kpiSettingsHtml(c){
       + '<td><input type="number" step="any" data-f="s:'+k+':plan" data-kid="sp-'+k+'" value="'+(d.plan == null ? '' : d.plan)+'"></td>'
       + '<td><input type="number" step="any" data-f="s:'+k+':excl" data-kid="se-'+k+'" value="'+(d.excl == null ? '' : d.excl)+'"></td></tr>';
   });
-  h += '</tbody></table></div><button class="btn-secondary kpi-reset" data-act="reset">Вернуть стандартные пороги</button>';
+  h += '</tbody></table></div><button class="btn-secondary kpi-reset" data-act="reset">Вернуть стандартные пороги</button> '
+    + (kpiData.archived ? '<button class="btn-secondary kpi-reset" data-act="emp-restore">Вернуть из архива</button>' : '<button class="btn-secondary kpi-reset" data-act="emp-archive" title="Сотрудник уходит из списка, данные сохраняются">Отправить в архив</button>');
+  return h;
+}
+function kpiSwitcherHtml(){
+  var ids = kpiEmpIds(), live = ids.filter(function(i){ return !(kpiAll[i] && kpiAll[i].archived); }), arch = ids.filter(function(i){ return kpiAll[i] && kpiAll[i].archived; });
+  var opt = function(i){ return '<option value="'+kE(i)+'"'+(i === kpiActive ? ' selected' : '')+'>'+kE(kpiEmpName(i))+'</option>'; };
+  var h = '<div class="kpi-emps"><b>Сотрудник:</b><select data-f="emp:switch">'+live.map(opt).join('')+(arch.length ? '<optgroup label="Архив">'+arch.map(opt).join('')+'</optgroup>' : '')+'</select>'
+    + '<button class="btn-secondary" data-act="emp-add">'+(kpiAdding ? '✕ Отмена' : '+ Сотрудник')+'</button></div>';
+  if(kpiAdding){
+    h += '<div class="kpi-card"><h3>Новый сотрудник</h3><div class="kpi-grid">'
+      + '<label>Имя<input type="text" data-kid="ne-name" placeholder="Имя Фамилия"></label>'
+      + '<label>Почта в планере<input type="text" data-kid="ne-email" placeholder="name@hotelcompas.com"></label>'
+      + '<label>Первый рабочий день<input type="date" data-kid="ne-start"></label>'
+      + '<label>Скопировать пороги, веса и бонус у<select data-kid="ne-copy"><option value="">Стандартные</option>'+ids.map(function(i){ return '<option value="'+kE(i)+'">'+kE(kpiEmpName(i))+'</option>'; }).join('')+'</select></label>'
+      + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-kid="ne-author" checked> Считать только записи этого сотрудника (по автору: лиды, сообщения и напоминания, внесённые под его почтой)</label>'
+      + '</div><div class="kpi-actions" style="margin-top:10px;"><button class="btn-primary" style="height:36px;" data-act="emp-create">Добавить</button></div>'
+      + '<div class="kpi-note">Данные («Лидогенерация») общие для всех, поэтому чтобы цифры разных сотрудников не смешивались, записи должны вноситься под их почтами. Старые записи без автора будут считаться только у первого сотрудника без этого фильтра.</div></div>';
+  }
   return h;
 }
 function renderKpiTab(){
@@ -10815,6 +10889,7 @@ function renderKpiTab(){
   if(kpiLoadErr){
     h += '<div class="kpi-card kpi-err"><b>Нет доступа к данным KPI.</b> Опубликуй в Firebase обновлённые правила (блок <code>kpiTracker</code>, «только Настя»), затем обнови страницу. Код ошибки: '+kE(kpiLoadErr.code || kpiLoadErr.message || '')+'</div>';
   }
+  h += kpiSwitcherHtml();
   var who = (c.sdrName || 'Сотрудник');
   h += '<div class="kpi-head"><div><div class="kpi-title">KPI: '+kE(who)+'</div><div class="kpi-sub2">'+(c.startDate ? 'Первый рабочий день: '+kFmtDY(c.startDate) : 'Дата старта не задана')+'</div></div>'
     + '<div class="kpi-actions"><label class="kpi-chk"><input type="checkbox" data-f="view:pay" '+(kpiInitView() || kpiView.pay ? 'checked' : '')+'> выплата в файлах</label><button class="btn-secondary" data-act="dl-html">Скачать отчёт (HTML)</button><button class="btn-secondary" data-act="dl-csv">Скачать CSV</button></div></div>';
@@ -10841,6 +10916,7 @@ function renderKpiTab(){
     var done = kpiData.done && kpiData.done[dm];
     h += '<div class="kpi-info"><b>'+kE(phase)+'</b> · показателей: '+m.active.length
       + ' · учтено рабочих дней: '+m.wd+' (норма периода: '+Math.round(m.scale*100)+'% от месячной)'
+      + '<br>Норма встреч по стажу: '+kn(kMeetStage(m.idx).plan)+' в месяц на плане (минимум '+kn(kMeetStage(m.idx).min)+', отлично '+kn(kMeetStage(m.idx).excl)+'), действует с '+kMeetStage(m.idx).from+'-го месяца работы'
       + (m.absDays > 0 ? '<br>Не работала (отпуск, больничный): '+m.absDays+' раб. дн.: минимум, план и отлично уменьшены пропорционально' : '')
       + (m.later.length ? '<br>Подключатся позже: '+m.later.map(function(d){ return kE(d.name)+' (с '+d.from+'-го мес.)'; }).join('; ') : '')
       + (m.f > rg.from ? '<br>Период начинается с даты старта: '+kFmtDY(m.f)+(m.payShare < 1 ? ' · бонус пропорционален отработанным дням месяца: '+Math.round(m.payShare*100)+'%' : '') : (m.payShare < 1 ? '<br>Бонус пропорционален отработанным дням месяца: '+Math.round(m.payShare*100)+'%' : ''))
@@ -10926,6 +11002,7 @@ function kpiParseHolidays(s){ return (s || '').split(/[\s,;]+/).filter(function(
 function kpiOnChange(e){
   var t = e.target, f = t.dataset ? t.dataset.f : null; if(!f) return;
   var p = f.split(':'), v = t.type === 'checkbox' ? t.checked : t.value;
+  if(p[0] === 'emp'){ if(p[1] === 'switch' && kpiAll[v] !== undefined || p[1] === 'switch' && v === 'data'){ kpiUse(v); kpiAdding = false; renderKpiTab(); } return; }
   if(p[0] === 'view'){ kpiInitView(); kpiView[p[1]] = v; renderKpiTab(); return; }
   if(p[0] === 'cfg'){
     var key = p[1];
@@ -10947,6 +11024,7 @@ function kpiOnChange(e){
     if(fld === 'from' && val == null) val = 1;
     patch[grp] = {}; patch[grp][p[1]] = {}; patch[grp][p[1]][fld] = val; kpiSave(patch); return;
   }
+  if(p[0] === 'mst'){ var arr = kMeetStages().map(function(x){ return { from:kNum(x.from), min:kNum(x.min), plan:kNum(x.plan), excl:kNum(x.excl) }; }); arr[+p[1]][p[2]] = kNum(v); kpiSave({ meetingStages: arr }); return; }
   if(p[0] === 'dayoff'){ var po = { days:{} }; po.days[p[1]] = { off: !!v }; kpiSave(po); return; }
   if(p[0] === 'day'){ var pd = { days:{} }; pd.days[p[1]] = {}; pd.days[p[1]][p[2]] = kNum(v); kpiSave(pd); return; }
   if(p[0] === 'week'){ var pw = { weeks:{} }; pw.weeks[p[1]] = {}; pw.weeks[p[1]][p[2]] = kNum(v); kpiSave(pw); return; }
@@ -10965,6 +11043,22 @@ function kpiOnClick(e){
     else { var p = v.month.split('-'); var nm = new Date(+p[0], +p[1]-1+d, 1); v.month = nm.getFullYear()+'-'+kPad(nm.getMonth()+1); }
   }
   else if(act === 'today'){ v.week = kMonday(today); v.month = kMonthKey(today); }
+  else if(act === 'emp-add'){ kpiAdding = !kpiAdding; }
+  else if(act === 'emp-create'){
+    var q = function(k){ return document.querySelector('#kpi-root [data-kid="'+k+'"]'); };
+    var nm = (q('ne-name').value || '').trim(), em = (q('ne-email').value || '').trim().toLowerCase(), st = q('ne-start').value, cp = q('ne-copy').value, au = q('ne-author').checked;
+    if(!nm || !st){ alert('Укажи имя и первый рабочий день'); return; }
+    if(au && !em){ alert('Для счёта по автору нужна почта сотрудника в планере'); return; }
+    var nid = 'emp_'+Date.now().toString(36), base = { ownerId:currentUser.uid, sdrName:nm, sdrEmail:em, startDate:st, createdAtMs:Date.now(), authorOnly:au, statsUid:'' };
+    if(cp && kpiAll[cp]) KPI_COPY_KEYS.forEach(function(k){ if(kpiAll[cp][k] !== undefined) base[k] = JSON.parse(JSON.stringify(kpiAll[cp][k])); });
+    kpiPending = nid; kpiAdding = false;
+    kpiResolveUid(em).then(function(uid){ base.statsUid = uid; return setDoc(doc(db, KPI_COLL, nid), base); }).catch(function(err){ kpiPending = null; kpiLoadErr = err; renderKpiTab(); });
+  }
+  else if(act === 'emp-archive' || act === 'emp-restore'){
+    var was = kpiActive;
+    kpiSave({ archived: act === 'emp-archive' });
+    if(act === 'emp-archive'){ var rest = kpiEmpIds().filter(function(i){ return i !== was && !(kpiAll[i] && kpiAll[i].archived); }); if(rest.length) kpiUse(rest[0]); }
+  }
   else if(act === 'drill'){ kpiDrill = (kpiDrill === b.dataset.k ? null : b.dataset.k); }
   else if(act === 'dl-html' || act === 'dl-csv'){
     var rg = kpiRange(), m = kpiModel(rg.from, rg.to);
@@ -10977,7 +11071,7 @@ function kpiOnClick(e){
   else if(act === 'done'){ kpiCloseMonth(b.dataset.month, !(kpiData.done && kpiData.done[b.dataset.month])); return; }
   else if(act === 'reset'){
     if(!confirm('Вернуть стандартные пороги показателей и SLA? Введённые проверки и даты не изменятся.')) return;
-    updateDoc(doc(db, KPI_COLL, KPI_DOC_ID), { metrics: deleteField(), sla: deleteField() }).catch(function(err){ console.error(err); });
+    updateDoc(doc(db, KPI_COLL, kpiActive || KPI_DOC_ID), { metrics: deleteField(), sla: deleteField(), meetingStages: deleteField() }).catch(function(err){ console.error(err); });
     return;
   }
   renderKpiTab();
@@ -11022,7 +11116,7 @@ function initKpiOnce(){
   root.addEventListener('click', kpiOnClick);
   var bn = el('kpi-banner');
   if(bn) bn.addEventListener('click', function(e){
-    var ym = bn.dataset.month;
+    var ym = bn.dataset.month; if(bn.dataset.emp && kpiAll[bn.dataset.emp]) kpiUse(bn.dataset.emp);
     if(e.target.closest('.close-x')){ e.stopPropagation(); kpiCloseMonth(ym, true); bn.classList.add('hidden'); return; }
     kpiInitView(); kpiView.mode = 'month'; kpiView.month = ym;
     var btn = document.querySelector('.tab-btn[data-tab="kpi"]'); if(btn) btn.click();

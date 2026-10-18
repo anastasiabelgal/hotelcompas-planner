@@ -18,7 +18,7 @@ function mk(todayStr){
     maxLeads:[], maxRemindersAll:[], unsubMaxLeads:{}, subscribeMaxLeads(){}, doc(){}, getDoc(){}, getDocs(){}, query(){}, where(){}, collection(){}, db:{}, onSnapshot(){}, setDoc(){return Promise.resolve()}, updateDoc(){return Promise.resolve()}, deleteField(){}, document:{activeElement:null}, window:{}, setInterval(){}, alert(){}, confirm(){return true}
   };
   vm.createContext(ctx);
-  vm.runInContext(src+'\nthis.__x={maxPeriodGroups,kpiSnapshotOf,kpiFollowups,kpiNoTouch,kpiFuLimit,kFuMissedAt,kFuJournalStart,setRem:(r)=>{maxRemindersAll=r},kpiPay,kpiModel,kpiConf,kpiCheckReminder,kScale,kWork,kpiSla,kpiFacts,kpiCsv,kpiReportHtml,setData:(d)=>{kpiData=Object.assign({minN:1},d)},setLeads:(l)=>{maxLeads=l},setStats:(s)=>{kpiStats=s},kpiRange,kpiView:()=>kpiView};',ctx);
+  vm.runInContext(src+'\nthis.__x={maxPeriodGroups,kpiSnapshotOf,kpiFollowups,kpiNoTouch,kpiFuLimit,kFuMissedAt,kFuJournalStart,setRem:(r)=>{maxRemindersAll=r},kpiPay,kpiModel,kpiConf,kpiCheckReminder,kScale,kWork,kpiSla,kpiFacts,kpiCsv,kpiReportHtml,setData:(d)=>{kpiData=Object.assign({minN:1},d); kpiAll={data:kpiData}; kpiActive=\'data\';},setAll:(a)=>{kpiAll=a},kpiEmpIds,kLeadMine,kpiUse:(i)=>{kpiUse(i)},kpiConfOf,setLeads:(l)=>{maxLeads=l},setStats:(s)=>{kpiStats=s},kpiRange,kpiView:()=>kpiView};',ctx);
   return {x:ctx.__x,banner,ctx};
 }
 let fails=0; function ok(c,msg){ if(!c){fails++;console.log('FAIL',msg);} else console.log('ok  ',msg); }
@@ -367,6 +367,42 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  ok(g.cont.length===3 && g.cont.map(r=>r.l.id).sort().join()==='B,C,D','continuation: B (2nd), C (2nd,3rd), D (4th) got '+g.cont.map(r=>r.l.id));
  ok(g.two===1 && g.three===2,'breakdown: 2nd = B only; 3rd+ = C and D got '+g.two+'/'+g.three);
  ok(g.active.length===4 && g.msgs===6,'active 4 leads (E silent), 6 messages in period got '+g.active.length+'/'+g.msgs);
+}
+
+// ---- 19. several employees: reminders, switching, attribution by author
+{
+ const {x,banner}=mk('2026-11-08');
+ x.setAll({ data:{sdrName:'Эвелина',startDate:'2026-10-19',createdAtMs:0}, emp_b:{sdrName:'Ирина',startDate:'2026-10-05',createdAtMs:5,done:{'2026-10':true}}, emp_c:{sdrName:'Старый',startDate:'2026-10-05',createdAtMs:7,archived:true} });
+ x.kpiCheckReminder();
+ ok(!banner.cls.has('hidden') && banner.innerHTML.includes('Эвелина') && !banner.innerHTML.includes('Ирина') && !banner.innerHTML.includes('Ещё сотрудников'),'only employees without closed month and not archived: Эвелина');
+ x.setAll({ data:{sdrName:'Эвелина',startDate:'2026-10-19',createdAtMs:0}, emp_b:{sdrName:'Ирина',startDate:'2026-10-05',createdAtMs:5} });
+ x.kpiCheckReminder();
+ ok(banner.innerHTML.includes('Ещё сотрудников: 1'),'two pending employees: banner mentions the other one');
+ ok(x.kpiEmpIds().join()==='data,emp_b','employees ordered by creation (legacy doc first)');
+ x.kpiUse('emp_b'); ok(x.kpiConfOf({sdrName:'X'}).sdrName==='X','config is read from any employee document');
+}
+{ // attribution: with the author filter on, only own leads/messages/reminders count
+ const {x}=mk('2026-11-12');
+ x.setData({startDate:'2026-10-19',firstProrate:false,authorOnly:true,sdrEmail:'a@hotelcompas.com'});
+ const L=(id,by,status,cb)=>({id,companyName:id,createdBy:cb,status:status||'Neutral',callDate:'2026-11-05',statusChangedDate:'2026-11-05',messages:[{date:'2026-11-03',by},{date:'2026-11-04',by}]});
+ x.setLeads([L('A1','a@hotelcompas.com','Call done'),L('B1','b@hotelcompas.com','Call done','b@hotelcompas.com'),L('C1','b@hotelcompas.com','Neutral','a@hotelcompas.com')]);
+ const f=x.kpiFacts('2026-11-01','2026-11-30');
+ ok(f.meetings.val===1,'meetings: only employee A lead counted (B excluded) got '+f.meetings.val);
+ ok(f.companies.val===1,'companies: only A1 (C1 is A lead, but its replies were logged by B, so not counted) got '+f.companies.val);
+ x.setData({startDate:'2026-10-19',firstProrate:false});
+ ok(x.kpiFacts('2026-11-01','2026-11-30').meetings.val===2,'filter off: both meetings counted');
+}
+
+// ---- 20. meeting norm grows with tenure: 3/4/5 -> 10 from month 4 -> 15 from month 7
+{
+ const mt=(start,end0,end1,data)=>{ const {x}=mk(end1); x.setData(Object.assign({startDate:start,firstProrate:false},data||{})); x.setLeads([]); return x.kpiModel(end0,end1).rows.find(r=>r.def.key==='meetings'); };
+ let r=mt('2026-10-01','2026-10-01','2026-10-31'); ok(r.th.plan===4 && r.th.min===3 && r.th.excl===5,'month 1: 3/4/5');
+ r=mt('2026-07-01','2026-10-01','2026-10-31'); ok(r.th.plan===10 && r.th.min===8 && r.th.excl===12,'month 4 (Jul start): plan 10 got '+r.th.plan);
+ r=mt('2026-04-01','2026-10-01','2026-10-31'); ok(r.th.plan===15 && r.th.min===12 && r.th.excl===18,'month 7 (Apr start): plan 15 got '+r.th.plan);
+ r=mt('2026-07-01','2026-09-01','2026-09-30'); ok(r.th.plan===4,'month 3 still 4 got '+r.th.plan);
+ r=mt('2026-07-01','2026-10-01','2026-10-31',{meetingStages:[{from:1,min:2,plan:3,excl:4},{from:2,min:5,plan:6,excl:7}]}); ok(r.th.plan===6,'custom stages respected: plan 6 got '+r.th.plan);
+ // prorated by worked days like other count norms (absence 5 of 22 days in Oct 2026)
+ r=mt('2026-07-01','2026-10-01','2026-10-31',{absences:['2026-10-05..2026-10-09']}); ok(Math.abs(r.th.plan-10*17/22)<1e-9,'month 4 plan 10 prorated by worked days 17/22 got '+r.th.plan);
 }
 console.log(fails?('FAILED '+fails):'ALL PASSED');
 process.exit(fails?1:0);
