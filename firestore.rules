@@ -32,6 +32,9 @@ service cloud.firestore {
     // Настя дополнительно ЧИТАЕТ чужие личные данные (данные Риты), но не пишет
     function canReadOwned() { return ownsDoc() || isNastya(); }
 
+    // KPI сотрудника: настройки, дневные проверки, итоги. Только Настя.
+    match /kpiTracker/{docId} { allow read, write: if isNastya(); }
+
     match /maxLeads/{leadId} { allow read, write: if isLeadgenUser(); }
     match /maxReminders/{reminderId} { allow read, write: if isLeadgenUser(); }
     match /maxCalls/{callId} { allow read, write: if isLeadgenUser(); }
