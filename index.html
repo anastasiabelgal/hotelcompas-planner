@@ -1268,6 +1268,8 @@
   .kpi-weekrd{display:flex;flex-wrap:wrap;gap:10px;}
   .kpi-weekrd input{width:90px;}
   .kpi-settings summary{cursor:pointer;font-weight:700;font-size:14px;}
+  .kpi-pay{margin-top:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--panel-soft);border:1px solid var(--border);font-size:13px;}
+  .kpi-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;}
   .kpi-reset{margin-top:12px;height:34px;}
   .kpi-closebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px;}
   .board-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
@@ -9987,6 +9989,8 @@ var KPI_DEFS = [
   {key:'statusacc',name:'Верные статусы (твоя проверка)',  unit:'%',  kind:'rate',  dir:'up',   from:2, min:80,   plan:90,   excl:95,   hint:'Из блока «Проверка статусов»: проверенные диалоги, где статус указан верно'},
   {key:'complete', name:'Внесённость диалогов в планер',   unit:'%',  kind:'rate',  dir:'up',   from:2, min:80,   plan:90,   excl:95,   hint:'Из блока «Проверка статусов»: диалоги из GetSales, которые есть в планере'}
 ];
+// Веса для выплаты (доли бонуса среди включённых показателей, нормируются); 0 = показатель не оплачивается, а только контролируется
+var KPI_W = { sla:20, meetings:30, live:20, companies:10, contacts:10, r2i:10, wrongicp:0, statusacc:0, complete:0 };
 var KPI_SLA_DEFS = [
   {key:'unanswered', name:'Неотвеченные ответы лидов на конец рабочего дня', unit:'шт', per:'day',  field:'u',  min:3, plan:1, excl:0},
   {key:'overdue',    name:'Просроченные follow-up (не зачёркнуты в календаре)', unit:'шт', per:'day', field:'o', min:3, plan:1, excl:0},
@@ -10024,7 +10028,10 @@ function kpiConf(){
   var hol = Array.isArray(c.holidays) ? c.holidays : [];
   return {
     sdrName: c.sdrName || '', sdrEmail: c.sdrEmail || '', startDate: c.startDate || '', statsUid: c.statsUid || '',
-    holidays: hol, deadlineDay: c.deadlineDay ? +c.deadlineDay : 10, remindDays: c.remindDays != null ? +c.remindDays : 3
+    holidays: hol, deadlineDay: c.deadlineDay ? +c.deadlineDay : 10, remindDays: c.remindDays != null ? +c.remindDays : 3,
+    bonus: kNum(c.bonus) != null ? kNum(c.bonus) : 200,
+    lvMin: kNum(c.lvMin) != null ? kNum(c.lvMin) : 50, lvPlan: kNum(c.lvPlan) != null ? kNum(c.lvPlan) : 100, lvExcl: kNum(c.lvExcl) != null ? kNum(c.lvExcl) : 120,
+    gateAcc: c.gateAcc === undefined ? 80 : kNum(c.gateAcc)
   };
 }
 function kHolSet(){ var o = {}; kpiConf().holidays.forEach(function(h){ o[h] = 1; }); return o; }
@@ -10060,7 +10067,8 @@ function kpiCfg(def){
   var o = (kpiData.metrics && kpiData.metrics[def.key]) || {};
   function g(f){ return o[f] !== undefined ? o[f] : (def[f] == null ? null : def[f]); }
   return { key:def.key, name:def.name, unit:def.unit, kind:def.kind, dir:def.dir, hint:def.hint,
-    on: o.on !== false, from: o.from != null && o.from !== '' ? +o.from : def.from, min:kNum(g('min')), plan:kNum(g('plan')), excl:kNum(g('excl')) };
+    on: o.on !== false, from: o.from != null && o.from !== '' ? +o.from : def.from, min:kNum(g('min')), plan:kNum(g('plan')), excl:kNum(g('excl')),
+    w: o.w !== undefined ? (kNum(o.w) == null ? 0 : kNum(o.w)) : (KPI_W[def.key] || 0) };
 }
 function kpiSlaCfg(def){
   var o = (kpiData.sla && kpiData.sla[def.key]) || {};
@@ -10173,6 +10181,24 @@ function kpiRow(def, fact, scale){
   var low = def.kind === 'rate' && fact.n != null && fact.n < 10 && def.key !== 'sla';
   return { def:def, val:val, th:th, pct:pct, tier:kpiTier(def, val, th), base:fact.base, n:fact.n, low:low };
 }
+// Выплата: бонус делится между оплачиваемыми показателями по весам; уровень (Минимум/План/Отлично) даёт долю суммы
+function kpiPay(rows, facts){
+  var c = kpiConf(), paid = rows.filter(function(r){ return r.def.w > 0; }), W = kSum(paid.map(function(r){ return r.def.w; }));
+  var lv = { excl:c.lvExcl, plan:c.lvPlan, min:c.lvMin, low:0 };
+  var accv = facts.statusacc ? facts.statusacc.val : null;
+  var gate = c.gateAcc != null && accv != null && accv < c.gateAcc;
+  var total = 0, max = 0, unrated = 0;
+  rows.forEach(function(r){
+    r.amount = 0; r.pay = 0; r.payNote = '';
+    if(!(r.def.w > 0) || !W) return;
+    r.amount = c.bonus*r.def.w/W; max += r.amount*c.lvExcl/100;
+    if(gate && (r.def.key === 'live' || r.def.key === 'r2i')){ r.payNote = 'не засчитан: верных статусов меньше '+c.gateAcc+'%'; return; }
+    if(lv[r.tier] === undefined){ r.payNote = r.tier === 'nolimit' ? 'нет порога' : 'нет данных'; unrated++; return; }
+    r.pay = r.amount*lv[r.tier]/100; total += r.pay;
+  });
+  return { bonus:c.bonus, total:total, max:max, unrated:unrated, gate:gate, W:W };
+}
+function kUsd(x){ return '$'+kn(x); }
 function kpiModel(from, to){
   var cfg = kpiConf(), m = { from:from, to:to, cfg:cfg, ok:false };
   if(!cfg.startDate){ m.err = 'nostart'; return m; }
@@ -10186,6 +10212,7 @@ function kpiModel(from, to){
   var facts = kpiFacts(f, t);
   m.sla = facts._sla;
   m.rows = m.active.map(function(d){ return kpiRow(d, facts[d.key], m.scale); });
+  m.pay = kpiPay(m.rows, facts);
   m.weeks = kWeeksOverlap(f, t).filter(function(mon){ return kWork(kMax(mon, f), kMin(kAdd(mon,6), t)) > 0; }).map(function(mon){
     var wf = kMax(mon, f), wt = kMin(kAdd(mon,6), t), wsc = kScale(wf, wt), wfa = kpiFacts(wf, wt);
     return { mon:mon, f:wf, t:wt, wd:kWork(wf, wt), scale:wsc,
@@ -10226,7 +10253,7 @@ async function kpiResolveUid(email){
 function kpiInitView(){
   if(kpiView) return;
   var today = kToday();
-  kpiView = { mode:'month', month:kMonthKey(today), week:kMonday(today), from:kMonthRange(kMonthKey(today))[0], to:today };
+  kpiView = { pay:true, mode:'month', month:kMonthKey(today), week:kMonday(today), from:kMonthRange(kMonthKey(today))[0], to:today };
 }
 function kpiRange(){
   kpiInitView(); var v = kpiView;
@@ -10298,16 +10325,22 @@ function kpiSetupHtml(c){
     + '</div><div class="kpi-note">Укажи первый рабочий день: период, нормы и фаза (ИС → полный набор) считаются от него.</div></div>';
 }
 function kpiSummaryHtml(m){
-  var h = '<table class="kpi-table"><thead><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th><th>Основа расчёта</th></tr></thead><tbody>';
+  var h = '<div class="kpi-scroll"><table class="kpi-table"><thead><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th><th>Доля бонуса</th><th>К выплате</th><th>Основа расчёта</th></tr></thead><tbody>';
   m.rows.forEach(function(r){
     h += '<tr><td class="kpi-name" title="'+kE(r.def.hint)+'">'+kE(r.def.name)+'</td>'
       + '<td class="kpi-fact kpi-t-'+r.tier+'">'+(r.val == null ? '—' : kn(r.val)+(r.def.unit === '%' ? '%' : (' '+r.def.unit)))+'</td>'
       + '<td>'+kThTxt(r,'min')+'</td><td>'+kThTxt(r,'plan')+'</td><td>'+kThTxt(r,'excl')+'</td>'
       + '<td>'+(r.pct == null ? '—' : Math.round(r.pct)+'%')+'</td>'
       + '<td><span class="kpi-chip kpi-t-'+r.tier+'">'+KPI_TIER_LABEL[r.tier]+'</span></td>'
+      + '<td>'+(r.amount ? kUsd(r.amount) : '—')+'</td><td><b>'+(r.amount ? kUsd(r.pay) : '—')+'</b>'+(r.payNote ? ' <span class="kpi-warn" title="'+kE(r.payNote)+'">!</span>' : '')+'</td>'
       + '<td class="kpi-base">'+kE(r.base || '')+(r.low ? ' <b class="kpi-warn">мало данных</b>' : '')+'</td></tr>';
   });
-  return h + '</tbody></table>';
+  h += '</tbody></table></div>';
+  h += '<div class="kpi-pay">К выплате по уровню периода: <b>'+kUsd(m.pay.total)+'</b> из '+kUsd(m.pay.bonus)+' (максимум при «Отлично»: '+kUsd(m.pay.max)+')'
+    + (m.pay.unrated ? ' · не оценено показателей: '+m.pay.unrated+' (нет порога или данных)' : '')
+    + (m.pay.gate ? ' · <span class="kpi-warn">живой диалог и Replied → Interested не засчитаны: верных статусов меньше '+m.cfg.gateAcc+'%</span>' : '')
+    + '</div><div class="kpi-note">Бонус делится между оплачиваемыми показателями по весам (из включённых на этот месяц работы), пороги уже подогнаны под период, поэтому сумма показывает, сколько получит сотрудник за полный месяц при таком уровне.</div>';
+  return h;
 }
 function kpiWeeksHtml(m){
   var h = '<div class="kpi-scroll"><table class="kpi-table kpi-weeks"><thead><tr><th>Неделя</th><th>Раб. дн.</th>';
@@ -10370,20 +10403,26 @@ function kpiSettingsHtml(c){
     + '<label>Первый рабочий день<input type="date" data-f="cfg:startDate" data-kid="s-start" value="'+kE(c.startDate)+'"></label>'
     + '<label>Срок итогов (число месяца)<input type="number" min="1" max="28" data-f="cfg:deadlineDay" data-kid="s-dl" value="'+c.deadlineDay+'"></label>'
     + '<label>Напомнить за (дней)<input type="number" min="0" max="20" data-f="cfg:remindDays" data-kid="s-rd" value="'+c.remindDays+'"></label>'
+    + '<label>Бонус за месяц, $<input type="number" min="0" step="any" data-f="cfg:bonus" data-kid="s-bonus" value="'+c.bonus+'"></label>'
+    + '<label>Выплата на «Минимуме», % суммы<input type="number" min="0" data-f="cfg:lvMin" data-kid="s-lvmin" value="'+c.lvMin+'"></label>'
+    + '<label>На «Плане», %<input type="number" min="0" data-f="cfg:lvPlan" data-kid="s-lvplan" value="'+c.lvPlan+'"></label>'
+    + '<label>На «Отлично», %<input type="number" min="0" data-f="cfg:lvExcl" data-kid="s-lvexcl" value="'+c.lvExcl+'"></label>'
+    + '<label>Если верных статусов меньше, %, то живой диалог и R→I не засчитываются (пусто = не применять)<input type="number" min="0" max="100" data-f="cfg:gateAcc" data-kid="s-gate" value="'+(c.gateAcc == null ? '' : c.gateAcc)+'"></label>'
     + '<label class="kpi-wide">Праздники и нерабочие дни (даты через запятую: 2026-11-04, 2026-12-31)<input type="text" data-f="cfg:holidays" data-kid="s-hol" value="'+kE(c.holidays.join(', '))+'"></label>'
     + '</div>';
-  h += '<div class="kpi-sub">Показатели: пороги, включение, с какого месяца работы подключаются (1 = ИС)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Показатель</th><th>Вкл.</th><th>С мес. №</th><th>Минимум</th><th>План</th><th>Отлично</th><th>Ед.</th></tr></thead><tbody>';
+  h += '<div class="kpi-sub">Показатели: пороги, включение, с какого месяца работы подключаются (1 = ИС)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Показатель</th><th>Вкл.</th><th>С мес. №</th><th>Вес в бонусе</th><th>Минимум</th><th>План</th><th>Отлично</th><th>Ед.</th></tr></thead><tbody>';
   KPI_DEFS.forEach(function(d0){
     var d = kpiCfg(d0), k = d.key;
     h += '<tr><td class="kpi-name" title="'+kE(d.hint)+'">'+kE(d.name)+(d.dir === 'down' ? ' <i>(меньше = лучше)</i>' : '')+'</td>'
       + '<td><input type="checkbox" data-f="m:'+k+':on" '+(d.on ? 'checked' : '')+'></td>'
       + '<td><input type="number" min="1" data-f="m:'+k+':from" data-kid="mf-'+k+'" value="'+d.from+'"></td>'
+      + '<td><input type="number" min="0" step="any" data-f="m:'+k+':w" data-kid="mw-'+k+'" value="'+d.w+'"></td>'
       + '<td><input type="number" step="any" data-f="m:'+k+':min" data-kid="mn-'+k+'" value="'+(d.min == null ? '' : d.min)+'"></td>'
       + '<td><input type="number" step="any" data-f="m:'+k+':plan" data-kid="mp-'+k+'" value="'+(d.plan == null ? '' : d.plan)+'"></td>'
       + '<td><input type="number" step="any" data-f="m:'+k+':excl" data-kid="me-'+k+'" value="'+(d.excl == null ? '' : d.excl)+'"></td>'
       + '<td>'+d.unit+(d.kind === 'count' ? ' / мес.' : '')+'</td></tr>';
   });
-  h += '</tbody></table></div><div class="kpi-note">Пороги для «шт» задаются на полный месяц и автоматически пересчитываются под число отработанных дней периода. Проценты не пересчитываются. Пустое поле = порог не задан (показатель считается, но без оценки).</div>';
+  h += '</tbody></table></div><div class="kpi-note">Пороги для «шт» задаются на полный месяц и автоматически пересчитываются под число отработанных дней периода. Проценты не пересчитываются. Пустое поле = порог не задан (показатель считается, но без оценки). Вес 0 = показатель только контролируется и не входит в выплату; веса среди включённых на этот месяц показателей нормируются к бонусу.</div>';
   h += '<div class="kpi-sub">SLA: процессы и пороги (значение, не больше)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Процесс</th><th>В среднем</th><th>Минимум</th><th>План</th><th>Отлично</th></tr></thead><tbody>';
   KPI_SLA_DEFS.forEach(function(d0){
     var d = kpiSlaCfg(d0), k = d.key;
@@ -10407,7 +10446,7 @@ function renderKpiTab(){
   }
   var who = (c.sdrName || 'Сотрудник');
   h += '<div class="kpi-head"><div><div class="kpi-title">KPI: '+kE(who)+'</div><div class="kpi-sub2">'+(c.startDate ? 'Первый рабочий день: '+kFmtDY(c.startDate) : 'Дата старта не задана')+'</div></div>'
-    + '<div class="kpi-actions"><button class="btn-secondary" data-act="dl-html">Скачать отчёт (HTML)</button><button class="btn-secondary" data-act="dl-csv">Скачать CSV</button></div></div>';
+    + '<div class="kpi-actions"><label class="kpi-chk"><input type="checkbox" data-f="view:pay" '+(kpiInitView() || kpiView.pay ? 'checked' : '')+'> выплата в файлах</label><button class="btn-secondary" data-act="dl-html">Скачать отчёт (HTML)</button><button class="btn-secondary" data-act="dl-csv">Скачать CSV</button></div></div>';
   if(!c.startDate){ root.innerHTML = h + kpiSetupHtml(c); return; }
   var v = kpiView;
   h += '<div class="kpi-bar"><span class="kpi-seg">'
@@ -10462,12 +10501,13 @@ function kDownload(name, mime, content){
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 function kFact(r){ return r.val == null ? '—' : kn(r.val)+(r.def.unit === '%' ? '%' : ' '+r.def.unit); }
-function kpiCsv(m, rg){
+function kpiCsv(m, rg, withPay){
   var L = [];
   L.push(['KPI', (m.cfg.sdrName || ''), 'Период', rg.label, 'Учтено рабочих дней', m.wd, 'Норма периода, % от месячной', Math.round(m.scale*100)].map(kCsvCell).join(';'));
   L.push('');
-  L.push(['Показатель','Факт','Минимум','План','Отлично','% от плана','Статус','Основа'].join(';'));
-  m.rows.forEach(function(r){ L.push([r.def.name, kFact(r), kThTxt(r,'min'), kThTxt(r,'plan'), kThTxt(r,'excl'), r.pct == null ? '' : Math.round(r.pct)+'%', KPI_TIER_LABEL[r.tier], r.base].map(kCsvCell).join(';')); });
+  L.push(['Показатель','Факт','Минимум','План','Отлично','% от плана','Статус'].concat(withPay ? ['Доля бонуса, $','К выплате, $'] : []).concat(['Основа']).join(';'));
+  m.rows.forEach(function(r){ L.push([r.def.name, kFact(r), kThTxt(r,'min'), kThTxt(r,'plan'), kThTxt(r,'excl'), r.pct == null ? '' : Math.round(r.pct)+'%', KPI_TIER_LABEL[r.tier]].concat(withPay ? [r.amount ? kn(r.amount) : '', r.amount ? kn(r.pay) : ''] : []).concat([r.base]).map(kCsvCell).join(';')); });
+  if(withPay) L.push(['К выплате по уровню периода','','','','','','', kn(m.pay.bonus), kn(m.pay.total)].map(kCsvCell).join(';'));
   L.push(''); L.push(['Неделя','Раб. дней'].concat(m.active.map(function(d){ return d.name; })).map(kCsvCell).join(';'));
   m.weeks.forEach(function(w){ L.push([kFmtD(w.f)+'–'+kFmtD(w.t), w.wd].concat(w.cells.map(function(c){ return c.row ? kFact(c.row) : ''; })).map(kCsvCell).join(';')); });
   L.push(''); L.push(['SLA: процесс','Минимум','План','Отлично','Среднее значение','Проверено','SLA %'].join(';'));
@@ -10477,13 +10517,14 @@ function kpiCsv(m, rg){
   m.daily.forEach(function(d){ L.push([kFmtDY(d.date), d.u, d.o].map(kCsvCell).join(';')); });
   return '﻿'+L.join('\r\n');
 }
-function kpiReportHtml(m, rg){
+function kpiReportHtml(m, rg, withPay){
   var css = 'body{font-family:Arial,Helvetica,sans-serif;color:#17212b;margin:28px;max-width:1100px}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:24px 0 8px}.s{color:#6b7684;font-size:12px}table{border-collapse:collapse;width:100%;font-size:12px}th{background:#0061FF;color:#fff;padding:6px 8px;text-align:left}td{padding:6px 8px;border-bottom:1px solid #e6ebf2}'
     + '.excl{background:#bfe8d6}.plan{background:#dff3e9}.min{background:#fdeccd}.low{background:#f7d0cd}.nolimit,.nodata{background:#eef1f6;color:#6b7684}.note{font-size:11px;color:#6b7684;margin-top:6px}@media print{body{margin:12px}}';
   var h = '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>KPI '+kE(m.cfg.sdrName)+' · '+kE(rg.label)+'</title><style>'+css+'</style></head><body>';
   h += '<h1>KPI: '+kE(m.cfg.sdrName || 'сотрудник')+'</h1><div class="s">Период: '+kE(rg.label)+' · учтено рабочих дней: '+m.wd+' · норма периода: '+Math.round(m.scale*100)+'% от месячной · сформировано '+kFmtDY(kToday())+'</div>';
-  h += '<h2>План и факт</h2><table><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th><th>Основа</th></tr>';
-  m.rows.forEach(function(r){ h += '<tr><td>'+kE(r.def.name)+'</td><td class="'+r.tier+'"><b>'+kE(kFact(r))+'</b></td><td>'+kThTxt(r,'min')+'</td><td>'+kThTxt(r,'plan')+'</td><td>'+kThTxt(r,'excl')+'</td><td>'+(r.pct == null ? '—' : Math.round(r.pct)+'%')+'</td><td class="'+r.tier+'">'+KPI_TIER_LABEL[r.tier]+'</td><td>'+kE(r.base || '')+'</td></tr>'; });
+  h += '<h2>План и факт</h2><table><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th>'+(withPay ? '<th>Доля бонуса</th><th>К выплате</th>' : '')+'<th>Основа</th></tr>';
+  m.rows.forEach(function(r){ h += '<tr><td>'+kE(r.def.name)+'</td><td class="'+r.tier+'"><b>'+kE(kFact(r))+'</b></td><td>'+kThTxt(r,'min')+'</td><td>'+kThTxt(r,'plan')+'</td><td>'+kThTxt(r,'excl')+'</td><td>'+(r.pct == null ? '—' : Math.round(r.pct)+'%')+'</td><td class="'+r.tier+'">'+KPI_TIER_LABEL[r.tier]+'</td>'+(withPay ? '<td>'+(r.amount ? kUsd(r.amount) : '—')+'</td><td><b>'+(r.amount ? kUsd(r.pay) : '—')+'</b></td>' : '')+'<td>'+kE(r.base || '')+'</td></tr>'; });
+  if(withPay) h += '<tr><td colspan="7"><b>К выплате по уровню периода</b></td><td>'+kUsd(m.pay.bonus)+'</td><td><b>'+kUsd(m.pay.total)+'</b></td><td></td></tr>';
   h += '</table><div class="note">Нормы для показателей в штуках пересчитаны под число отработанных дней периода; проценты не пересчитываются.</div>';
   h += '<h2>По неделям</h2><table><tr><th>Неделя</th><th>Раб. дн.</th>'+m.active.map(function(d){ return '<th>'+kE(d.name)+'</th>'; }).join('')+'</tr>';
   m.weeks.forEach(function(w){ h += '<tr><td>'+kFmtD(w.f)+'–'+kFmtD(w.t)+'</td><td>'+w.wd+'</td>'+w.cells.map(function(c){ return c.row ? '<td class="'+c.row.tier+'">'+kE(c.row.val == null ? '—' : kn(c.row.val)+(c.row.def.unit === '%' ? '%' : ''))+'</td>' : '<td>—</td>'; }).join('')+'</tr>'; });
@@ -10505,6 +10546,7 @@ function kpiOnChange(e){
   if(p[0] === 'cfg'){
     var key = p[1];
     if(key === 'holidays'){ kpiSave({ holidays: kpiParseHolidays(v) }); return; }
+    if(key === 'bonus' || key === 'lvMin' || key === 'lvPlan' || key === 'lvExcl' || key === 'gateAcc'){ var on2 = {}; on2[key] = kNum(v); kpiSave(on2); return; }
     if(key === 'deadlineDay' || key === 'remindDays'){ kpiSave((function(){ var o = {}; o[key] = kNum(v) == null ? (key === 'deadlineDay' ? 10 : 3) : kNum(v); return o; })()); return; }
     if(key === 'sdrEmail'){ var em = (v || '').trim().toLowerCase(); kpiResolveUid(em).then(function(uid){ kpiStats = {}; kpiSave({ sdrEmail: em, statsUid: uid }); }); return; }
     var o2 = {}; o2[key] = v; kpiSave(o2); return;
@@ -10535,8 +10577,8 @@ function kpiOnClick(e){
     var rg = kpiRange(), m = kpiModel(rg.from, rg.to);
     if(!m.ok){ alert('В этом периоде нет данных для выгрузки.'); return; }
     var base = 'KPI_'+kSlug(m.cfg.sdrName)+'_'+m.f+'_'+m.t;
-    if(act === 'dl-html') kDownload(base+'.html', 'text/html;charset=utf-8', kpiReportHtml(m, rg));
-    else kDownload(base+'.csv', 'text/csv;charset=utf-8', kpiCsv(m, rg));
+    if(act === 'dl-html') kDownload(base+'.html', 'text/html;charset=utf-8', kpiReportHtml(m, rg, v.pay));
+    else kDownload(base+'.csv', 'text/csv;charset=utf-8', kpiCsv(m, rg, v.pay));
     return;
   }
   else if(act === 'done'){ var pd = { done:{} }; pd.done[b.dataset.month] = !(kpiData.done && kpiData.done[b.dataset.month]); kpiSave(pd); return; }
