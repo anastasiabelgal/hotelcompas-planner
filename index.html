@@ -1290,6 +1290,7 @@
   .kpi-more{color:var(--muted);font-size:10px;}
   .kpi-list{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;}
   .kpi-snap{border-color:var(--green);}
+  .kpi-mini{height:26px !important;padding:0 8px !important;font-size:11px !important;margin-left:4px;}
   .kpi-reset{margin-top:12px;height:34px;}
   .kpi-closebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px;}
   .board-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
@@ -10144,8 +10145,8 @@ var KPI_DEFS = [
   {key:'meetings', name:'Вывод на встречи (проведено)',    unit:'шт', kind:'count', dir:'up',   from:1, min:3,    plan:4,    excl:5,    hint:'Уникальные компании со статусом Call done, дата звонка в периоде. Назначенные считаются отдельной строкой и в выплату не идут'},
   {key:'scheduled',name:'Встречи назначено',               unit:'шт', kind:'count', dir:'up',   from:1, min:null, plan:null, excl:null, hint:'Уникальные компании, у которых встречу назначили в периоде (дата «Назначена» в карточке лида). Справочно, не оплачивается'},
   {key:'live',     name:'Replied → Qualified (живой диалог)', unit:'%', kind:'rate', dir:'up', from:1, min:35,   plan:45,   excl:55,   hint:'Лиды с ответом в периоде (без Irrelevant), у которых в периоде пришёл второй и последующий ответ, к лидам с любым ответом в периоде. Новый лид с одним ответом не живой, лид из прошлых месяцев, написавший снова, живой'},
-  {key:'companies',name:'Компаний в диалоге',              unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Уникальные компании, где за период есть ответ контакта. Задай пороги сама'},
-  {key:'contacts', name:'Контактов добавлено',             unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Из недельной статистики автоматизации («добавленные контакты»). Задай пороги сама'},
+  {key:'companies',name:'Компаний в диалоге',              unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Уникальные компании, где за период есть ответ контакта (из лидов). Пороги: кнопка «По истории» в настройках или вручную'},
+  {key:'contacts', name:'Контактов добавлено',             unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Из недельной статистики автоматизации («Контактов добавлено в автоматизацию за неделю»). Пороги: кнопка «По истории» в настройках или вручную'},
   {key:'r2i',      name:'Replied → Interested',            unit:'%',  kind:'rate',  dir:'up',   from:3, min:15,   plan:25,   excl:35,   hint:'Лиды со статусом Interested/Recommendation/Potential call/Call scheduled/Call done ÷ лиды с ответом (без Irrelevant). Пороги условные'},
   {key:'wrongicp', name:'Wrong ICP (Irrelevant), не выше', unit:'%',  kind:'rate',  dir:'down', from:2, min:20,   plan:12,   excl:8,    hint:'Лиды со статусом Irrelevant ÷ все лиды с ответом. Чем меньше, тем лучше'},
   {key:'statusacc',name:'Верные статусы (твоя проверка)',  unit:'%',  kind:'rate',  dir:'up',   from:2, min:80,   plan:90,   excl:95,   hint:'Из блока «Проверка статусов»: проверенные диалоги, где статус указан верно'},
@@ -10170,7 +10171,7 @@ var kpiData = {}, unsubKpi = null, kpiLoadErr = null, kpiTimer = null;
 var kpiAll = {}, kpiActive = null, kpiPending = null, kpiAdding = false;
 var KPI_COPY_KEYS = ['meetingStages','metrics','sla','bonus','lvMin','lvPlan','lvExcl','gateAcc','minN','liveMin','livePre','fuDays','fuLimit','firstProrate','deadlineDay','remindDays','holidays'];
 var kpiStats = {}, kpiStatsLoading = {}, kpiStatsErr = false;
-var kpiView = null, kpiDrill = null;
+var kpiView = null, kpiDrill = null, kpiSettingsOpen = false;
 
 /* --- даты (строки YYYY-MM-DD, локальное время) --- */
 function kPad(n){ return String(n).padStart(2,'0'); }
@@ -10592,6 +10593,45 @@ function kpiFuLimit(){
   return out;
 }
 
+/* --- пороги по истории: контакты из недельной статистики, компании из лидов --- */
+// База → пороги: минимум = средний уровень, план +15%, отлично +30% (правило «сначала база, потом рост»)
+function kpiRamp(base){ return { base:base, min:Math.round(base), plan:Math.round(base*1.15), excl:Math.round(base*1.3) }; }
+// Среднее число уникальных компаний с ответом в месяц по последним полным месяцам (после месяца старта)
+function kpiHistCompanies(){
+  var st = kpiConf().startDate, today = kToday(), cur = kMonthKey(today), vals = [], ym = cur;
+  for(var i = 0; i < 3; i++){
+    var p = ym.split('-'), pm = new Date(+p[0], +p[1]-2, 1); ym = pm.getFullYear()+'-'+kPad(pm.getMonth()+1);
+    var r = kMonthRange(ym);
+    if(st && kMonthKey(st) >= ym) break;           // месяц старта неполный, до него истории нет
+    var v = kpiFacts(r[0], r[1]).companies.val;
+    if(v > 0) vals.push(v);
+  }
+  return vals.length ? { avg: kSum(vals)/vals.length, n: vals.length, unit:'мес.' } : null;
+}
+// Среднее «добавлено контактов» в неделю по последним 8 неделям, пересчёт на месяц (×4,33)
+async function kpiHistContacts(){
+  var uid = kpiStatsUid(), mon = kMonday(kToday()), keys = [];
+  for(var i = 1; i <= 8; i++) keys.push([uid+'_'+kAdd(mon, -7*i), kAdd(mon, -7*i)]);
+  var st = kpiConf().startDate, vals = [];
+  for(var j = 0; j < keys.length; j++){
+    if(st && keys[j][1] < kMonday(st)) continue;
+    try{
+      var snap = await getDoc(doc(db,'weeklyAutomationStats', keys[j][0]));
+      if(snap.exists() && Number(snap.data().contactsAdded) > 0) vals.push(Number(snap.data().contactsAdded));
+    }catch(e){ console.error(e); }
+  }
+  return vals.length ? { avg: kSum(vals)/vals.length*4.33, n: vals.length, unit:'нед.', weekly: kSum(vals)/vals.length } : null;
+}
+async function kpiApplyHistory(key){
+  var res = key === 'contacts' ? await kpiHistContacts() : kpiHistCompanies();
+  if(!res || res.n < 2){ alert('Для расчёта по истории нужно хотя бы 2 '+(key === 'contacts' ? 'недели с внесённой цифрой «добавлено контактов»' : 'полных месяца после старта')+'. Пока данных мало, задай пороги вручную.'); return; }
+  var r = kpiRamp(res.avg);
+  var name = key === 'contacts' ? 'Контактов добавлено' : 'Компаний в диалоге';
+  if(!confirm(name+': в среднем '+kn(res.avg)+' в месяц по '+res.n+' '+(res.unit === 'нед.' ? 'неделям' : 'месяцам')+'.\n\nПредлагаю: минимум '+r.min+', план '+r.plan+', отлично '+r.excl+'.\nПрименить? Потом можно поменять вручную.')) return;
+  var patch = { metrics:{} }; patch.metrics[key] = { min:r.min, plan:r.plan, excl:r.excl };
+  kpiSave(patch);
+}
+
 /* --- период --- */
 function kpiInitView(){
   if(kpiView) return;
@@ -10840,7 +10880,7 @@ function kpiSettingsHtml(c){
         : '<td><input type="number" step="any" data-f="m:'+k+':min" data-kid="mn-'+k+'" value="'+(d.min == null ? '' : d.min)+'"></td>'
           + '<td><input type="number" step="any" data-f="m:'+k+':plan" data-kid="mp-'+k+'" value="'+(d.plan == null ? '' : d.plan)+'"></td>'
           + '<td><input type="number" step="any" data-f="m:'+k+':excl" data-kid="me-'+k+'" value="'+(d.excl == null ? '' : d.excl)+'"></td>')
-      + '<td>'+d.unit+(d.kind === 'count' ? ' / мес.' : '')+'</td></tr>';
+      + '<td>'+d.unit+(d.kind === 'count' ? ' / мес.' : '')+((k === 'contacts' || k === 'companies') ? ' <button class="btn-secondary kpi-mini" data-act="hist" data-k="'+k+'" title="Посчитать минимум, план и отлично по прошлым неделям и месяцам">По истории</button>' : '')+'</td></tr>';
   });
   h += '</tbody></table></div><div class="kpi-note">Пороги для «шт» задаются на полный месяц и автоматически пересчитываются под число отработанных дней периода. Проценты не пересчитываются. Пустое поле = порог не задан (показатель считается, но без оценки). Вес 0 = показатель только контролируется и не входит в выплату; веса среди включённых на этот месяц показателей нормируются к бонусу.</div>';
   h += '<div class="kpi-sub">Встречи: нормы на месяц по стажу (с какого месяца работы действует строка)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>С месяца работы №</th><th>Минимум</th><th>План</th><th>Отлично</th></tr></thead><tbody>';
@@ -10934,7 +10974,7 @@ function renderKpiTab(){
     h += '<div class="kpi-card kpi-closebar"><div>'+(done ? 'Итоги за '+KPI_MONTHS[+dm.slice(5,7)-1]+' отмечены как подведённые.' : 'Итоги за '+KPI_MONTHS[+dm.slice(5,7)-1]+' ещё не подведены. Напоминание придёт за '+c.remindDays+' дн. до '+c.deadlineDay+'-го числа.')+'</div>'
       + '<button class="btn-secondary" data-act="done" data-month="'+dm+'">'+(done ? 'Снять отметку' : 'Итоги месяца подведены')+'</button></div>';
   }
-  h += '<details class="kpi-card kpi-settings"><summary>Настройки показателей</summary>'+kpiSettingsHtml(c)+'</details>';
+  h += '<details class="kpi-card kpi-settings"'+(kpiSettingsOpen ? ' open' : '')+'><summary>Настройки показателей</summary>'+kpiSettingsHtml(c)+'</details>';
   root.innerHTML = h;
 }
 
@@ -11043,6 +11083,7 @@ function kpiOnClick(e){
     else { var p = v.month.split('-'); var nm = new Date(+p[0], +p[1]-1+d, 1); v.month = nm.getFullYear()+'-'+kPad(nm.getMonth()+1); }
   }
   else if(act === 'today'){ v.week = kMonday(today); v.month = kMonthKey(today); }
+  else if(act === 'hist'){ kpiApplyHistory(b.dataset.k); return; }
   else if(act === 'emp-add'){ kpiAdding = !kpiAdding; }
   else if(act === 'emp-create'){
     var q = function(k){ return document.querySelector('#kpi-root [data-kid="'+k+'"]'); };
@@ -11113,6 +11154,7 @@ var kpiInited = false;
 function initKpiOnce(){
   if(kpiInited) return; var root = el('kpi-root'); if(!root) return; kpiInited = true;
   root.addEventListener('change', kpiOnChange);
+  root.addEventListener('toggle', function(e){ if(e.target && e.target.classList && e.target.classList.contains('kpi-settings')) kpiSettingsOpen = e.target.open; }, true);
   root.addEventListener('click', kpiOnClick);
   var bn = el('kpi-banner');
   if(bn) bn.addEventListener('click', function(e){

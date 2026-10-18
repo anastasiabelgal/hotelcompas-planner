@@ -18,7 +18,7 @@ function mk(todayStr){
     maxLeads:[], maxRemindersAll:[], unsubMaxLeads:{}, subscribeMaxLeads(){}, doc(){}, getDoc(){}, getDocs(){}, query(){}, where(){}, collection(){}, db:{}, onSnapshot(){}, setDoc(){return Promise.resolve()}, updateDoc(){return Promise.resolve()}, deleteField(){}, document:{activeElement:null}, window:{}, setInterval(){}, alert(){}, confirm(){return true}
   };
   vm.createContext(ctx);
-  vm.runInContext(src+'\nthis.__x={maxPeriodGroups,kpiSnapshotOf,kpiFollowups,kpiNoTouch,kpiFuLimit,kFuMissedAt,kFuJournalStart,setRem:(r)=>{maxRemindersAll=r},kpiPay,kpiModel,kpiConf,kpiCheckReminder,kScale,kWork,kpiSla,kpiFacts,kpiCsv,kpiReportHtml,setData:(d)=>{kpiData=Object.assign({minN:1},d); kpiAll={data:kpiData}; kpiActive=\'data\';},setAll:(a)=>{kpiAll=a},kpiEmpIds,kLeadMine,kpiUse:(i)=>{kpiUse(i)},kpiConfOf,setLeads:(l)=>{maxLeads=l},setStats:(s)=>{kpiStats=s},kpiRange,kpiView:()=>kpiView};',ctx);
+  vm.runInContext(src+'\nthis.__x={kpiRamp,kpiHistCompanies,maxPeriodGroups,kpiSnapshotOf,kpiFollowups,kpiNoTouch,kpiFuLimit,kFuMissedAt,kFuJournalStart,setRem:(r)=>{maxRemindersAll=r},kpiPay,kpiModel,kpiConf,kpiCheckReminder,kScale,kWork,kpiSla,kpiFacts,kpiCsv,kpiReportHtml,setData:(d)=>{kpiData=Object.assign({minN:1},d); kpiAll={data:kpiData}; kpiActive=\'data\';},setAll:(a)=>{kpiAll=a},kpiEmpIds,kLeadMine,kpiUse:(i)=>{kpiUse(i)},kpiConfOf,setLeads:(l)=>{maxLeads=l},setStats:(s)=>{kpiStats=s},kpiRange,kpiView:()=>kpiView};',ctx);
   return {x:ctx.__x,banner,ctx};
 }
 let fails=0; function ok(c,msg){ if(!c){fails++;console.log('FAIL',msg);} else console.log('ok  ',msg); }
@@ -403,6 +403,19 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  r=mt('2026-07-01','2026-10-01','2026-10-31',{meetingStages:[{from:1,min:2,plan:3,excl:4},{from:2,min:5,plan:6,excl:7}]}); ok(r.th.plan===6,'custom stages respected: plan 6 got '+r.th.plan);
  // prorated by worked days like other count norms (absence 5 of 22 days in Oct 2026)
  r=mt('2026-07-01','2026-10-01','2026-10-31',{absences:['2026-10-05..2026-10-09']}); ok(Math.abs(r.th.plan-10*17/22)<1e-9,'month 4 plan 10 prorated by worked days 17/22 got '+r.th.plan);
+}
+
+// ---- 21. thresholds from history (contacts / companies)
+{
+ const {x}=mk('2026-11-12');
+ const r=x.kpiRamp(600); ok(r.min===600 && r.plan===690 && r.excl===780,'ramp 600 -> 600/690/780 got '+JSON.stringify(r));
+ x.setData({startDate:'2026-07-01',firstProrate:false});
+ const L=(id,ds)=>({id,companyName:id,status:'Neutral',messages:ds.map((d,i)=>({id:'m'+i,date:d})),statusChangedDate:ds[0]});
+ // companies with a reply: Aug 3 (A,B,C), Sep 2 (A,B,C,D,E,F), Oct 1 (A,B,C)
+ const mk2=(co,months)=>L(co,months.map(m=>m+'-10'));
+ x.setLeads(['A','B','C'].map(c=>mk2(c,['2026-08','2026-09','2026-10'])).concat(['D','E','F'].map(c=>mk2(c,['2026-09']))));
+ const h=x.kpiHistCompanies(); ok(h && h.n===3 && Math.abs(h.avg-4)<1e-9,'avg companies per full month (3,6,3) = 4 got '+(h&&h.avg));
+ x.setData({startDate:'2026-10-20',firstProrate:false}); ok(x.kpiHistCompanies()===null,'start month is partial: no history yet -> null');
 }
 console.log(fails?('FAILED '+fails):'ALL PASSED');
 process.exit(fails?1:0);
