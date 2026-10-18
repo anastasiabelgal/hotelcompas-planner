@@ -10031,7 +10031,8 @@ function kpiConf(){
     holidays: hol, deadlineDay: c.deadlineDay ? +c.deadlineDay : 10, remindDays: c.remindDays != null ? +c.remindDays : 3,
     bonus: kNum(c.bonus) != null ? kNum(c.bonus) : 200,
     lvMin: kNum(c.lvMin) != null ? kNum(c.lvMin) : 50, lvPlan: kNum(c.lvPlan) != null ? kNum(c.lvPlan) : 100, lvExcl: kNum(c.lvExcl) != null ? kNum(c.lvExcl) : 120,
-    gateAcc: c.gateAcc === undefined ? 80 : kNum(c.gateAcc)
+    gateAcc: c.gateAcc === undefined ? 80 : kNum(c.gateAcc),
+    firstProrate: c.firstProrate !== false
   };
 }
 function kHolSet(){ var o = {}; kpiConf().holidays.forEach(function(h){ o[h] = 1; }); return o; }
@@ -10048,11 +10049,11 @@ function kMonthIdx(s){
 }
 // Доля «нормы месяца», которую охватывает период: считаем рабочие дни периода к рабочим дням месяца (месяц начала работы считается от даты старта)
 function kScale(f, t){
-  var st = kpiConf().startDate, sum = 0;
+  var cf = kpiConf(), st = cf.startDate, sum = 0;
   var m = kMonthKey(f), endM = kMonthKey(t);
   while(m <= endM){
     var r = kMonthRange(m);
-    var full = kWork(kMax(r[0], st), r[1]);
+    var full = kWork(cf.firstProrate ? r[0] : kMax(r[0], st), r[1]);
     var part = kWork(kMax(f, kMax(r[0], st)), kMin(t, r[1]));
     if(full > 0) sum += part/full;
     var p = m.split('-'); var nm = new Date(+p[0], +p[1], 1); m = nm.getFullYear()+'-'+kPad(nm.getMonth()+1);
@@ -10182,8 +10183,10 @@ function kpiRow(def, fact, scale){
   return { def:def, val:val, th:th, pct:pct, tier:kpiTier(def, val, th), base:fact.base, n:fact.n, low:low };
 }
 // Выплата: бонус делится между оплачиваемыми показателями по весам; уровень (Минимум/План/Отлично) даёт долю суммы
-function kpiPay(rows, facts){
-  var c = kpiConf(), paid = rows.filter(function(r){ return r.def.w > 0; }), W = kSum(paid.map(function(r){ return r.def.w; }));
+function kpiPay(rows, facts, share){
+  var c = Object.assign({}, kpiConf());
+  c.bonus = c.bonus*(share == null ? 1 : share); // бонус пропорционален отработанной части месяца
+  var paid = rows.filter(function(r){ return r.def.w > 0; }), W = kSum(paid.map(function(r){ return r.def.w; }));
   var lv = { excl:c.lvExcl, plan:c.lvPlan, min:c.lvMin, low:0 };
   var accv = facts.statusacc ? facts.statusacc.val : null;
   var gate = c.gateAcc != null && accv != null && accv < c.gateAcc;
@@ -10199,6 +10202,13 @@ function kpiPay(rows, facts){
   return { bonus:c.bonus, total:total, max:max, unrated:unrated, gate:gate, W:W };
 }
 function kUsd(x){ return '$'+kn(x); }
+// Доля месяца, которую человек был в штате: для месяца старта (если включена пропорция), иначе 1
+function kEmpShare(f, t){
+  var c = kpiConf();
+  if(!c.firstProrate || !c.startDate || kMonthKey(f) !== kMonthKey(t) || kMonthKey(c.startDate) !== kMonthKey(t)) return 1;
+  var r = kMonthRange(kMonthKey(t)), all = kWork(r[0], r[1]);
+  return all > 0 ? kWork(kMax(r[0], c.startDate), r[1])/all : 1;
+}
 function kpiModel(from, to){
   var cfg = kpiConf(), m = { from:from, to:to, cfg:cfg, ok:false };
   if(!cfg.startDate){ m.err = 'nostart'; return m; }
@@ -10212,7 +10222,8 @@ function kpiModel(from, to){
   var facts = kpiFacts(f, t);
   m.sla = facts._sla;
   m.rows = m.active.map(function(d){ return kpiRow(d, facts[d.key], m.scale); });
-  m.pay = kpiPay(m.rows, facts);
+  m.payShare = kEmpShare(f, t);
+  m.pay = kpiPay(m.rows, facts, m.payShare);
   m.weeks = kWeeksOverlap(f, t).filter(function(mon){ return kWork(kMax(mon, f), kMin(kAdd(mon,6), t)) > 0; }).map(function(mon){
     var wf = kMax(mon, f), wt = kMin(kAdd(mon,6), t), wsc = kScale(wf, wt), wfa = kpiFacts(wf, wt);
     return { mon:mon, f:wf, t:wt, wd:kWork(wf, wt), scale:wsc,
@@ -10408,6 +10419,7 @@ function kpiSettingsHtml(c){
     + '<label>На «Плане», %<input type="number" min="0" data-f="cfg:lvPlan" data-kid="s-lvplan" value="'+c.lvPlan+'"></label>'
     + '<label>На «Отлично», %<input type="number" min="0" data-f="cfg:lvExcl" data-kid="s-lvexcl" value="'+c.lvExcl+'"></label>'
     + '<label>Если верных статусов меньше, %, то живой диалог и R→I не засчитываются (пусто = не применять)<input type="number" min="0" max="100" data-f="cfg:gateAcc" data-kid="s-gate" value="'+(c.gateAcc == null ? '' : c.gateAcc)+'"></label>'
+    + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-f="cfg:firstProrate" '+(c.firstProrate ? 'checked' : '')+'> Первый неполный месяц: нормы и бонус пропорциональны отработанным рабочим дням (при старте 18-го считается период с 18-го до конца месяца, нормы умножаются на долю его рабочих дней)</label>'
     + '<label class="kpi-wide">Праздники и нерабочие дни (даты через запятую: 2026-11-04, 2026-12-31)<input type="text" data-f="cfg:holidays" data-kid="s-hol" value="'+kE(c.holidays.join(', '))+'"></label>'
     + '</div>';
   h += '<div class="kpi-sub">Показатели: пороги, включение, с какого месяца работы подключаются (1 = ИС)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Показатель</th><th>Вкл.</th><th>С мес. №</th><th>Вес в бонусе</th><th>Минимум</th><th>План</th><th>Отлично</th><th>Ед.</th></tr></thead><tbody>';
@@ -10471,7 +10483,7 @@ function renderKpiTab(){
     h += '<div class="kpi-info"><b>'+kE(phase)+'</b> · показателей: '+m.active.length
       + ' · учтено рабочих дней: '+m.wd+' (норма периода: '+Math.round(m.scale*100)+'% от месячной)'
       + (m.later.length ? '<br>Подключатся позже: '+m.later.map(function(d){ return kE(d.name)+' (с '+d.from+'-го мес.)'; }).join('; ') : '')
-      + (m.f > rg.from ? '<br>Период начинается с даты старта: '+kFmtDY(m.f) : '')
+      + (m.f > rg.from ? '<br>Период начинается с даты старта: '+kFmtDY(m.f)+(m.payShare < 1 ? ' · бонус пропорционален отработанным дням месяца: '+Math.round(m.payShare*100)+'%' : '') : '')
       + (m.t < rg.to ? '<br>Период ещё идёт: расчёт до '+kFmtDY(m.t)+', нормы подогнаны под этот срок' : '')
       + '</div>';
     if(!maxLeads.length) h += '<div class="kpi-note">Лиды ещё загружаются или раздел «Лидогенерация» пуст: показатели по ответам пока нулевые.</div>';
@@ -10546,6 +10558,7 @@ function kpiOnChange(e){
   if(p[0] === 'cfg'){
     var key = p[1];
     if(key === 'holidays'){ kpiSave({ holidays: kpiParseHolidays(v) }); return; }
+    if(key === 'firstProrate'){ kpiSave({ firstProrate: !!v }); return; }
     if(key === 'bonus' || key === 'lvMin' || key === 'lvPlan' || key === 'lvExcl' || key === 'gateAcc'){ var on2 = {}; on2[key] = kNum(v); kpiSave(on2); return; }
     if(key === 'deadlineDay' || key === 'remindDays'){ kpiSave((function(){ var o = {}; o[key] = kNum(v) == null ? (key === 'deadlineDay' ? 10 : 3) : kNum(v); return o; })()); return; }
     if(key === 'sdrEmail'){ var em = (v || '').trim().toLowerCase(); kpiResolveUid(em).then(function(uid){ kpiStats = {}; kpiSave({ sdrEmail: em, statsUid: uid }); }); return; }
