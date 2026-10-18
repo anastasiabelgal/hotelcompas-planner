@@ -1220,6 +1220,56 @@
   @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
 
   /* Карта (доска) */
+  /* KPI tab */
+  #tab-kpi{max-width:1180px;}
+  .kpi-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:12px;}
+  .kpi-title{font-size:20px;font-weight:800;}
+  .kpi-sub2{font-size:12px;color:var(--muted);margin-top:2px;}
+  .kpi-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .kpi-actions .btn-secondary,.kpi-bar .btn-secondary{height:36px;padding:0 14px;}
+  .kpi-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;}
+  .kpi-bar input[type=date]{height:36px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--panel-soft);color:var(--text);}
+  .kpi-seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+  .kpi-seg button{border:none;background:var(--panel-soft);color:var(--text);height:36px;padding:0 14px;font-weight:600;font-size:13px;cursor:pointer;}
+  .kpi-seg button.on{background:var(--navy);color:#fff;}
+  .kpi-label{min-width:150px;text-align:center;}
+  .kpi-info{background:var(--panel-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:12.5px;line-height:1.55;margin-bottom:12px;}
+  .kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow-1);}
+  .kpi-card h3{margin:0 0 10px;font-size:14px;}
+  .kpi-err{border-color:var(--red);color:var(--red);}
+  .kpi-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .kpi-table th{background:var(--navy);color:#fff;padding:7px 9px;font-size:10.5px;text-transform:uppercase;text-align:left;white-space:nowrap;}
+  [data-theme="dark"] .kpi-table th{background:var(--sky);color:#0a1620;}
+  .kpi-table td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  .kpi-table .kpi-name{font-weight:600;min-width:200px;}
+  .kpi-base{color:var(--muted);font-size:11.5px;}
+  .kpi-warn{color:var(--amber);font-weight:700;}
+  .kpi-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .kpi-weeks td{text-align:center;white-space:nowrap;}
+  .kpi-weeks td.kpi-name{text-align:left;}
+  .kpi-total td{background:var(--panel-soft);}
+  .kpi-off td{opacity:.55;}
+  .kpi-t-excl{background:rgba(63,174,127,.30);}
+  .kpi-t-plan{background:rgba(63,174,127,.16);}
+  .kpi-t-min{background:rgba(239,155,61,.22);}
+  .kpi-t-low{background:rgba(221,92,86,.20);}
+  .kpi-t-nolimit,.kpi-t-nodata,.kpi-c-na{background:var(--panel-soft);color:var(--muted);}
+  .kpi-chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .kpi-d-clean{background:rgba(63,174,127,.22);}
+  .kpi-d-bad{background:rgba(221,92,86,.20);}
+  .kpi-d-na{background:var(--panel-soft);color:var(--muted);}
+  .kpi-note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .kpi-sub{font-size:12px;font-weight:700;margin:14px 0 6px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+  .kpi-grid label,.kpi-weekrd label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--muted);font-weight:600;}
+  .kpi-wide{grid-column:1/-1;}
+  .kpi input,#tab-kpi input[type=text],#tab-kpi input[type=number],#tab-kpi input[type=date]{background:var(--panel-soft);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;color:var(--text);}
+  .kpi-daily input,.kpi-set input[type=number]{width:80px;text-align:right;}
+  .kpi-weekrd{display:flex;flex-wrap:wrap;gap:10px;}
+  .kpi-weekrd input{width:90px;}
+  .kpi-settings summary{cursor:pointer;font-weight:700;font-size:14px;}
+  .kpi-reset{margin-top:12px;height:34px;}
+  .kpi-closebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px;}
   .board-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
   .board-bar .btn-secondary{height:36px;padding:0 14px;}
   .board-bar .btn-secondary.on{border-color:var(--navy);color:var(--navy);}
@@ -1374,10 +1424,12 @@
     <button class="tab-btn" data-tab="knowledge" title="База знаний" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"></path></svg></button>
     <button class="tab-btn" data-tab="research" title="Исследования" style="padding:0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v3l2 2"></path></svg></button>
     <button class="tab-btn" data-tab="maxsection" style="display:none;">Лидогенерация</button>
+    <button class="tab-btn" data-tab="kpi" style="display:none;">KPI</button>
   </div>
 
   <div id="notif-banner" class="notif-banner hidden"></div>
   <div id="deadline-banner" class="notif-banner deadline-banner hidden"></div>
+  <div id="kpi-banner" class="notif-banner hidden"></div>
   <div id="viewas-banner" class="notif-banner hidden"></div>
 
   <div id="cal-overlay" class="cal-overlay hidden">
@@ -1875,6 +1927,11 @@
       <div id="board-canvas"><div id="board-world"></div></div>
       <div id="board-panel"></div>
     </div>
+  </div>
+
+  <!-- KPI TAB (только Настя) -->
+  <div id="tab-kpi" class="hidden">
+    <div id="kpi-root"></div>
   </div>
 
   <!-- COMPETITORS TAB -->
@@ -2465,6 +2522,7 @@ function subscribeOwnerData(){
   subscribeFollowupReminders();
   subscribeProjects();
   subscribeBoard();
+  subscribeKpi();
   subscribeTools();
   subscribeKnowledge();
   subscribeResearch();
@@ -2488,6 +2546,7 @@ function teardownOwnerListeners(){
   if(unsubProjPriorities){ unsubProjPriorities(); unsubProjPriorities = null; }
   if(unsubBoard){ unsubBoard(); unsubBoard = null; }
   boardItems = []; bSel = null; bFitted = false;
+  if(unsubKpi){ unsubKpi(); unsubKpi = null; }
   if(unsubTools){ unsubTools(); unsubTools = null; }
   if(unsubKnowledge){ unsubKnowledge(); unsubKnowledge = null; }
   if(unsubResearch){ unsubResearch(); unsubResearch = null; }
@@ -2507,7 +2566,7 @@ function applyRoleVisibility(){
     // Сразу открываем вкладку Макс
     document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
     if(maxTabBtn) maxTabBtn.classList.add('active');
-    document.querySelectorAll('#tab-tasks,#tab-leads,#tab-leadlist,#tab-competitors,#tab-chat,#tab-calls,#tab-projects,#tab-board,#tab-tools,#tab-knowledge').forEach(function(elx){ elx.classList.add('hidden'); });
+    document.querySelectorAll('#tab-tasks,#tab-leads,#tab-leadlist,#tab-competitors,#tab-chat,#tab-calls,#tab-projects,#tab-board,#tab-kpi,#tab-tools,#tab-knowledge').forEach(function(elx){ elx.classList.add('hidden'); });
     el('tab-maxsection').classList.remove('hidden');
     renderMaxLeadsView();
     return;
@@ -2529,7 +2588,7 @@ function applyRoleVisibility(){
   var noteLine = document.querySelector('#board-screen .note-line');
   if(noteLine) noteLine.style.display = isRitaUser() ? 'none' : '';
   document.querySelectorAll('.tab-bar .tab-btn').forEach(function(b){
-    var hide = (ritaWorkspace && (b.dataset.tab === 'personal' || b.dataset.tab === 'board')) || (b.dataset.tab === 'maxsection' && !canSeeMaxTab());
+    var hide = (ritaWorkspace && (b.dataset.tab === 'personal' || b.dataset.tab === 'board')) || (b.dataset.tab === 'maxsection' && !canSeeMaxTab()) || (b.dataset.tab === 'kpi' && (!isNastyaUser() || ritaWorkspace));
     b.style.display = hide ? 'none' : '';
   });
   var activeBtn = document.querySelector('.tab-bar .tab-btn.active');
@@ -7613,6 +7672,7 @@ function subscribeMaxLeads(){
     maxLeads = [];
     snap.forEach(function(d){ maxLeads.push(Object.assign({id:d.id}, d.data())); });
     if(document.getElementById('tab-maxsection') && !el('tab-maxsection').classList.contains('hidden')) renderMaxLeadsView();
+    if(typeof kpiTabOpen === 'function' && kpiTabOpen()) kpiRenderKeepFocus();
   }, function(err){ console.error('maxLeads err', err); });
 }
 
@@ -9911,6 +9971,596 @@ function renderBoardTab(){
 }
 
 
+/* ---------- KPI сотрудника (раздел только для Насти): план/факт, SLA, напоминание, выгрузка ---------- */
+var KPI_COLL = 'kpiTracker', KPI_DOC_ID = 'data';
+var KPI_INTEREST = ['Interested','Recommendation','Potential call','Call scheduled','Call done'];
+var KPI_MEET = ['Call scheduled','Call done'];
+// from = с какого месяца работы показатель подключается (1 = с первого, ИС). Пороги и месяц подключения меняются в «Настройках показателей».
+var KPI_DEFS = [
+  {key:'sla',      name:'Средний SLA по выполнению задач', unit:'%',  kind:'rate',  dir:'up',   from:1, min:85,   plan:90,   excl:95,   hint:'Считается по блоку «SLA» ниже: ежедневная проверка + недельный отчёт'},
+  {key:'meetings', name:'Вывод на встречи',                unit:'шт', kind:'count', dir:'up',   from:1, min:3,    plan:4,    excl:5,    hint:'Компании со статусом Call scheduled или Call done (по дате смены статуса или звонка)'},
+  {key:'live',     name:'Replied → Qualified (живой диалог)', unit:'%', kind:'rate', dir:'up', from:1, min:35,   plan:45,   excl:55,   hint:'Лиды, где контакт написал 2+ раза ÷ лиды с ответом (без Irrelevant). Лиды берутся по дате первого ответа'},
+  {key:'companies',name:'Компаний в диалоге',              unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Уникальные компании, где за период есть ответ контакта. Задай пороги сама'},
+  {key:'contacts', name:'Контактов добавлено',             unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Из недельной статистики автоматизации («добавленные контакты»). Задай пороги сама'},
+  {key:'r2i',      name:'Replied → Interested',            unit:'%',  kind:'rate',  dir:'up',   from:3, min:15,   plan:25,   excl:35,   hint:'Лиды со статусом Interested/Recommendation/Potential call/Call scheduled/Call done ÷ лиды с ответом (без Irrelevant). Пороги условные'},
+  {key:'wrongicp', name:'Wrong ICP (Irrelevant), не выше', unit:'%',  kind:'rate',  dir:'down', from:2, min:20,   plan:12,   excl:8,    hint:'Лиды со статусом Irrelevant ÷ все лиды с ответом. Чем меньше, тем лучше'},
+  {key:'statusacc',name:'Верные статусы (твоя проверка)',  unit:'%',  kind:'rate',  dir:'up',   from:2, min:80,   plan:90,   excl:95,   hint:'Из блока «Проверка статусов»: проверенные диалоги, где статус указан верно'},
+  {key:'complete', name:'Внесённость диалогов в планер',   unit:'%',  kind:'rate',  dir:'up',   from:2, min:80,   plan:90,   excl:95,   hint:'Из блока «Проверка статусов»: диалоги из GetSales, которые есть в планере'}
+];
+var KPI_SLA_DEFS = [
+  {key:'unanswered', name:'Неотвеченные ответы лидов на конец рабочего дня', unit:'шт', per:'day',  field:'u',  min:3, plan:1, excl:0},
+  {key:'overdue',    name:'Просроченные follow-up (не зачёркнуты в календаре)', unit:'шт', per:'day', field:'o', min:3, plan:1, excl:0},
+  {key:'report',     name:'Недельный отчёт: задержка от понедельника',       unit:'дн', per:'week', field:'rd', min:3, plan:2, excl:0}
+];
+var KPI_TIER_LABEL = { excl:'Отлично', plan:'План', min:'Минимум', low:'Ниже минимума', nolimit:'Порог не задан', nodata:'Нет данных' };
+var KPI_MONTHS = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+var KPI_MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+var KPI_WD = ['вс','пн','вт','ср','чт','пт','сб'];
+
+var kpiData = {}, unsubKpi = null, kpiLoadErr = null, kpiTimer = null;
+var kpiStats = {}, kpiStatsLoading = {}, kpiStatsErr = false;
+var kpiView = null;
+
+/* --- даты (строки YYYY-MM-DD, локальное время) --- */
+function kPad(n){ return String(n).padStart(2,'0'); }
+function kD(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function kS(d){ return d.getFullYear()+'-'+kPad(d.getMonth()+1)+'-'+kPad(d.getDate()); }
+function kAdd(s,n){ var d = kD(s); d.setDate(d.getDate()+n); return kS(d); }
+function kToday(){ return kS(new Date()); }
+function kMax(a,b){ return a > b ? a : b; }
+function kMin(a,b){ return a < b ? a : b; }
+function kMonthKey(s){ return s.slice(0,7); }
+function kMonthRange(ym){ var p = ym.split('-'); var last = new Date(+p[0], +p[1], 0); return [ym+'-01', kS(last)]; }
+function kMonday(s){ return kS(getMondayOf(kD(s))); }
+function kFmtD(s){ var p = s.split('-'); return p[2]+'.'+p[1]; }
+function kFmtDY(s){ var p = s.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; }
+function kE(x){ return String(x == null ? '' : x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function kNum(v){ if(v === '' || v == null) return null; var n = Number(String(v).replace(',','.')); return isNaN(n) ? null : n; }
+function kn(x){ if(x == null) return '—'; var r = Math.round(x*10)/10; return String(r).replace('.',','); }
+function kSum(a){ return a.reduce(function(s,x){ return s+x; }, 0); }
+
+function kpiConf(){
+  var c = kpiData || {};
+  var hol = Array.isArray(c.holidays) ? c.holidays : [];
+  return {
+    sdrName: c.sdrName || '', sdrEmail: c.sdrEmail || '', startDate: c.startDate || '', statsUid: c.statsUid || '',
+    holidays: hol, deadlineDay: c.deadlineDay ? +c.deadlineDay : 10, remindDays: c.remindDays != null ? +c.remindDays : 3
+  };
+}
+function kHolSet(){ var o = {}; kpiConf().holidays.forEach(function(h){ o[h] = 1; }); return o; }
+function kIsWork(s, hs){ var w = kD(s).getDay(); return w !== 0 && w !== 6 && !(hs || kHolSet())[s]; }
+// рабочие дни в [a,b] включительно
+function kWork(a, b){
+  if(a > b) return 0; var hs = kHolSet(), n = 0;
+  for(var s = a; s <= b; s = kAdd(s,1)){ if(kIsWork(s, hs)) n++; }
+  return n;
+}
+function kMonthIdx(s){
+  var st = kpiConf().startDate; if(!st) return 1;
+  return (+s.slice(0,4) - +st.slice(0,4))*12 + (+s.slice(5,7) - +st.slice(5,7)) + 1;
+}
+// Доля «нормы месяца», которую охватывает период: считаем рабочие дни периода к рабочим дням месяца (месяц начала работы считается от даты старта)
+function kScale(f, t){
+  var st = kpiConf().startDate, sum = 0;
+  var m = kMonthKey(f), endM = kMonthKey(t);
+  while(m <= endM){
+    var r = kMonthRange(m);
+    var full = kWork(kMax(r[0], st), r[1]);
+    var part = kWork(kMax(f, kMax(r[0], st)), kMin(t, r[1]));
+    if(full > 0) sum += part/full;
+    var p = m.split('-'); var nm = new Date(+p[0], +p[1], 1); m = nm.getFullYear()+'-'+kPad(nm.getMonth()+1);
+  }
+  return sum;
+}
+function kMondays(f, t){ var out = [], m = kMonday(f); if(m < f) m = kAdd(m,7); for(; m <= t; m = kAdd(m,7)) out.push(m); return out; }
+function kWeeksOverlap(f, t){ var out = [], m = kMonday(f); for(; m <= t; m = kAdd(m,7)) out.push(m); return out; }
+
+/* --- настройки показателей --- */
+function kpiCfg(def){
+  var o = (kpiData.metrics && kpiData.metrics[def.key]) || {};
+  function g(f){ return o[f] !== undefined ? o[f] : (def[f] == null ? null : def[f]); }
+  return { key:def.key, name:def.name, unit:def.unit, kind:def.kind, dir:def.dir, hint:def.hint,
+    on: o.on !== false, from: o.from != null && o.from !== '' ? +o.from : def.from, min:kNum(g('min')), plan:kNum(g('plan')), excl:kNum(g('excl')) };
+}
+function kpiSlaCfg(def){
+  var o = (kpiData.sla && kpiData.sla[def.key]) || {};
+  function g(f){ return o[f] !== undefined ? o[f] : def[f]; }
+  return { key:def.key, name:def.name, unit:def.unit, per:def.per, field:def.field, on: o.on !== false, min:kNum(g('min')), plan:kNum(g('plan')), excl:kNum(g('excl')) };
+}
+function kSlaPct(d, v){
+  if(d.min == null || d.plan == null || d.excl == null) return null;
+  if(v <= d.excl) return 95; if(v <= d.plan) return 90; if(v <= d.min) return 85; return 0;
+}
+function kValid(v){ return v !== undefined && v !== null && v !== '' && !isNaN(+v); }
+
+/* --- SLA по трекеру: день → процесс → общий средний --- */
+function kpiSla(f, t){
+  var days = kpiData.days || {}, weeks = kpiData.weeks || {}, hs = kHolSet(), rows = [], pcts = [], clean = 0, checked = 0;
+  KPI_SLA_DEFS.forEach(function(d0){
+    var d = kpiSlaCfg(d0), vals = [];
+    if(d.per === 'day'){
+      for(var s = f; s <= t; s = kAdd(s,1)){ if(!kIsWork(s, hs)) continue; var r = days[s]; if(r && kValid(r[d.field])) vals.push(+r[d.field]); }
+    } else {
+      kMondays(f, t).forEach(function(mon){ var r = weeks[mon]; if(r && kValid(r[d.field])) vals.push(+r[d.field]); });
+    }
+    var pp = vals.map(function(v){ return kSlaPct(d, v); }).filter(function(x){ return x != null; });
+    var avg = pp.length ? kSum(pp)/pp.length : null;
+    rows.push({ d:d, n:vals.length, avg:avg, mean: vals.length ? kSum(vals)/vals.length : null, bad: vals.filter(function(v){ return v > d.excl; }).length });
+    if(d.on && avg != null) pcts.push(avg);
+  });
+  for(var s2 = f; s2 <= t; s2 = kAdd(s2,1)){
+    if(!kIsWork(s2, hs)) continue; var r2 = days[s2];
+    if(r2 && kValid(r2.u) && kValid(r2.o)){ checked++; if(+r2.u === 0 && +r2.o === 0) clean++; }
+  }
+  return { rows:rows, pct: pcts.length ? kSum(pcts)/pcts.length : null, clean:clean, checked:checked };
+}
+
+/* --- лиды и ответы --- */
+function kCompany(l){ return (l.companyName || '').toLowerCase().replace(/\s+/g,' ').trim(); }
+function kEffMsgs(l){
+  var m = (l.messages || []).filter(function(x){ return x && x.date; });
+  if(m.length) return m;
+  return l.firstContactDate ? [{date:l.firstContactDate}] : [];
+}
+function kpiAudit(f, t){
+  var au = kpiData.audits || {}, n = 0, miss = 0, wrong = 0, any = false;
+  var m = kMonthKey(f), endM = kMonthKey(t);
+  while(m <= endM){
+    var a = au[m]; if(a && kValid(a.n) && +a.n > 0){ any = true; n += +a.n; miss += kValid(a.miss) ? +a.miss : 0; wrong += kValid(a.wrong) ? +a.wrong : 0; }
+    var p = m.split('-'); var nm = new Date(+p[0], +p[1], 1); m = nm.getFullYear()+'-'+kPad(nm.getMonth()+1);
+  }
+  return any ? { n:n, miss:miss, wrong:wrong } : null;
+}
+function kpiStatsUid(){ return kpiConf().statsUid || ownerUid(); }
+function kpiContacts(f, t){
+  var uid = kpiStatsUid(), total = 0, missing = false;
+  kWeeksOverlap(f, t).forEach(function(mon){
+    var k = uid+'_'+mon;
+    if(!(k in kpiStats)){ missing = true; return; }
+    var v = kpiStats[k]; if(v == null) return;
+    var wk = kWork(mon, kAdd(mon,6)), part = kWork(kMax(mon, f), kMin(kAdd(mon,6), t));
+    if(wk > 0) total += v*part/wk;
+  });
+  return missing ? undefined : Math.round(total);
+}
+function kpiFacts(f, t){
+  var cohort = [], comp = {}, meet = {}, facts = {};
+  maxLeads.forEach(function(l){
+    var ms = kEffMsgs(l);
+    if(ms.length){
+      var dates = ms.map(function(m){ return m.date; }).sort();
+      if(dates[0] >= f && dates[0] <= t) cohort.push(l);
+      if(dates.some(function(d){ return d >= f && d <= t; })){ var c = kCompany(l); if(c) comp[c] = 1; }
+    }
+    if(KPI_MEET.indexOf(l.status) > -1){
+      var sd = leadStatusDate(l);
+      if(sd && sd >= f && sd <= t) meet[kCompany(l) || ('id:'+l.id)] = 1;
+    }
+  });
+  var sig = cohort.filter(function(l){ return l.status !== 'Irrelevant'; });
+  var sla = kpiSla(f, t);
+  facts.sla = { val: sla.pct, base: sla.pct == null ? 'нет проверенных дней' : 'проверено дней: '+sla.checked };
+  facts.meetings = { val: Object.keys(meet).length, base: 'уникальных компаний' };
+  var live = sig.filter(function(l){ return kEffMsgs(l).length >= 2; }).length;
+  facts.live = { val: sig.length ? live/sig.length*100 : null, n: sig.length, base: live+' из '+sig.length+' лидов с ответом' };
+  facts.companies = { val: Object.keys(comp).length, base: 'уникальных компаний с ответом' };
+  var cc = kpiContacts(f, t);
+  facts.contacts = cc === undefined ? { val:null, base:'загружаю недельную статистику…' } : { val:cc, base:'сумма недель (пропорционально дням)' };
+  var inter = sig.filter(function(l){ return KPI_INTEREST.indexOf(l.status) > -1; }).length;
+  facts.r2i = { val: sig.length ? inter/sig.length*100 : null, n: sig.length, base: inter+' из '+sig.length+' лидов с ответом' };
+  var wr = cohort.filter(function(l){ return l.status === 'Irrelevant'; }).length;
+  facts.wrongicp = { val: cohort.length ? wr/cohort.length*100 : null, n: cohort.length, base: wr+' из '+cohort.length+' лидов с ответом' };
+  var au = kpiAudit(f, t);
+  facts.statusacc = au ? { val:(au.n-au.wrong)/au.n*100, n:au.n, base:'ошибок '+au.wrong+' из '+au.n+' проверенных' } : { val:null, base:'проверка за месяц не внесена' };
+  facts.complete = au ? { val:(au.n-au.miss)/au.n*100, n:au.n, base:'не внесено '+au.miss+' из '+au.n+' проверенных' } : { val:null, base:'проверка за месяц не внесена' };
+  facts._sla = sla;
+  return facts;
+}
+function kpiTier(def, val, th){
+  if(val == null) return 'nodata';
+  if(th.min == null || th.plan == null || th.excl == null) return 'nolimit';
+  if(def.dir === 'down'){ if(val <= th.excl) return 'excl'; if(val <= th.plan) return 'plan'; if(val <= th.min) return 'min'; return 'low'; }
+  if(val >= th.excl) return 'excl'; if(val >= th.plan) return 'plan'; if(val >= th.min) return 'min'; return 'low';
+}
+function kpiRow(def, fact, scale){
+  var sc2 = def.kind === 'count' ? scale : 1;
+  function s(x){ return x == null ? null : x*sc2; }
+  var th = { min:s(def.min), plan:s(def.plan), excl:s(def.excl) };
+  var val = fact.val, pct = null;
+  if(val != null && th.plan != null && th.plan > 0){
+    if(def.dir === 'down') pct = val <= 0 ? 200 : Math.min(200, th.plan/val*100); else pct = val/th.plan*100;
+  }
+  var low = def.kind === 'rate' && fact.n != null && fact.n < 10 && def.key !== 'sla';
+  return { def:def, val:val, th:th, pct:pct, tier:kpiTier(def, val, th), base:fact.base, n:fact.n, low:low };
+}
+function kpiModel(from, to){
+  var cfg = kpiConf(), m = { from:from, to:to, cfg:cfg, ok:false };
+  if(!cfg.startDate){ m.err = 'nostart'; return m; }
+  var f = from < cfg.startDate ? cfg.startDate : from, t = to > kToday() ? kToday() : to;
+  m.f = f; m.t = t;
+  if(f > t){ m.err = 'empty'; return m; }
+  m.ok = true; m.idx = kMonthIdx(t); m.wd = kWork(f, t); m.scale = kScale(f, t);
+  var defs = KPI_DEFS.map(kpiCfg);
+  m.active = defs.filter(function(d){ return d.on && d.from <= m.idx; });
+  m.later = defs.filter(function(d){ return d.on && d.from > m.idx; });
+  var facts = kpiFacts(f, t);
+  m.sla = facts._sla;
+  m.rows = m.active.map(function(d){ return kpiRow(d, facts[d.key], m.scale); });
+  m.weeks = kWeeksOverlap(f, t).filter(function(mon){ return kWork(kMax(mon, f), kMin(kAdd(mon,6), t)) > 0; }).map(function(mon){
+    var wf = kMax(mon, f), wt = kMin(kAdd(mon,6), t), wsc = kScale(wf, wt), wfa = kpiFacts(wf, wt);
+    return { mon:mon, f:wf, t:wt, wd:kWork(wf, wt), scale:wsc,
+      cells: m.active.map(function(d){
+        if(d.key === 'statusacc' || d.key === 'complete') return { row:null };
+        return { row: kpiRow(d, wfa[d.key], wsc) };
+      }) };
+  });
+  m.daily = [];
+  var days = kpiData.days || {}, hs = kHolSet();
+  for(var s = f; s <= t; s = kAdd(s,1)){ if(kIsWork(s, hs)) m.daily.push({ date:s, u:(days[s] && days[s].u != null) ? days[s].u : '', o:(days[s] && days[s].o != null) ? days[s].o : '' }); }
+  return m;
+}
+
+/* --- недельная статистика автоматизации (контакты) --- */
+function kpiEnsureStats(f, t){
+  var uid = kpiStatsUid(), need = [];
+  kWeeksOverlap(f, t).forEach(function(mon){ var k = uid+'_'+mon; if(!(k in kpiStats) && !kpiStatsLoading[k]) need.push([k, mon]); });
+  if(!need.length) return;
+  need.forEach(function(x){ kpiStatsLoading[x[0]] = true; });
+  Promise.all(need.map(function(x){
+    return getDoc(doc(db,'weeklyAutomationStats', x[0])).then(function(snap){
+      kpiStats[x[0]] = snap.exists() ? (Number(snap.data().contactsAdded) || 0) : null;
+    }).catch(function(err){ console.error('kpi stats err', err); kpiStatsErr = true; kpiStats[x[0]] = null; })
+      .then(function(){ delete kpiStatsLoading[x[0]]; });
+  })).then(function(){ if(kpiTabOpen()) kpiRenderKeepFocus(); });
+}
+async function kpiResolveUid(email){
+  email = (email || '').trim().toLowerCase();
+  if(!email) return '';
+  try{
+    var snap = await getDocs(query(collection(db,'users'), where('email','==',email)));
+    return snap.empty ? '' : snap.docs[0].id;
+  }catch(e){ console.error('kpi uid err', e); return ''; }
+}
+
+/* --- период --- */
+function kpiInitView(){
+  if(kpiView) return;
+  var today = kToday();
+  kpiView = { mode:'month', month:kMonthKey(today), week:kMonday(today), from:kMonthRange(kMonthKey(today))[0], to:today };
+}
+function kpiRange(){
+  kpiInitView(); var v = kpiView;
+  if(v.mode === 'week') return { from:v.week, to:kAdd(v.week,6), label:'Неделя '+kFmtD(v.week)+'–'+kFmtD(kAdd(v.week,6)) };
+  if(v.mode === 'custom'){ var a = v.from || kToday(), b = v.to || kToday(); if(a > b){ var x = a; a = b; b = x; } return { from:a, to:b, label:kFmtDY(a)+' — '+kFmtDY(b) }; }
+  var r = kMonthRange(v.month); return { from:r[0], to:r[1], label: KPI_MONTHS[+v.month.slice(5,7)-1].replace(/^./, function(c){ return c.toUpperCase(); })+' '+v.month.slice(0,4) };
+}
+function kpiTabOpen(){ var t = el('tab-kpi'); return !!t && !t.classList.contains('hidden'); }
+
+/* --- сохранение --- */
+function kpiSave(patch){
+  patch.ownerId = currentUser.uid;
+  return setDoc(doc(db, KPI_COLL, KPI_DOC_ID), patch, { merge:true }).catch(function(err){ kpiLoadErr = err; console.error('kpi save err', err); if(kpiTabOpen()) renderKpiTab(); });
+}
+function subscribeKpi(){
+  if(unsubKpi){ unsubKpi(); unsubKpi = null; }
+  if(!isNastyaUser() || viewAsUid) return;
+  initKpiOnce();
+  unsubKpi = onSnapshot(doc(db, KPI_COLL, KPI_DOC_ID), function(snap){
+    kpiData = snap.exists() ? snap.data() : {}; kpiLoadErr = null;
+    kpiCheckReminder(); if(kpiTabOpen()) kpiRenderKeepFocus();
+  }, function(err){ kpiLoadErr = err; console.error('kpi err', err); if(kpiTabOpen()) renderKpiTab(); });
+  if(!kpiTimer) kpiTimer = setInterval(kpiCheckReminder, 30*60*1000);
+}
+
+/* --- напоминание: за N дней до срока (по умолчанию за 3 дня до 10-го) --- */
+function kpiCheckReminder(){
+  var b = el('kpi-banner'); if(!b) return;
+  var cfg = kpiConf(), now = new Date();
+  if(!isNastyaUser() || viewAsUid || !cfg.startDate){ b.classList.add('hidden'); return; }
+  var prev = new Date(now.getFullYear(), now.getMonth()-1, 1), ym = prev.getFullYear()+'-'+kPad(prev.getMonth()+1);
+  var prevEnd = kMonthRange(ym)[1];
+  if(prevEnd < cfg.startDate || (kpiData.done && kpiData.done[ym])){ b.classList.add('hidden'); return; }
+  var dom = now.getDate(), dl = cfg.deadlineDay, from = dl - cfg.remindDays;
+  if(dom < from){ b.classList.add('hidden'); return; }
+  var name = KPI_MONTHS[prev.getMonth()];
+  var txt = dom <= dl
+    ? 'KPI за '+name+': подведи итоги и отправь до '+dl+' '+KPI_MONTHS_GEN[now.getMonth()]+(dom === dl ? ' (сегодня последний день)' : ' (осталось дн.: '+(dl-dom)+')')
+    : 'KPI за '+name+' не закрыт: срок был '+dl+' '+KPI_MONTHS_GEN[now.getMonth()];
+  b.innerHTML = '<span>'+kE(txt)+'</span><button class="close-x" title="Отметить: итоги подведены">✓</button>';
+  b.dataset.month = ym;
+  b.classList.toggle('deadline-banner', dom > dl);
+  b.classList.remove('hidden');
+}
+
+/* --- отрисовка --- */
+function kpiRenderKeepFocus(){
+  var a = document.activeElement, id = a && a.dataset ? a.dataset.kid : null, pos = null;
+  if(id && a.selectionStart != null){ try{ pos = a.selectionStart; }catch(e){} }
+  var st = window.scrollY;
+  renderKpiTab();
+  if(id){ var n = document.querySelector('#kpi-root [data-kid="'+id+'"]'); if(n){ n.focus(); if(pos != null){ try{ n.setSelectionRange(pos,pos); }catch(e){} } } }
+  window.scrollTo(0, st);
+}
+function kCell(r){
+  if(!r) return '<td class="kpi-c-na">—</td>';
+  var txt = r.val == null ? '—' : kn(r.val)+(r.def.unit === '%' ? '%' : '');
+  return '<td class="kpi-t-'+r.tier+'" title="'+kE(KPI_TIER_LABEL[r.tier])+'">'+txt+'</td>';
+}
+function kThTxt(r, k){
+  var v = r.th[k]; if(v == null) return '—';
+  return kn(v)+(r.def.unit === '%' ? '%' : '');
+}
+function kpiSetupHtml(c){
+  return '<div class="kpi-card"><h3>Кого считаем</h3><div class="kpi-grid">'
+    + '<label>Имя сотрудника<input type="text" data-f="cfg:sdrName" data-kid="cfg-name" value="'+kE(c.sdrName)+'" placeholder="Имя"></label>'
+    + '<label>Почта в планере (для недельной статистики)<input type="text" data-f="cfg:sdrEmail" data-kid="cfg-email" value="'+kE(c.sdrEmail)+'" placeholder="name@hotelcompas.com"></label>'
+    + '<label>Первый рабочий день<input type="date" data-f="cfg:startDate" data-kid="cfg-start" value="'+kE(c.startDate)+'"></label>'
+    + '</div><div class="kpi-note">Укажи первый рабочий день: период, нормы и фаза (ИС → полный набор) считаются от него.</div></div>';
+}
+function kpiSummaryHtml(m){
+  var h = '<table class="kpi-table"><thead><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th><th>Основа расчёта</th></tr></thead><tbody>';
+  m.rows.forEach(function(r){
+    h += '<tr><td class="kpi-name" title="'+kE(r.def.hint)+'">'+kE(r.def.name)+'</td>'
+      + '<td class="kpi-fact kpi-t-'+r.tier+'">'+(r.val == null ? '—' : kn(r.val)+(r.def.unit === '%' ? '%' : (' '+r.def.unit)))+'</td>'
+      + '<td>'+kThTxt(r,'min')+'</td><td>'+kThTxt(r,'plan')+'</td><td>'+kThTxt(r,'excl')+'</td>'
+      + '<td>'+(r.pct == null ? '—' : Math.round(r.pct)+'%')+'</td>'
+      + '<td><span class="kpi-chip kpi-t-'+r.tier+'">'+KPI_TIER_LABEL[r.tier]+'</span></td>'
+      + '<td class="kpi-base">'+kE(r.base || '')+(r.low ? ' <b class="kpi-warn">мало данных</b>' : '')+'</td></tr>';
+  });
+  return h + '</tbody></table>';
+}
+function kpiWeeksHtml(m){
+  var h = '<div class="kpi-scroll"><table class="kpi-table kpi-weeks"><thead><tr><th>Неделя</th><th>Раб. дн.</th>';
+  m.active.forEach(function(d){ h += '<th title="'+kE(d.name)+'">'+kE(d.name.length > 26 ? d.name.slice(0,25)+'…' : d.name)+'</th>'; });
+  h += '</tr></thead><tbody>';
+  m.weeks.forEach(function(w){
+    h += '<tr><td class="kpi-name">'+kFmtD(w.f)+'–'+kFmtD(w.t)+'</td><td>'+w.wd+'</td>';
+    w.cells.forEach(function(c){ h += kCell(c.row); });
+    h += '</tr>';
+  });
+  return h + '</tbody></table></div><div class="kpi-note">Цвет: сравнение с нормой недели (пропорционально рабочим дням). Проверки статусов считаются только за месяц.</div>';
+}
+function kpiSlaHtml(m){
+  var h = '<table class="kpi-table"><thead><tr><th>Процесс</th><th>Минимум</th><th>План</th><th>Отлично</th><th>Среднее значение</th><th>Проверено</th><th>SLA</th></tr></thead><tbody>';
+  m.sla.rows.forEach(function(r){
+    h += '<tr'+(r.d.on ? '' : ' class="kpi-off"')+'><td class="kpi-name">'+kE(r.d.name)+(r.d.on ? '' : ' <i>(не в среднем)</i>')+'</td>'
+      + '<td>≤ '+kn(r.d.min)+'</td><td>≤ '+kn(r.d.plan)+'</td><td>≤ '+kn(r.d.excl)+'</td>'
+      + '<td>'+(r.mean == null ? '—' : kn(r.mean)+' '+r.d.unit)+'</td>'
+      + '<td>'+(r.d.per === 'day' ? 'дн.: ' : 'нед.: ')+r.n+(r.bad ? ' · с нарушением: '+r.bad : '')+'</td>'
+      + '<td><b>'+(r.avg == null ? '—' : Math.round(r.avg)+'%')+'</b></td></tr>';
+  });
+  h += '<tr class="kpi-total"><td colspan="6">Средний SLA (процессы «в среднем»)</td><td><b>'+(m.sla.pct == null ? '—' : kn(m.sla.pct)+'%')+'</b></td></tr></tbody></table>';
+  h += '<div class="kpi-note">Правило как в трекере: значение не хуже «Отлично» = 95%, «План» = 90%, «Минимум» = 85%, хуже = 0%. Чистых дней (оба нуля): '+m.sla.clean+' из '+m.sla.checked+(m.sla.checked ? ' ('+Math.round(m.sla.clean/m.sla.checked*100)+'%)' : '')+'.</div>';
+  return h;
+}
+function kpiDailyHtml(m){
+  var days = m.daily.slice().reverse().slice(0, 45), h = '<div class="kpi-scroll"><table class="kpi-table kpi-daily"><thead><tr><th>Дата</th><th>День</th><th>Неотвеченных на конец рабочего дня</th><th>Не зачёркнутых follow-up</th><th>День</th></tr></thead><tbody>';
+  days.forEach(function(d){
+    var ok = kValid(d.u) && kValid(d.o) ? (+d.u === 0 && +d.o === 0 ? 'clean' : 'bad') : 'na';
+    h += '<tr><td>'+kFmtD(d.date)+'</td><td>'+KPI_WD[kD(d.date).getDay()]+'</td>'
+      + '<td><input type="number" min="0" data-f="day:'+d.date+':u" data-kid="u-'+d.date+'" value="'+kE(d.u)+'"></td>'
+      + '<td><input type="number" min="0" data-f="day:'+d.date+':o" data-kid="o-'+d.date+'" value="'+kE(d.o)+'"></td>'
+      + '<td><span class="kpi-chip kpi-d-'+ok+'">'+(ok === 'clean' ? 'чистый' : ok === 'bad' ? 'есть хвосты' : 'не проверен')+'</span></td></tr>';
+  });
+  h += '</tbody></table></div>';
+  var mons = kMondays(m.f, m.t);
+  if(mons.length){
+    h += '<div class="kpi-sub">Недельный отчёт: на сколько дней позже понедельника отправлен</div><div class="kpi-weekrd">';
+    mons.forEach(function(mon){
+      var r = (kpiData.weeks || {})[mon]; var v = r && r.rd != null ? r.rd : '';
+      h += '<label>Неделя с '+kFmtD(mon)+'<input type="number" min="0" data-f="week:'+mon+':rd" data-kid="rd-'+mon+'" value="'+kE(v)+'"></label>';
+    });
+    h += '</div>';
+  }
+  return h;
+}
+function kpiAuditHtml(m){
+  var ym = kMonthKey(m.t), a = (kpiData.audits || {})[ym] || {}, n = kValid(a.n) ? +a.n : 0;
+  var acc = n ? Math.round((n-(+a.wrong||0))/n*100) : null, com = n ? Math.round((n-(+a.miss||0))/n*100) : null;
+  return '<div class="kpi-grid">'
+    + '<label>Проверено диалогов (из входящих GetSales)<input type="number" min="0" data-f="aud:'+ym+':n" data-kid="aud-n" value="'+kE(a.n != null ? a.n : '')+'"></label>'
+    + '<label>Не нашла в планере<input type="number" min="0" data-f="aud:'+ym+':miss" data-kid="aud-miss" value="'+kE(a.miss != null ? a.miss : '')+'"></label>'
+    + '<label>Неверный статус<input type="number" min="0" data-f="aud:'+ym+':wrong" data-kid="aud-wrong" value="'+kE(a.wrong != null ? a.wrong : '')+'"></label>'
+    + '</div><div class="kpi-note">Месяц: '+KPI_MONTHS[+ym.slice(5,7)-1]+' '+ym.slice(0,4)+'. Внесённость: '+(com == null ? '—' : com+'%')+' · верные статусы: '+(acc == null ? '—' : acc+'%')+'. Рекомендация: 20 случайных диалогов раз в месяц (или в 2 недели по 10).</div>';
+}
+function kpiSettingsHtml(c){
+  var h = '<div class="kpi-grid">'
+    + '<label>Имя сотрудника<input type="text" data-f="cfg:sdrName" data-kid="s-name" value="'+kE(c.sdrName)+'"></label>'
+    + '<label>Почта в планере<input type="text" data-f="cfg:sdrEmail" data-kid="s-email" value="'+kE(c.sdrEmail)+'" placeholder="name@hotelcompas.com"></label>'
+    + '<label>Первый рабочий день<input type="date" data-f="cfg:startDate" data-kid="s-start" value="'+kE(c.startDate)+'"></label>'
+    + '<label>Срок итогов (число месяца)<input type="number" min="1" max="28" data-f="cfg:deadlineDay" data-kid="s-dl" value="'+c.deadlineDay+'"></label>'
+    + '<label>Напомнить за (дней)<input type="number" min="0" max="20" data-f="cfg:remindDays" data-kid="s-rd" value="'+c.remindDays+'"></label>'
+    + '<label class="kpi-wide">Праздники и нерабочие дни (даты через запятую: 2026-11-04, 2026-12-31)<input type="text" data-f="cfg:holidays" data-kid="s-hol" value="'+kE(c.holidays.join(', '))+'"></label>'
+    + '</div>';
+  h += '<div class="kpi-sub">Показатели: пороги, включение, с какого месяца работы подключаются (1 = ИС)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Показатель</th><th>Вкл.</th><th>С мес. №</th><th>Минимум</th><th>План</th><th>Отлично</th><th>Ед.</th></tr></thead><tbody>';
+  KPI_DEFS.forEach(function(d0){
+    var d = kpiCfg(d0), k = d.key;
+    h += '<tr><td class="kpi-name" title="'+kE(d.hint)+'">'+kE(d.name)+(d.dir === 'down' ? ' <i>(меньше = лучше)</i>' : '')+'</td>'
+      + '<td><input type="checkbox" data-f="m:'+k+':on" '+(d.on ? 'checked' : '')+'></td>'
+      + '<td><input type="number" min="1" data-f="m:'+k+':from" data-kid="mf-'+k+'" value="'+d.from+'"></td>'
+      + '<td><input type="number" step="any" data-f="m:'+k+':min" data-kid="mn-'+k+'" value="'+(d.min == null ? '' : d.min)+'"></td>'
+      + '<td><input type="number" step="any" data-f="m:'+k+':plan" data-kid="mp-'+k+'" value="'+(d.plan == null ? '' : d.plan)+'"></td>'
+      + '<td><input type="number" step="any" data-f="m:'+k+':excl" data-kid="me-'+k+'" value="'+(d.excl == null ? '' : d.excl)+'"></td>'
+      + '<td>'+d.unit+(d.kind === 'count' ? ' / мес.' : '')+'</td></tr>';
+  });
+  h += '</tbody></table></div><div class="kpi-note">Пороги для «шт» задаются на полный месяц и автоматически пересчитываются под число отработанных дней периода. Проценты не пересчитываются. Пустое поле = порог не задан (показатель считается, но без оценки).</div>';
+  h += '<div class="kpi-sub">SLA: процессы и пороги (значение, не больше)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Процесс</th><th>В среднем</th><th>Минимум</th><th>План</th><th>Отлично</th></tr></thead><tbody>';
+  KPI_SLA_DEFS.forEach(function(d0){
+    var d = kpiSlaCfg(d0), k = d.key;
+    h += '<tr><td class="kpi-name">'+kE(d.name)+'</td><td><input type="checkbox" data-f="s:'+k+':on" '+(d.on ? 'checked' : '')+'></td>'
+      + '<td><input type="number" step="any" data-f="s:'+k+':min" data-kid="sn-'+k+'" value="'+(d.min == null ? '' : d.min)+'"></td>'
+      + '<td><input type="number" step="any" data-f="s:'+k+':plan" data-kid="sp-'+k+'" value="'+(d.plan == null ? '' : d.plan)+'"></td>'
+      + '<td><input type="number" step="any" data-f="s:'+k+':excl" data-kid="se-'+k+'" value="'+(d.excl == null ? '' : d.excl)+'"></td></tr>';
+  });
+  h += '</tbody></table></div><button class="btn-secondary kpi-reset" data-act="reset">Вернуть стандартные пороги</button>';
+  return h;
+}
+function renderKpiTab(){
+  var root = el('kpi-root'); if(!root) return;
+  if(!isNastyaUser() || viewAsUid){ root.innerHTML = ''; return; }
+  if(!unsubMaxLeads) subscribeMaxLeads();
+  if(!unsubKpi) subscribeKpi();
+  kpiInitView();
+  var c = kpiConf(), rg = kpiRange(), h = '';
+  if(kpiLoadErr){
+    h += '<div class="kpi-card kpi-err"><b>Нет доступа к данным KPI.</b> Опубликуй в Firebase обновлённые правила (блок <code>kpiTracker</code>, «только Настя»), затем обнови страницу. Код ошибки: '+kE(kpiLoadErr.code || kpiLoadErr.message || '')+'</div>';
+  }
+  var who = (c.sdrName || 'Сотрудник');
+  h += '<div class="kpi-head"><div><div class="kpi-title">KPI: '+kE(who)+'</div><div class="kpi-sub2">'+(c.startDate ? 'Первый рабочий день: '+kFmtDY(c.startDate) : 'Дата старта не задана')+'</div></div>'
+    + '<div class="kpi-actions"><button class="btn-secondary" data-act="dl-html">Скачать отчёт (HTML)</button><button class="btn-secondary" data-act="dl-csv">Скачать CSV</button></div></div>';
+  if(!c.startDate){ root.innerHTML = h + kpiSetupHtml(c); return; }
+  var v = kpiView;
+  h += '<div class="kpi-bar"><span class="kpi-seg">'
+    + '<button class="'+(v.mode === 'week' ? 'on' : '')+'" data-act="mode-week">Неделя</button>'
+    + '<button class="'+(v.mode === 'month' ? 'on' : '')+'" data-act="mode-month">Месяц</button>'
+    + '<button class="'+(v.mode === 'custom' ? 'on' : '')+'" data-act="mode-custom">Свой период</button></span>';
+  if(v.mode === 'custom'){
+    h += '<input type="date" data-f="view:from" value="'+kE(v.from)+'"> — <input type="date" data-f="view:to" value="'+kE(v.to)+'">';
+  } else {
+    h += '<button class="btn-secondary" data-act="prev">←</button><b class="kpi-label">'+kE(rg.label)+'</b><button class="btn-secondary" data-act="next">→</button><button class="btn-secondary" data-act="today">Сегодня</button>';
+  }
+  h += '</div>';
+  var m = kpiModel(rg.from, rg.to);
+  if(!m.ok){
+    h += '<div class="kpi-card">'+(m.err === 'empty' ? 'В выбранном периоде нет отработанных дней (до даты старта или в будущем).' : '')+'</div>';
+  } else {
+    kpiEnsureStats(m.f, m.t);
+    var months = m.idx;
+    var phase = months <= 1 ? 'Месяц работы №1: испытательный срок, облегчённый набор' : 'Месяц работы №'+months;
+    var dm = kMonthKey(m.t), mkRange = kMonthRange(dm);
+    var done = kpiData.done && kpiData.done[dm];
+    h += '<div class="kpi-info"><b>'+kE(phase)+'</b> · показателей: '+m.active.length
+      + ' · учтено рабочих дней: '+m.wd+' (норма периода: '+Math.round(m.scale*100)+'% от месячной)'
+      + (m.later.length ? '<br>Подключатся позже: '+m.later.map(function(d){ return kE(d.name)+' (с '+d.from+'-го мес.)'; }).join('; ') : '')
+      + (m.f > rg.from ? '<br>Период начинается с даты старта: '+kFmtDY(m.f) : '')
+      + (m.t < rg.to ? '<br>Период ещё идёт: расчёт до '+kFmtDY(m.t)+', нормы подогнаны под этот срок' : '')
+      + '</div>';
+    if(!maxLeads.length) h += '<div class="kpi-note">Лиды ещё загружаются или раздел «Лидогенерация» пуст: показатели по ответам пока нулевые.</div>';
+    h += '<div class="kpi-card"><h3>План и факт · '+kE(rg.label)+'</h3>'+kpiSummaryHtml(m)
+      + '<div class="kpi-note">Замечания: лиды берутся по дате первого ответа; в разделе «Лидогенерация» записи общие (нет поля «кто внёс»), поэтому считается всё, что внесено за период. Подсказка по каждому показателю: наведи на название.</div></div>';
+    h += '<div class="kpi-card"><h3>Показатели по неделям</h3>'+kpiWeeksHtml(m)+'</div>';
+    h += '<div class="kpi-card"><h3>SLA (по трекеру)</h3>'+kpiSlaHtml(m)+'</div>';
+    h += '<div class="kpi-card"><h3>Ежедневная проверка</h3><div class="kpi-note" style="margin:0 0 8px;">Раз в день в одно и то же время (после конца рабочего дня): сколько ответов лидов в GetSales осталось без ответа и сколько follow-up в календаре не зачёркнуто. Пустое поле = день не проверен (в расчёт не идёт).</div>'+kpiDailyHtml(m)+'</div>';
+    h += '<div class="kpi-card"><h3>Проверка статусов</h3>'+kpiAuditHtml(m)+'</div>';
+    h += '<div class="kpi-card kpi-closebar"><div>'+(done ? 'Итоги за '+KPI_MONTHS[+dm.slice(5,7)-1]+' отмечены как подведённые.' : 'Итоги за '+KPI_MONTHS[+dm.slice(5,7)-1]+' ещё не подведены. Напоминание придёт за '+c.remindDays+' дн. до '+c.deadlineDay+'-го числа.')+'</div>'
+      + '<button class="btn-secondary" data-act="done" data-month="'+dm+'">'+(done ? 'Снять отметку' : 'Итоги месяца подведены')+'</button></div>';
+  }
+  h += '<details class="kpi-card kpi-settings"><summary>Настройки показателей</summary>'+kpiSettingsHtml(c)+'</details>';
+  root.innerHTML = h;
+}
+
+/* --- выгрузка --- */
+var K_TR = {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'e','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya'};
+function kSlug(s){
+  var o = String(s || '').toLowerCase().split('').map(function(ch){ return K_TR[ch] !== undefined ? K_TR[ch] : ch; }).join('').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  return o || 'sotrudnik';
+}
+function kCsvCell(x){ var s = String(x == null ? '' : x); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function kDownload(name, mime, content){
+  var blob = new Blob([content], { type:mime }), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function kFact(r){ return r.val == null ? '—' : kn(r.val)+(r.def.unit === '%' ? '%' : ' '+r.def.unit); }
+function kpiCsv(m, rg){
+  var L = [];
+  L.push(['KPI', (m.cfg.sdrName || ''), 'Период', rg.label, 'Учтено рабочих дней', m.wd, 'Норма периода, % от месячной', Math.round(m.scale*100)].map(kCsvCell).join(';'));
+  L.push('');
+  L.push(['Показатель','Факт','Минимум','План','Отлично','% от плана','Статус','Основа'].join(';'));
+  m.rows.forEach(function(r){ L.push([r.def.name, kFact(r), kThTxt(r,'min'), kThTxt(r,'plan'), kThTxt(r,'excl'), r.pct == null ? '' : Math.round(r.pct)+'%', KPI_TIER_LABEL[r.tier], r.base].map(kCsvCell).join(';')); });
+  L.push(''); L.push(['Неделя','Раб. дней'].concat(m.active.map(function(d){ return d.name; })).map(kCsvCell).join(';'));
+  m.weeks.forEach(function(w){ L.push([kFmtD(w.f)+'–'+kFmtD(w.t), w.wd].concat(w.cells.map(function(c){ return c.row ? kFact(c.row) : ''; })).map(kCsvCell).join(';')); });
+  L.push(''); L.push(['SLA: процесс','Минимум','План','Отлично','Среднее значение','Проверено','SLA %'].join(';'));
+  m.sla.rows.forEach(function(r){ L.push([r.d.name, r.d.min, r.d.plan, r.d.excl, r.mean == null ? '' : kn(r.mean), r.n, r.avg == null ? '' : Math.round(r.avg)].map(kCsvCell).join(';')); });
+  L.push(['Средний SLA','','','','','', m.sla.pct == null ? '' : kn(m.sla.pct)].map(kCsvCell).join(';'));
+  L.push(''); L.push(['Дата','Неотвеченных на конец дня','Не зачёркнутых follow-up'].join(';'));
+  m.daily.forEach(function(d){ L.push([kFmtDY(d.date), d.u, d.o].map(kCsvCell).join(';')); });
+  return '﻿'+L.join('\r\n');
+}
+function kpiReportHtml(m, rg){
+  var css = 'body{font-family:Arial,Helvetica,sans-serif;color:#17212b;margin:28px;max-width:1100px}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:24px 0 8px}.s{color:#6b7684;font-size:12px}table{border-collapse:collapse;width:100%;font-size:12px}th{background:#0061FF;color:#fff;padding:6px 8px;text-align:left}td{padding:6px 8px;border-bottom:1px solid #e6ebf2}'
+    + '.excl{background:#bfe8d6}.plan{background:#dff3e9}.min{background:#fdeccd}.low{background:#f7d0cd}.nolimit,.nodata{background:#eef1f6;color:#6b7684}.note{font-size:11px;color:#6b7684;margin-top:6px}@media print{body{margin:12px}}';
+  var h = '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>KPI '+kE(m.cfg.sdrName)+' · '+kE(rg.label)+'</title><style>'+css+'</style></head><body>';
+  h += '<h1>KPI: '+kE(m.cfg.sdrName || 'сотрудник')+'</h1><div class="s">Период: '+kE(rg.label)+' · учтено рабочих дней: '+m.wd+' · норма периода: '+Math.round(m.scale*100)+'% от месячной · сформировано '+kFmtDY(kToday())+'</div>';
+  h += '<h2>План и факт</h2><table><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th><th>Основа</th></tr>';
+  m.rows.forEach(function(r){ h += '<tr><td>'+kE(r.def.name)+'</td><td class="'+r.tier+'"><b>'+kE(kFact(r))+'</b></td><td>'+kThTxt(r,'min')+'</td><td>'+kThTxt(r,'plan')+'</td><td>'+kThTxt(r,'excl')+'</td><td>'+(r.pct == null ? '—' : Math.round(r.pct)+'%')+'</td><td class="'+r.tier+'">'+KPI_TIER_LABEL[r.tier]+'</td><td>'+kE(r.base || '')+'</td></tr>'; });
+  h += '</table><div class="note">Нормы для показателей в штуках пересчитаны под число отработанных дней периода; проценты не пересчитываются.</div>';
+  h += '<h2>По неделям</h2><table><tr><th>Неделя</th><th>Раб. дн.</th>'+m.active.map(function(d){ return '<th>'+kE(d.name)+'</th>'; }).join('')+'</tr>';
+  m.weeks.forEach(function(w){ h += '<tr><td>'+kFmtD(w.f)+'–'+kFmtD(w.t)+'</td><td>'+w.wd+'</td>'+w.cells.map(function(c){ return c.row ? '<td class="'+c.row.tier+'">'+kE(c.row.val == null ? '—' : kn(c.row.val)+(c.row.def.unit === '%' ? '%' : ''))+'</td>' : '<td>—</td>'; }).join('')+'</tr>'; });
+  h += '</table><h2>SLA</h2><table><tr><th>Процесс</th><th>Минимум</th><th>План</th><th>Отлично</th><th>Среднее</th><th>Проверено</th><th>SLA</th></tr>';
+  m.sla.rows.forEach(function(r){ h += '<tr><td>'+kE(r.d.name)+'</td><td>≤ '+kn(r.d.min)+'</td><td>≤ '+kn(r.d.plan)+'</td><td>≤ '+kn(r.d.excl)+'</td><td>'+(r.mean == null ? '—' : kn(r.mean))+'</td><td>'+r.n+'</td><td>'+(r.avg == null ? '—' : Math.round(r.avg)+'%')+'</td></tr>'; });
+  h += '<tr><td colspan="6"><b>Средний SLA</b></td><td><b>'+(m.sla.pct == null ? '—' : kn(m.sla.pct)+'%')+'</b></td></tr></table>';
+  h += '<div class="note">Значение не хуже «Отлично» = 95%, «План» = 90%, «Минимум» = 85%, хуже = 0%. Чистых дней: '+m.sla.clean+' из '+m.sla.checked+'.</div>';
+  h += '<h2>Ежедневная проверка</h2><table><tr><th>Дата</th><th>Неотвеченных на конец дня</th><th>Не зачёркнутых follow-up</th></tr>';
+  m.daily.forEach(function(d){ h += '<tr><td>'+kFmtDY(d.date)+'</td><td>'+kE(d.u === '' ? '—' : d.u)+'</td><td>'+kE(d.o === '' ? '—' : d.o)+'</td></tr>'; });
+  return h + '</table></body></html>';
+}
+
+/* --- обработчики --- */
+function kpiParseHolidays(s){ return (s || '').split(/[\s,;]+/).filter(function(x){ return /^\d{4}-\d{2}-\d{2}$/.test(x); }); }
+function kpiOnChange(e){
+  var t = e.target, f = t.dataset ? t.dataset.f : null; if(!f) return;
+  var p = f.split(':'), v = t.type === 'checkbox' ? t.checked : t.value;
+  if(p[0] === 'view'){ kpiInitView(); kpiView[p[1]] = v; renderKpiTab(); return; }
+  if(p[0] === 'cfg'){
+    var key = p[1];
+    if(key === 'holidays'){ kpiSave({ holidays: kpiParseHolidays(v) }); return; }
+    if(key === 'deadlineDay' || key === 'remindDays'){ kpiSave((function(){ var o = {}; o[key] = kNum(v) == null ? (key === 'deadlineDay' ? 10 : 3) : kNum(v); return o; })()); return; }
+    if(key === 'sdrEmail'){ var em = (v || '').trim().toLowerCase(); kpiResolveUid(em).then(function(uid){ kpiStats = {}; kpiSave({ sdrEmail: em, statsUid: uid }); }); return; }
+    var o2 = {}; o2[key] = v; kpiSave(o2); return;
+  }
+  if(p[0] === 'm' || p[0] === 's'){
+    var grp = p[0] === 'm' ? 'metrics' : 'sla', fld = p[2], val = fld === 'on' ? v : kNum(v), patch = {};
+    if(fld === 'from' && val == null) val = 1;
+    patch[grp] = {}; patch[grp][p[1]] = {}; patch[grp][p[1]][fld] = val; kpiSave(patch); return;
+  }
+  if(p[0] === 'day'){ var pd = { days:{} }; pd.days[p[1]] = {}; pd.days[p[1]][p[2]] = kNum(v); kpiSave(pd); return; }
+  if(p[0] === 'week'){ var pw = { weeks:{} }; pw.weeks[p[1]] = {}; pw.weeks[p[1]][p[2]] = kNum(v); kpiSave(pw); return; }
+  if(p[0] === 'aud'){ var pa = { audits:{} }; pa.audits[p[1]] = {}; pa.audits[p[1]][p[2]] = kNum(v); kpiSave(pa); return; }
+}
+function kpiOnClick(e){
+  var b = e.target.closest('[data-act]'); if(!b) return;
+  var act = b.dataset.act; kpiInitView();
+  var v = kpiView, today = kToday();
+  if(act === 'mode-week'){ v.mode = 'week'; v.week = kMonday(kpiRange().to > today ? today : kpiRange().to); }
+  else if(act === 'mode-month'){ v.mode = 'month'; v.month = kMonthKey(kpiRange().to > today ? today : kpiRange().to); }
+  else if(act === 'mode-custom'){ var r = kpiRange(); v.mode = 'custom'; v.from = r.from; v.to = r.to > today ? today : r.to; }
+  else if(act === 'prev' || act === 'next'){
+    var d = act === 'prev' ? -1 : 1;
+    if(v.mode === 'week') v.week = kAdd(v.week, 7*d);
+    else { var p = v.month.split('-'); var nm = new Date(+p[0], +p[1]-1+d, 1); v.month = nm.getFullYear()+'-'+kPad(nm.getMonth()+1); }
+  }
+  else if(act === 'today'){ v.week = kMonday(today); v.month = kMonthKey(today); }
+  else if(act === 'dl-html' || act === 'dl-csv'){
+    var rg = kpiRange(), m = kpiModel(rg.from, rg.to);
+    if(!m.ok){ alert('В этом периоде нет данных для выгрузки.'); return; }
+    var base = 'KPI_'+kSlug(m.cfg.sdrName)+'_'+m.f+'_'+m.t;
+    if(act === 'dl-html') kDownload(base+'.html', 'text/html;charset=utf-8', kpiReportHtml(m, rg));
+    else kDownload(base+'.csv', 'text/csv;charset=utf-8', kpiCsv(m, rg));
+    return;
+  }
+  else if(act === 'done'){ var pd = { done:{} }; pd.done[b.dataset.month] = !(kpiData.done && kpiData.done[b.dataset.month]); kpiSave(pd); return; }
+  else if(act === 'reset'){
+    if(!confirm('Вернуть стандартные пороги показателей и SLA? Введённые проверки и даты не изменятся.')) return;
+    updateDoc(doc(db, KPI_COLL, KPI_DOC_ID), { metrics: deleteField(), sla: deleteField() }).catch(function(err){ console.error(err); });
+    return;
+  }
+  renderKpiTab();
+}
+var kpiInited = false;
+function initKpiOnce(){
+  if(kpiInited) return; var root = el('kpi-root'); if(!root) return; kpiInited = true;
+  root.addEventListener('change', kpiOnChange);
+  root.addEventListener('click', kpiOnClick);
+  var bn = el('kpi-banner');
+  if(bn) bn.addEventListener('click', function(e){
+    var ym = bn.dataset.month;
+    if(e.target.closest('.close-x')){ e.stopPropagation(); var pd = { done:{} }; pd.done[ym] = true; kpiSave(pd); bn.classList.add('hidden'); return; }
+    kpiInitView(); kpiView.mode = 'month'; kpiView.month = ym;
+    var btn = document.querySelector('.tab-btn[data-tab="kpi"]'); if(btn) btn.click();
+  });
+}
+
 function initTabs(){
   document.querySelectorAll('.tab-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -9924,6 +10574,7 @@ function initTabs(){
       el('tab-calls').classList.add('hidden');
       el('tab-projects').classList.add('hidden');
       el('tab-board').classList.add('hidden');
+      el('tab-kpi').classList.add('hidden');
       el('tab-competitors').classList.add('hidden');
       el('tab-tools').classList.add('hidden');
       el('tab-knowledge').classList.add('hidden');
@@ -10002,6 +10653,10 @@ function initTabs(){
         } else if(tab === 'projects'){
           el('tab-projects').classList.remove('hidden');
           renderProjectsTab();
+        } else if(tab === 'kpi'){
+          el('tab-kpi').classList.remove('hidden');
+          initKpiOnce();
+          renderKpiTab();
         } else if(tab === 'board'){
           el('tab-board').classList.remove('hidden');
           renderBoardTab();
