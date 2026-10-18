@@ -417,5 +417,14 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  const h=x.kpiHistCompanies(); ok(h && h.n===3 && Math.abs(h.avg-4)<1e-9,'avg companies per full month (3,6,3) = 4 got '+(h&&h.avg));
  x.setData({startDate:'2026-10-20',firstProrate:false}); ok(x.kpiHistCompanies()===null,'start month is partial: no history yet -> null');
 }
+
+// ---- 22. contacts per month: 1500 / 1800 / 2700 from the regulation, prorated by worked days
+{
+ const {x}=mk('2026-11-30'); x.setData({startDate:'2026-10-05',firstProrate:false}); x.setLeads([]);
+ x.setStats({'nastya_2026-10-26':0,'nastya_2026-11-02':400,'nastya_2026-11-09':400,'nastya_2026-11-16':400,'nastya_2026-11-23':400,'nastya_2026-11-30':200});
+ const m=x.kpiModel('2026-11-01','2026-11-30'); const r=m.rows.find(q=>q.def.key==='contacts');
+ ok(r.th.min===1500*m.scale && r.th.plan===1800*m.scale && r.th.excl===2700*m.scale,'contacts norms 1500/1800/2700 scaled by '+m.scale);
+ ok(r.val===1640 && r.tier==='min','4 full weeks (1600) + 1/5 of the week 30 Nov (200*1/5=40) = 1640 -> Минимум (>=1500, <1800) got '+r.val+' '+r.tier);
+}
 console.log(fails?('FAILED '+fails):'ALL PASSED');
 process.exit(fails?1:0);
