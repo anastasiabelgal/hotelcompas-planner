@@ -18,7 +18,7 @@ function mk(todayStr){
     maxLeads:[], maxRemindersAll:[], unsubMaxLeads:{}, subscribeMaxLeads(){}, doc(){}, getDoc(){}, getDocs(){}, query(){}, where(){}, collection(){}, db:{}, onSnapshot(){}, setDoc(){return Promise.resolve()}, updateDoc(){return Promise.resolve()}, deleteField(){}, document:{activeElement:null}, window:{}, setInterval(){}, alert(){}, confirm(){return true}
   };
   vm.createContext(ctx);
-  vm.runInContext(src+'\nthis.__x={kpiRamp,kpiHistCompanies,maxPeriodGroups,kpiSnapshotOf,kpiFollowups,kpiNoTouch,kpiFuLimit,kFuMissedAt,kFuJournalStart,setRem:(r)=>{maxRemindersAll=r},kpiPay,kpiModel,kpiConf,kpiCheckReminder,kScale,kWork,kpiSla,kpiFacts,kpiCsv,kpiReportHtml,setData:(d)=>{kpiData=Object.assign({minN:1},d); kpiAll={data:kpiData}; kpiActive=\'data\';},setAll:(a)=>{kpiAll=a},kpiEmpIds,kLeadMine,kpiUse:(i)=>{kpiUse(i)},kpiConfOf,setLeads:(l)=>{maxLeads=l},setStats:(s)=>{kpiStats=s},kpiRange,kpiView:()=>kpiView};',ctx);
+  vm.runInContext(src+'\nthis.__x={kpiWeekFocusHtml,kpiWeekSummaryHtml,kpiSummaryHtml,kpiRamp,kpiHistCompanies,maxPeriodGroups,kpiSnapshotOf,kpiFollowups,kpiNoTouch,kpiFuLimit,kFuMissedAt,kFuJournalStart,setRem:(r)=>{maxRemindersAll=r},kpiPay,kpiModel,kpiConf,kpiCheckReminder,kScale,kWork,kpiSla,kpiFacts,kpiCsv,kpiReportHtml,setData:(d)=>{kpiData=Object.assign({minN:1},d); kpiAll={data:kpiData}; kpiActive=\'data\';},setAll:(a)=>{kpiAll=a},kpiEmpIds,kLeadMine,kpiUse:(i)=>{kpiUse(i)},kpiConfOf,setLeads:(l)=>{maxLeads=l},setStats:(s)=>{kpiStats=s},kpiRange,kpiView:()=>kpiView};',ctx);
   return {x:ctx.__x,banner,ctx};
 }
 let fails=0; function ok(c,msg){ if(!c){fails++;console.log('FAIL',msg);} else console.log('ok  ',msg); }
@@ -37,7 +37,7 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  ok(m.active.map(d=>d.key).join()==='sla,meetings,scheduled,live','trial set = sla,meetings,scheduled(info),live: '+m.active.map(d=>d.key));
  ok(m.later.length===6,'later metrics 6 got '+m.later.length);
  const mt=m.rows.find(r=>r.def.key==='meetings');
- ok(approx(mt.th.min,1.5)&&approx(mt.th.plan,2)&&approx(mt.th.excl,2.5),'meetings thresholds scaled 1.5/2/2.5');
+ ok(mt.th.min===2&&mt.th.plan===2&&mt.th.excl===3,'meetings thresholds scaled 1.5/2/2.5 and rounded to whole meetings: 2/2/3 got '+mt.th.min+'/'+mt.th.plan+'/'+mt.th.excl);
  const lv=m.rows.find(r=>r.def.key==='live');
  ok(lv.th.plan===45&&lv.th.min===35,'rate thresholds not scaled');
 }
@@ -174,7 +174,7 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  ok(m.wd===9,'9 work days worked got '+m.wd);
  ok(Math.abs(m.scale-9/21)<1e-9,'norm = 9/21 of full month got '+m.scale);
  const mt=m.rows.find(r=>r.def.key==='meetings');
- ok(Math.abs(mt.th.plan-4*9/21)<1e-9,'meetings plan 4 -> '+mt.th.plan);
+ ok(mt.th.plan===2,'meetings plan 4*9/21=1.71 rounds to 2 got '+mt.th.plan);
  ok(Math.abs(m.payShare-9/21)<1e-9 && Math.abs(m.pay.bonus-200*9/21)<1e-6,'bonus prorated 200*9/21='+m.pay.bonus);
  x.kpiCheckReminder();
  ok(!banner.cls.has('hidden') && banner.innerHTML.includes('ноябр') && banner.innerHTML.includes('сегодня последний день'),'10 Dec: banner for November, last day');
@@ -255,7 +255,7 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  ok(m.wd===16 && m.absDays===5,'Nov: 21 work days - 5 absent = 16 worked got '+m.wd+'/'+m.absDays);
  ok(Math.abs(m.scale-16/21)<1e-9,'norm scale 16/21 got '+m.scale);
  const mt=m.rows.find(r=>r.def.key==='meetings');
- ok(Math.abs(mt.th.min-3*16/21)<1e-9 && Math.abs(mt.th.plan-4*16/21)<1e-9 && Math.abs(mt.th.excl-5*16/21)<1e-9,'meetings min/plan/excl scaled 16/21');
+ ok(mt.th.min===2 && mt.th.plan===3 && mt.th.excl===4,'meetings 3/4/5 scaled by 16/21 and rounded: 2/3/4 got '+mt.th.min+'/'+mt.th.plan+'/'+mt.th.excl);
  ok(Math.abs(m.payShare-16/21)<1e-9 && Math.abs(m.pay.bonus-200*16/21)<1e-6,'bonus prorated 16/21 got '+m.pay.bonus);
  const live=m.rows.find(r=>r.def.key==='live'); ok(live.th.plan===45,'percent norms not scaled');
  ok(m.daily.filter(d=>d.off).length===5,'daily rows mark 5 off days');
@@ -404,7 +404,7 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  r=mt('2026-07-01','2026-09-01','2026-09-30'); ok(r.th.plan===4,'month 3 still 4 got '+r.th.plan);
  r=mt('2026-07-01','2026-10-01','2026-10-31',{meetingStages:[{from:1,min:2,plan:3,excl:4},{from:2,min:5,plan:6,excl:7}]}); ok(r.th.plan===6,'custom stages respected: plan 6 got '+r.th.plan);
  // prorated by worked days like other count norms (absence 5 of 22 days in Oct 2026)
- r=mt('2026-07-01','2026-10-01','2026-10-31',{absences:['2026-10-05..2026-10-09']}); ok(Math.abs(r.th.plan-10*17/22)<1e-9,'month 4 plan 10 prorated by worked days 17/22 got '+r.th.plan);
+ r=mt('2026-07-01','2026-10-01','2026-10-31',{absences:['2026-10-05..2026-10-09']}); ok(r.th.plan===8,'month 4 plan 10 prorated by worked days 17/22 = 7.7 rounds to 8 got '+r.th.plan);
 }
 
 // ---- 21. thresholds from history (contacts / companies)
@@ -439,6 +439,32 @@ function approx(a,b){return Math.abs(a-b)<1e-6;}
  ok(f.scheduled.val===3,'scheduled falls back: A,B by call date, C by status change = 3 got '+f.scheduled.val);
  x.setData({startDate:'2026-07-01',firstProrate:false,authorOnly:true,sdrEmail:'new@hotelcompas.com',unattr:false});
  ok(x.kpiFacts('2026-07-01','2026-07-31').meetings.val===0,'unattributed off: nothing counted (expected with this setting)');
+}
+
+// ---- 24. weekly view: whole numbers, no money, focus list with tips
+{
+ const {x}=mk('2026-11-13'); x.setData({startDate:'2026-10-05',firstProrate:false,minN:1});
+ const L=(id,st,msgs,extra)=>Object.assign({id,companyName:id,status:st,messages:msgs.map((d,i)=>({id:'m'+i,date:d})),statusChangedDate:msgs[0]},extra);
+ x.setLeads([L('A','Neutral',['2026-11-09']),L('B','Neutral',['2026-11-10']),L('C','Interested',['2026-11-10','2026-11-12'])]);
+ const m=x.kpiModel('2026-11-09','2026-11-15');
+ const mt=m.rows.find(r=>r.def.key==='meetings');
+ ok(Number.isInteger(mt.th.min)&&Number.isInteger(mt.th.plan)&&Number.isInteger(mt.th.excl),'week norms for meetings are whole numbers: '+mt.th.min+'/'+mt.th.plan+'/'+mt.th.excl);
+ ok(mt.th.plan>=1,'a non-zero monthly norm never rounds to 0 for a week');
+ const html=x.kpiWeekSummaryHtml(m);
+ ok(!/Доля бонуса|К выплате/.test(html) && /План на неделю/.test(html),'week table has no money columns');
+ const focus=x.kpiWeekFocusHtml(m);
+ ok(/Что подтянуть|Что сделать/.test(focus) && /Вывод на встречи/.test(focus),'focus list names the lagging metric with a tip: '+focus.slice(0,160));
+ ok(/не хватает 1/.test(focus) || /не хватает \d/.test(focus),'focus says how much is missing in whole units');
+ ok(/К выплате/.test(x.kpiSummaryHtml(m,true)) && !/К выплате/.test(x.kpiSummaryHtml(m,false)),'month table shows money only when asked');
+}
+
+// ---- 25. contacts: no weekly figure entered = "no data", not 0
+{
+ const {x}=mk('2026-11-13'); x.setData({startDate:'2026-10-05',firstProrate:false}); x.setLeads([]);
+ x.setStats({'nastya_2026-11-09':null});
+ ok(x.kpiFacts('2026-11-09','2026-11-15').contacts.val===null && /не внесена/.test(x.kpiFacts('2026-11-09','2026-11-15').contacts.base),'week without statistics -> null with explanation');
+ x.setStats({'nastya_2026-11-09':0});
+ ok(x.kpiFacts('2026-11-09','2026-11-15').contacts.val===0,'an entered zero stays 0');
 }
 console.log(fails?('FAILED '+fails):'ALL PASSED');
 process.exit(fails?1:0);

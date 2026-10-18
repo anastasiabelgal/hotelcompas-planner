@@ -1291,6 +1291,9 @@
   .kpi-list{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;}
   .kpi-snap{border-color:var(--green);}
   .kpi-mini{height:26px !important;padding:0 8px !important;font-size:11px !important;margin-left:4px;}
+  .kpi-focus{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;}
+  .kpi-focus-item{padding:10px 12px;border-radius:var(--radius-sm);font-size:13px;line-height:1.5;}
+  .kpi-tip{font-size:12px;color:var(--muted);margin-top:3px;}
   .kpi-reset{margin-top:12px;height:34px;}
   .kpi-closebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px;}
   .board-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
@@ -10162,6 +10165,19 @@ var KPI_SLA_DEFS = [
   {key:'report',     name:'Недельный отчёт: задержка от понедельника',       unit:'дн', per:'week', field:'rd', min:3, plan:2, excl:0}
 ];
 var KPI_TIER_LABEL = { excl:'Отлично', plan:'План', min:'Минимум', low:'Ниже минимума', nolimit:'Порог не задан', nodata:'Нет данных', small:'Мало данных' };
+var KPI_WEEK_LABEL = { excl:'В норме', plan:'В норме', min:'Чуть ниже плана', low:'Просело', nolimit:'Порог не задан', nodata:'Нет данных', small:'Мало данных' };
+// Короткие советы: что сделать, чтобы подтянуть показатель
+var KPI_TIPS = {
+  sla:'Закрывай каждый день: ноль неотвеченных ответов в GetSales и все follow-up зачёркнуты.',
+  meetings:'Доводи тёплых лидов до звонка: в ответе сразу предлагай время, переводи Interested в Call scheduled.',
+  scheduled:'',
+  live:'Заканчивай ответ вопросом, чтобы контакт написал второй раз, и делай follow-up тем, кто ответил один раз и замолчал.',
+  companies:'Отвечай всем новым в тот же день и ищи второй контакт в компаниях, где уже есть ответ.',
+  contacts:'Пополни очередь контактов в аккаунтах: добавь людей в списки и проверь, что ни один аккаунт не простаивает.',
+  r2i:'Разбирай возражения и предлагай следующий шаг, чтобы Neutral переходил в интерес.',
+  wrongicp:'Перед добавлением сверяйся с критериями ICP: меньше неподходящих компаний в списках.',
+  statusacc:'', complete:''
+};
 var KPI_MONTHS = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
 var KPI_MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 var KPI_WD = ['вс','пн','вт','ср','чт','пт','сб'];
@@ -10321,15 +10337,17 @@ function kpiAudit(f, t){
 }
 function kpiStatsUid(){ return kpiConf().statsUid || ownerUid(); }
 function kpiContacts(f, t){
-  var uid = kpiStatsUid(), total = 0, missing = false;
+  var uid = kpiStatsUid(), total = 0, missing = false, any = false;
   kWeeksOverlap(f, t).forEach(function(mon){
     var k = uid+'_'+mon;
     if(!(k in kpiStats)){ missing = true; return; }
     var v = kpiStats[k]; if(v == null) return;
+    any = true;
     var wk = kWork(mon, kAdd(mon,6)), part = kWork(kMax(mon, f), kMin(kAdd(mon,6), t));
     if(wk > 0) total += v*part/wk;
   });
-  return missing ? undefined : Math.round(total);
+  // undefined = ещё грузим, null = за эти недели цифра в статистике автоматизации не внесена
+  return missing ? undefined : (any ? Math.round(total) : null);
 }
 // Чьи записи считаются: при включённой настройке «только записи сотрудника» берём лиды, которые он создал или в которых есть его сообщения, и его напоминания
 function kLeadMine(l, cf){
@@ -10377,7 +10395,10 @@ function kpiFacts(f, t){
   var sig = cohort.filter(function(l){ return l.status !== 'Irrelevant'; });
   var sla = kpiSla(f, t);
   var lname = function(l){ return (l.contactName ? l.contactName+', ' : '')+(l.companyName || ''); };
-  facts.sla = { val: sla.pct, base: sla.pct == null ? 'нет проверенных дней' : 'проверено дней: '+sla.checked };
+  var slaHave = sla.rows.filter(function(r){ return r.d.on && r.avg != null; }).length, slaAll = sla.rows.filter(function(r){ return r.d.on; }).length;
+  facts.sla = { val: sla.pct, base: sla.pct == null
+    ? 'нет данных: заполни блок «Ежедневная проверка» ниже (неотвеченные, follow-up) и задержку недельного отчёта'
+    : 'считается по процессам: '+slaHave+' из '+slaAll+(slaHave < slaAll ? ' (остальные не заполнены)' : '')+', дней проверено полностью: '+sla.checked };
   facts.meetings = { val: Object.keys(meet).length, base: 'уникальных компаний, звонок проведён в периоде', list: Object.keys(L.meetings).map(function(k){ return L.meetings[k]; }) };
   facts.scheduled = { val: Object.keys(sched).length, base: 'встречи, назначенные в периоде', list: Object.keys(L.scheduled).map(function(k){ return L.scheduled[k]; }) };
   // Живой диалог: из лидов, у которых в периоде был хотя бы один ответ (активные), доля тех, у кого в периоде пришёл ответ №liveMin и дальше (по умолчанию второй и далее).
@@ -10400,7 +10421,7 @@ function kpiFacts(f, t){
     base: 'активных диалогов: '+act+' (новых '+newN+', из прошлых периодов '+(act-newN)+'), живых: '+liveN+(lm === 2 ? '' : ', от '+lm+'-го ответа'), list: L.live };
   facts.companies = { val: Object.keys(comp).length, base: 'уникальных компаний с ответом', list: Object.keys(L.companies).map(function(k){ return L.companies[k]; }) };
   var cc = kpiContacts(f, t);
-  facts.contacts = cc === undefined ? { val:null, base:'загружаю недельную статистику…' } : { val:cc, base:'сумма недель (пропорционально дням)' };
+  facts.contacts = cc === undefined ? { val:null, base:'загружаю недельную статистику…' } : (cc === null ? { val:null, base:'за эти недели не внесена цифра «Контактов добавлено в автоматизацию»' } : { val:cc, base:'сумма недель (пропорционально дням)' });
   var inter = sig.filter(function(l){ return KPI_INTEREST.indexOf(l.status) > -1; }).length;
   facts.r2i = { val: sig.length ? inter/sig.length*100 : null, n: sig.length, base: inter+' из '+sig.length+' лидов с ответом', list: sig.map(function(l){ return lname(l)+' — '+(l.status || '')+(KPI_INTEREST.indexOf(l.status) > -1 ? ' (интерес)' : ''); }) };
   var ownC = cohort.filter(function(l){ return l.listSource !== 'nastya'; });
@@ -10420,7 +10441,8 @@ function kpiTier(def, val, th){
 }
 function kpiRow(def, fact, scale){
   var sc2 = def.kind === 'count' ? scale : 1;
-  function s(x){ return x == null ? null : x*sc2; }
+  // Нормы в штуках округляем до целых (не бывает 1,5 встречи); если норма есть, но округлилась в ноль, берём 1
+  function s(x){ if(x == null) return null; var v = x*sc2; return def.kind === 'count' ? (v > 0 ? Math.max(1, Math.round(v)) : 0) : v; }
   var th = { min:s(def.min), plan:s(def.plan), excl:s(def.excl) };
   var val = fact.val, pct = null;
   if(val != null && th.plan != null && th.plan > 0){
@@ -10733,15 +10755,15 @@ function kpiSetupHtml(c){
     + '<label>Первый рабочий день<input type="date" data-f="cfg:startDate" data-kid="cfg-start" value="'+kE(c.startDate)+'"></label>'
     + '</div><div class="kpi-note">Укажи первый рабочий день: период, нормы и фаза (ИС → полный набор) считаются от него.</div></div>';
 }
-function kpiSummaryHtml(m){
-  var h = '<div class="kpi-scroll"><table class="kpi-table"><thead><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th><th>Доля бонуса</th><th>К выплате</th><th>Основа расчёта</th></tr></thead><tbody>';
+function kpiSummaryHtml(m, showPay){
+  var h = '<div class="kpi-scroll"><table class="kpi-table"><thead><tr><th>Показатель</th><th>Факт</th><th>Минимум</th><th>План</th><th>Отлично</th><th>% от плана</th><th>Статус</th>'+(showPay ? '<th>Доля бонуса</th><th>К выплате</th>' : '')+'<th>Основа расчёта</th></tr></thead><tbody>';
   m.rows.forEach(function(r){
     h += '<tr'+(r.list ? ' class="kpi-click'+(kpiDrill === r.def.key ? ' kpi-open' : '')+'" data-act="drill" data-k="'+r.def.key+'" title="Нажми, чтобы увидеть, какие лиды вошли в цифру"' : '')+'><td class="kpi-name" title="'+kE(r.def.hint)+'">'+kE(r.def.name)+(r.list ? ' <span class="kpi-more">▸</span>' : '')+'</td>'
       + '<td class="kpi-fact kpi-t-'+r.tier+'">'+(r.val == null ? '—' : kn(r.val)+(r.def.unit === '%' ? '%' : (' '+r.def.unit)))+'</td>'
       + '<td>'+kThTxt(r,'min')+'</td><td>'+kThTxt(r,'plan')+'</td><td>'+kThTxt(r,'excl')+'</td>'
       + '<td>'+(r.pct == null ? '—' : Math.round(r.pct)+'%')+'</td>'
       + '<td><span class="kpi-chip kpi-t-'+r.tier+'">'+KPI_TIER_LABEL[r.tier]+'</span></td>'
-      + '<td>'+(r.amount ? kUsd(r.amount) : '—')+'</td><td><b>'+(r.amount ? kUsd(r.pay) : '—')+'</b>'+(r.payNote ? ' <span class="kpi-warn" title="'+kE(r.payNote)+'">!</span>' : '')+'</td>'
+      + (showPay ? '<td>'+(r.amount ? kUsd(r.amount) : '—')+'</td><td><b>'+(r.amount ? kUsd(r.pay) : '—')+'</b>'+(r.payNote ? ' <span class="kpi-warn" title="'+kE(r.payNote)+'">!</span>' : '')+'</td>' : '')
       + '<td class="kpi-base">'+kE(r.base || '')+(r.low ? ' <b class="kpi-warn">мало данных</b>' : '')+'</td></tr>';
   });
   h += '</tbody></table></div>';
@@ -10750,10 +10772,60 @@ function kpiSummaryHtml(m){
     h += '<div class="kpi-sub">Что вошло: '+kE(dr.def.name)+' ('+dr.list.length+')</div>'
       + (dr.list.length ? '<ul class="kpi-list">'+dr.list.slice(0, 200).map(function(x){ return '<li>'+kE(x)+'</li>'; }).join('')+'</ul>'+(dr.list.length > 200 ? '<div class="kpi-note">Показаны первые 200.</div>' : '') : '<div class="kpi-note">Список пуст.</div>');
   }
-  h += '<div class="kpi-pay">К выплате по уровню периода: <b>'+kUsd(m.pay.total)+'</b> из '+kUsd(m.pay.bonus)+' (максимум при «Отлично»: '+kUsd(m.pay.max)+')'
+  if(showPay) h += '<div class="kpi-pay">К выплате по уровню периода: <b>'+kUsd(m.pay.total)+'</b> из '+kUsd(m.pay.bonus)+' (максимум при «Отлично»: '+kUsd(m.pay.max)+')'
     + (m.pay.unrated ? ' · не оценено показателей: '+m.pay.unrated+' (нет порога или данных)' : '')
     + (m.pay.gate ? ' · <span class="kpi-warn">живой диалог и Replied → Interested не засчитаны: верных статусов меньше '+m.cfg.gateAcc+'%</span>' : '')
     + '</div><div class="kpi-note">Бонус делится между оплачиваемыми показателями по весам (из включённых на этот месяц работы), пороги уже подогнаны под период, поэтому сумма показывает, сколько получит сотрудник за полный месяц при таком уровне.</div>';
+  return h;
+}
+// Недельный вид: без денег, с понятным планом на неделю и советами, что подтянуть
+function kRoundTxt(r, v){ return v == null ? '—' : kn(r.def.kind === 'count' ? Math.round(v) : v)+(r.def.unit === '%' ? '%' : ''); }
+function kpiGapOf(r){
+  // сколько не хватает до плана (для «чем меньше, тем лучше» сколько лишнего)
+  if(r.val == null || r.th.plan == null) return null;
+  if(r.def.dir === 'down') return r.val > r.th.plan ? r.val - r.th.plan : 0;
+  var g = r.th.plan - r.val; return g > 0 ? g : 0;
+}
+function kpiWeekFocusHtml(m){
+  var rows = m.rows.filter(function(r){ return r.def.key !== 'scheduled' && r.def.key !== 'statusacc' && r.def.key !== 'complete'; });
+  var bad = rows.filter(function(r){ return r.tier === 'min' || r.tier === 'low'; }).sort(function(a, b){ return (a.pct == null ? 999 : a.pct) - (b.pct == null ? 999 : b.pct); });
+  var ok = rows.filter(function(r){ return r.tier === 'plan' || r.tier === 'excl'; });
+  var h = '';
+  if(!bad.length && !ok.length){ return '<div class="kpi-note">За неделю пока нет данных, по которым можно сказать, что подтянуть. Заполни ежедневную проверку и вноси ответы лидов.</div>'; }
+  if(bad.length){
+    h += '<div class="kpi-focus">';
+    bad.slice(0, 4).forEach(function(r){
+      var g = kpiGapOf(r), unit = r.def.unit === '%' ? ' п.п.' : (' '+r.def.unit);
+      var line = r.def.dir === 'down'
+        ? 'сейчас '+kRoundTxt(r, r.val)+', на неделю не больше '+kRoundTxt(r, r.th.plan)+' (лишнего '+kn(g)+unit.replace(' шт','')+')'
+        : 'сейчас '+kRoundTxt(r, r.val)+', план на неделю '+kRoundTxt(r, r.th.plan)+(g != null && g > 0 ? ', не хватает '+(r.def.kind === 'count' ? Math.ceil(g) : kn(g))+(r.def.unit === '%' ? ' п.п.' : ' '+r.def.unit) : '');
+      h += '<div class="kpi-focus-item kpi-t-'+(r.tier === 'low' ? 'low' : 'min')+'"><b>'+kE(r.def.name)+'</b>: '+kE(line)+(KPI_TIPS[r.def.key] ? '<div class="kpi-tip">Что сделать: '+kE(KPI_TIPS[r.def.key])+'</div>' : '')+'</div>';
+    });
+    h += '</div>';
+  }
+  // SLA: какой процесс тянет вниз
+  var worst = m.sla.rows.filter(function(r){ return r.d.on && r.avg != null && r.avg < 90; }).sort(function(a, b){ return a.avg - b.avg; })[0];
+  if(worst) h += '<div class="kpi-focus"><div class="kpi-focus-item kpi-t-min"><b>SLA тянет вниз:</b> «'+kE(worst.d.name)+'» (в среднем '+kn(worst.mean)+' '+worst.d.unit+', норма не больше '+kn(worst.d.plan)+')<div class="kpi-tip">Что сделать: '+kE(worst.d.key === 'report' ? 'отправляй недельный отчёт в понедельник.' : worst.d.key === 'overdue' ? 'зачёркивай follow-up в день срока, не переноси без причины.' : 'до конца рабочего дня отвечай на все ответы лидов в GetSales.')+'</div></div></div>';
+  if(m.fu.c.missed || m.noTouch.length) h += '<div class="kpi-note">Follow-up: не сделано '+m.fu.c.missed+', лидов без касания дольше '+m.cfg.fuDays+' раб. дн.: '+m.noTouch.length+' (список ниже в карточке «Follow-up»).</div>';
+  if(ok.length) h += '<div class="kpi-note">В норме: '+kE(ok.map(function(r){ return r.def.name; }).join(', '))+'.</div>';
+  if(!bad.length && !worst) h = '<div class="kpi-note" style="color:var(--green);font-weight:700;">Всё в норме: по неделе нет показателей ниже плана.</div>'+h;
+  return h;
+}
+function kpiWeekSummaryHtml(m){
+  var h = '<div class="kpi-scroll"><table class="kpi-table"><thead><tr><th>Показатель</th><th>Факт за неделю</th><th>План на неделю</th><th>Не хватает</th><th>Статус</th><th>Основа</th></tr></thead><tbody>';
+  m.rows.forEach(function(r){
+    if(r.def.key === 'statusacc' || r.def.key === 'complete') return;
+    var g = kpiGapOf(r);
+    h += '<tr'+(r.list ? ' class="kpi-click'+(kpiDrill === r.def.key ? ' kpi-open' : '')+'" data-act="drill" data-k="'+r.def.key+'" title="Нажми, чтобы увидеть, какие лиды вошли в цифру"' : '')+'><td class="kpi-name" title="'+kE(r.def.hint)+'">'+kE(r.def.name)+(r.list ? ' <span class="kpi-more">▸</span>' : '')+'</td>'
+      + '<td class="kpi-fact kpi-t-'+r.tier+'">'+kE(r.val == null ? '—' : kRoundTxt(r, r.val)+(r.def.unit === '%' ? '' : ' '+r.def.unit))+'</td>'
+      + '<td>'+kE(r.th.plan == null ? '—' : (r.def.dir === 'down' ? 'не больше ' : '')+kRoundTxt(r, r.th.plan))+'</td>'
+      + '<td>'+(g == null ? '—' : g > 0 ? kE((r.def.kind === 'count' ? Math.ceil(g) : kn(g))+(r.def.unit === '%' ? ' п.п.' : '')) : '0')+'</td>'
+      + '<td><span class="kpi-chip kpi-t-'+r.tier+'">'+KPI_WEEK_LABEL[r.tier]+'</span></td>'
+      + '<td class="kpi-base">'+kE(r.base || '')+(r.low ? ' <b class="kpi-warn">мало данных</b>' : '')+'</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  var dr = kpiDrill ? m.rows.filter(function(r){ return r.def.key === kpiDrill && r.list; })[0] : null;
+  if(dr) h += '<div class="kpi-sub">Что вошло: '+kE(dr.def.name)+' ('+dr.list.length+')</div>'+(dr.list.length ? '<ul class="kpi-list">'+dr.list.slice(0, 200).map(function(x){ return '<li>'+kE(x)+'</li>'; }).join('')+'</ul>' : '<div class="kpi-note">Список пуст.</div>');
   return h;
 }
 function kpiWeeksHtml(m){
@@ -10937,7 +11009,7 @@ function renderKpiTab(){
   h += kpiSwitcherHtml();
   var who = (c.sdrName || 'Сотрудник');
   h += '<div class="kpi-head"><div><div class="kpi-title">KPI: '+kE(who)+'</div><div class="kpi-sub2">'+(c.startDate ? 'Первый рабочий день: '+kFmtDY(c.startDate) : 'Дата старта не задана')+'</div></div>'
-    + '<div class="kpi-actions"><label class="kpi-chk"><input type="checkbox" data-f="view:pay" '+(kpiInitView() || kpiView.pay ? 'checked' : '')+'> выплата в файлах</label><button class="btn-secondary" data-act="dl-html">Скачать отчёт (HTML)</button><button class="btn-secondary" data-act="dl-csv">Скачать CSV</button></div></div>';
+    + '<div class="kpi-actions"><label class="kpi-chk" title="Деньги есть только в месячном виде"><input type="checkbox" data-f="view:pay" '+(kpiInitView() || kpiView.pay ? 'checked' : '')+'> выплата в файлах (только за месяц)</label><button class="btn-secondary" data-act="dl-html">Скачать отчёт (HTML)</button><button class="btn-secondary" data-act="dl-csv">Скачать CSV</button></div></div>';
   if(!c.startDate){ root.innerHTML = h + kpiSetupHtml(c); return; }
   var v = kpiView;
   h += '<div class="kpi-bar"><span class="kpi-seg">'
@@ -10974,10 +11046,15 @@ function renderKpiTab(){
         h += '<div class="kpi-note kpi-warn">В «Лидогенерации» лидов: '+maxLeads.length+', но за этот период по выбранному сотруднику ничего не найдено. Проверь: дату старта ('+kFmtDY(c.startDate)+'), период, и в настройках фильтр по автору ('+(c.authorOnly ? 'включён' : 'выключен')+')'+(c.authorOnly ? ', а также «считать старые записи без автора» ('+(c.unattr ? 'включено' : 'выключено')+')' : '')+'.</div>';
       }
     }
-    h += '<div class="kpi-card"><h3>План и факт · '+kE(rg.label)+'</h3>'+kpiSummaryHtml(m)
+    var isWeek = kpiView.mode === 'week', showPay = kpiView.mode === 'month';
+    if(isWeek){
+      h += '<div class="kpi-card"><h3>Что подтянуть на этой неделе</h3>'+kpiWeekFocusHtml(m)+'</div>';
+      h += '<div class="kpi-card"><h3>Показатели недели · '+kE(rg.label)+'</h3>'+kpiWeekSummaryHtml(m)+'<div class="kpi-note">План на неделю = месячная норма, делённая на рабочие дни, округлённая до целых. Деньги считаются только за месяц, здесь только показатели и что улучшить.</div></div>';
+    } else
+    h += '<div class="kpi-card"><h3>План и факт · '+kE(rg.label)+'</h3>'+kpiSummaryHtml(m, showPay)
       + '<div class="kpi-note">Замечания: лиды берутся по дате первого ответа; в разделе «Лидогенерация» записи общие (нет поля «кто внёс»), поэтому считается всё, что внесено за период. Подсказка по каждому показателю: наведи на название.</div></div>';
     if(kpiView.mode === 'month') h += kpiSnapHtml(m, kMonthKey(rg.from));
-    h += '<div class="kpi-card"><h3>Показатели по неделям</h3>'+kpiWeeksHtml(m)+'</div>';
+    if(!isWeek) h += '<div class="kpi-card"><h3>Показатели по неделям</h3>'+kpiWeeksHtml(m)+'</div>';
     h += '<div class="kpi-card"><h3>SLA (по трекеру)</h3>'+kpiSlaHtml(m)+'</div>';
     h += '<div class="kpi-card"><h3>Follow-up (журнал напоминаний)</h3>'+kpiFuHtml(m)+'</div>';
     h += '<div class="kpi-card"><h3>Ежедневная проверка</h3><div class="kpi-note" style="margin:0 0 8px;">Раз в день в одно и то же время (после конца рабочего дня): сколько ответов лидов в GetSales осталось без ответа и сколько follow-up в календаре не зачёркнуто. Пустое поле = день не проверен (в расчёт не идёт).</div>'+kpiDailyHtml(m)+'</div>';
@@ -11117,8 +11194,9 @@ function kpiOnClick(e){
     var rg = kpiRange(), m = kpiModel(rg.from, rg.to);
     if(!m.ok){ alert('В этом периоде нет данных для выгрузки.'); return; }
     var base = 'KPI_'+kSlug(m.cfg.sdrName)+'_'+m.f+'_'+m.t;
-    if(act === 'dl-html') kDownload(base+'.html', 'text/html;charset=utf-8', kpiReportHtml(m, rg, v.pay));
-    else kDownload(base+'.csv', 'text/csv;charset=utf-8', kpiCsv(m, rg, v.pay));
+    var wp = v.pay && v.mode === 'month';
+    if(act === 'dl-html') kDownload(base+'.html', 'text/html;charset=utf-8', kpiReportHtml(m, rg, wp));
+    else kDownload(base+'.csv', 'text/csv;charset=utf-8', kpiCsv(m, rg, wp));
     return;
   }
   else if(act === 'done'){ kpiCloseMonth(b.dataset.month, !(kpiData.done && kpiData.done[b.dataset.month])); return; }
