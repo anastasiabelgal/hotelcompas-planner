@@ -10014,7 +10014,7 @@ var KPI_MEET = ['Call scheduled','Call done'];
 var KPI_DEFS = [
   {key:'sla',      name:'Средний SLA по выполнению задач', unit:'%',  kind:'rate',  dir:'up',   from:1, min:85,   plan:90,   excl:95,   hint:'Считается по блоку «SLA» ниже: ежедневная проверка + недельный отчёт'},
   {key:'meetings', name:'Вывод на встречи',                unit:'шт', kind:'count', dir:'up',   from:1, min:3,    plan:4,    excl:5,    hint:'Компании со статусом Call scheduled или Call done (по дате смены статуса или звонка)'},
-  {key:'live',     name:'Replied → Qualified (живой диалог)', unit:'%', kind:'rate', dir:'up', from:1, min:35,   plan:45,   excl:55,   hint:'Лиды, где контакт написал 2+ раза ÷ лиды с ответом (без Irrelevant). Лиды берутся по дате первого ответа'},
+  {key:'live',     name:'Replied → Qualified (живой диалог)', unit:'%', kind:'rate', dir:'up', from:1, min:35,   plan:45,   excl:55,   hint:'Новые лиды периода (первый ответ в периоде, без Irrelevant), у которых внутри периода пришло 2 и больше ответов контакта, делённые на все новые лиды с ответом'},
   {key:'companies',name:'Компаний в диалоге',              unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Уникальные компании, где за период есть ответ контакта. Задай пороги сама'},
   {key:'contacts', name:'Контактов добавлено',             unit:'шт', kind:'count', dir:'up',   from:2, min:null, plan:null, excl:null, hint:'Из недельной статистики автоматизации («добавленные контакты»). Задай пороги сама'},
   {key:'r2i',      name:'Replied → Interested',            unit:'%',  kind:'rate',  dir:'up',   from:3, min:15,   plan:25,   excl:35,   hint:'Лиды со статусом Interested/Recommendation/Potential call/Call scheduled/Call done ÷ лиды с ответом (без Irrelevant). Пороги условные'},
@@ -10066,7 +10066,8 @@ function kpiConf(){
     lvMin: kNum(c.lvMin) != null ? kNum(c.lvMin) : 50, lvPlan: kNum(c.lvPlan) != null ? kNum(c.lvPlan) : 100, lvExcl: kNum(c.lvExcl) != null ? kNum(c.lvExcl) : 120,
     gateAcc: c.gateAcc === undefined ? 80 : kNum(c.gateAcc),
     firstProrate: c.firstProrate !== false,
-    fuDays: kNum(c.fuDays) != null ? kNum(c.fuDays) : 3, fuLimit: kNum(c.fuLimit) != null ? kNum(c.fuLimit) : 3
+    fuDays: kNum(c.fuDays) != null ? kNum(c.fuDays) : 3, fuLimit: kNum(c.fuLimit) != null ? kNum(c.fuLimit) : 3,
+    liveMin: kNum(c.liveMin) != null && kNum(c.liveMin) >= 2 ? kNum(c.liveMin) : 2
   };
 }
 function kHolSet(){ var o = {}; kpiConf().holidays.forEach(function(h){ o[h] = 1; }); return o; }
@@ -10201,8 +10202,12 @@ function kpiFacts(f, t){
   var sla = kpiSla(f, t);
   facts.sla = { val: sla.pct, base: sla.pct == null ? 'нет проверенных дней' : 'проверено дней: '+sla.checked };
   facts.meetings = { val: Object.keys(meet).length, base: 'уникальных компаний' };
-  var live = sig.filter(function(l){ return kEffMsgs(l).length >= 2; }).length;
-  facts.live = { val: sig.length ? live/sig.length*100 : null, n: sig.length, base: live+' из '+sig.length+' лидов с ответом' };
+  // Живой диалог: новый лид периода, у которого внутри периода пришло liveMin и больше ответов (ровно 2, 3 и далее)
+  var lm = kpiConf().liveMin, cnt = function(l){ return kEffMsgs(l).filter(function(m){ return m.date >= f && m.date <= t; }).length; };
+  var liveL = sig.filter(function(l){ return cnt(l) >= lm; }), live = liveL.length;
+  var two = liveL.filter(function(l){ return cnt(l) === 2; }).length, three = liveL.filter(function(l){ return cnt(l) >= 3; }).length;
+  facts.live = { val: sig.length ? live/sig.length*100 : null, n: sig.length,
+    base: live+' из '+sig.length+' новых лидов с ответом'+(lm === 2 ? ' (ровно 2 ответа: '+two+', 3 и больше: '+three+')' : ' (не меньше '+lm+' ответов)') };
   facts.companies = { val: Object.keys(comp).length, base: 'уникальных компаний с ответом' };
   var cc = kpiContacts(f, t);
   facts.contacts = cc === undefined ? { val:null, base:'загружаю недельную статистику…' } : { val:cc, base:'сумма недель (пропорционально дням)' };
@@ -10599,6 +10604,7 @@ function kpiSettingsHtml(c){
     + '<label>На «Плане», %<input type="number" min="0" data-f="cfg:lvPlan" data-kid="s-lvplan" value="'+c.lvPlan+'"></label>'
     + '<label>На «Отлично», %<input type="number" min="0" data-f="cfg:lvExcl" data-kid="s-lvexcl" value="'+c.lvExcl+'"></label>'
     + '<label>Если верных статусов меньше, %, то живой диалог и R→I не засчитываются (пусто = не применять)<input type="number" min="0" max="100" data-f="cfg:gateAcc" data-kid="s-gate" value="'+(c.gateAcc == null ? '' : c.gateAcc)+'"></label>'
+    + '<label>Живой диалог: сколько ответов контакта за период (2 и больше)<input type="number" min="2" max="10" data-f="cfg:liveMin" data-kid="s-live" value="'+c.liveMin+'"></label>'
     + '<label>Follow-up: не больше раб. дней без касания<input type="number" min="1" max="20" data-f="cfg:fuDays" data-kid="s-fud" value="'+c.fuDays+'"></label>'
     + '<label>Follow-up: максимум на лид без ответа<input type="number" min="1" max="10" data-f="cfg:fuLimit" data-kid="s-ful" value="'+c.fuLimit+'"></label>'
     + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-f="cfg:firstProrate" '+(c.firstProrate ? 'checked' : '')+'> Первый неполный месяц: нормы и бонус пропорциональны отработанным рабочим дням (при старте 18-го считается период с 18-го до конца месяца, нормы умножаются на долю его рабочих дней)</label>'
@@ -10757,6 +10763,7 @@ function kpiOnChange(e){
     if(key === 'holidays'){ kpiSave({ holidays: kpiParseHolidays(v) }); return; }
     if(key === 'firstProrate'){ kpiSave({ firstProrate: !!v }); return; }
     if(key === 'fuDays' || key === 'fuLimit'){ var of = {}; of[key] = kNum(v) == null ? 3 : kNum(v); kpiSave(of); return; }
+    if(key === 'liveMin'){ kpiSave({ liveMin: Math.max(2, kNum(v) == null ? 2 : kNum(v)) }); return; }
     if(key === 'bonus' || key === 'lvMin' || key === 'lvPlan' || key === 'lvExcl' || key === 'gateAcc'){ var on2 = {}; on2[key] = kNum(v); kpiSave(on2); return; }
     if(key === 'deadlineDay' || key === 'remindDays'){ kpiSave((function(){ var o = {}; o[key] = kNum(v) == null ? (key === 'deadlineDay' ? 10 : 3) : kNum(v); return o; })()); return; }
     if(key === 'sdrEmail'){ var em = (v || '').trim().toLowerCase(); kpiResolveUid(em).then(function(uid){ kpiStats = {}; kpiSave({ sdrEmail: em, statsUid: uid }); }); return; }
