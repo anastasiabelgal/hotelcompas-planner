@@ -1270,6 +1270,10 @@
   .kpi-settings summary{cursor:pointer;font-weight:700;font-size:14px;}
   .kpi-pay{margin-top:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--panel-soft);border:1px solid var(--border);font-size:13px;}
   .kpi-chk{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;}
+  .kpi-tiles{display:flex;flex-wrap:wrap;gap:8px;}
+  .kpi-tile{min-width:92px;padding:8px 12px;border-radius:var(--radius-sm);background:var(--panel-soft);border:1px solid var(--border);display:flex;flex-direction:column;}
+  .kpi-tile b{font-size:20px;}
+  .kpi-tile span{font-size:11px;color:var(--muted);}
   .kpi-reset{margin-top:12px;height:34px;}
   .kpi-closebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px;}
   .board-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
@@ -8662,7 +8666,8 @@ function renderMaxLeadsView(){
         if(!/^\d{4}-\d{2}-\d{2}$/.test(taskDate.trim())){ alert('Формат даты: ГГГГ-ММ-ДД'); return; }
         addDoc(collection(db,'maxReminders'), {
           name: lead.contactName || lead.companyName, note: taskText.trim(), date: taskDate.trim(),
-          done: false, leadId: lead.id, syncedFromNextContact: false, authorEmail: currentUser.email, createdAt: serverTimestamp()
+          origDate: taskDate.trim(), done: false, leadId: lead.id, syncedFromNextContact: false, authorEmail: currentUser.email, createdAt: serverTimestamp(),
+          history: [mrEvt('created', { to: taskDate.trim() })]
         });
       });
       otherWrap.appendChild(addContactBtn);
@@ -8746,14 +8751,25 @@ function initMaxLeads(){
 /* ---------- MAX FOLLOWUP (общая напоминалка Насти и Максима) ---------- */
 var maxFollowupMonth = new Date();
 var maxFollowupSelectedDate = null;
-var maxReminders = [];
+var maxReminders = [];      // активные напоминания (без удалённых)
+var maxRemindersAll = [];   // все записи, включая «удалённые» (журнал для KPI)
 var unsubMaxReminders = null;
+// Журнал напоминаний: кто, когда и что сделал (создал, выполнил, перенёс, удалил). Нужен для KPI по follow-up.
+function mrToday(){ var d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function mrEvt(type, extra){
+  return Object.assign({ t:new Date().toISOString(), d:mrToday(), by:(currentUser && currentUser.email) || '', type:type }, extra || {});
+}
 
 function subscribeMaxReminders(){
   if(unsubMaxReminders){ unsubMaxReminders(); unsubMaxReminders=null; }
   unsubMaxReminders = onSnapshot(collection(db,'maxReminders'), function(snap){
-    maxReminders = [];
-    snap.forEach(function(d){ maxReminders.push(Object.assign({id:d.id}, d.data())); });
+    maxReminders = []; maxRemindersAll = [];
+    snap.forEach(function(d){
+      var r = Object.assign({id:d.id}, d.data());
+      maxRemindersAll.push(r);
+      if(!r.deleted) maxReminders.push(r);
+    });
+    if(typeof kpiTabOpen === 'function' && kpiTabOpen()) kpiRenderKeepFocus();
     if(document.getElementById('max-followup-view') && !el('max-followup-view').classList.contains('hidden')){
       renderMaxFollowupMonth();
       if(maxFollowupSelectedDate) renderMaxFollowupDayDetail();
@@ -8765,17 +8781,27 @@ function subscribeMaxReminders(){
 function syncMaxLeadReminder(lead, newDate){
   var existing = maxReminders.filter(function(r){ return r.leadId === lead.id && r.syncedFromNextContact === true; })[0];
   if(!newDate){
-    if(existing) deleteDoc(doc(db,'maxReminders',existing.id));
+    if(existing) softDeleteMaxReminder(existing);
     return;
   }
   if(existing){
-    updateDoc(doc(db,'maxReminders',existing.id), { date: newDate, name: lead.contactName||lead.companyName });
+    var patch = { date: newDate, name: lead.contactName||lead.companyName };
+    if(existing.date !== newDate){
+      if(!existing.origDate) patch.origDate = existing.date;
+      patch.history = arrayUnion(mrEvt('date', { from: existing.date, to: newDate }));
+    }
+    updateDoc(doc(db,'maxReminders',existing.id), patch);
   } else {
     addDoc(collection(db,'maxReminders'), {
-      name: lead.contactName || lead.companyName, note: 'Связаться (авто из лида)', date: newDate,
-      done: false, leadId: lead.id, syncedFromNextContact: true, authorEmail: currentUser.email, createdAt: serverTimestamp()
+      name: lead.contactName || lead.companyName, note: 'Связаться (авто из лида)', date: newDate, origDate: newDate,
+      done: false, leadId: lead.id, syncedFromNextContact: true, authorEmail: currentUser.email, createdAt: serverTimestamp(),
+      history: [mrEvt('created', { to: newDate })]
     });
   }
+}
+// Удаление не стирает запись: она остаётся в журнале с пометкой, чтобы было видно, что follow-up убрали
+function softDeleteMaxReminder(item){
+  return updateDoc(doc(db,'maxReminders',item.id), { deleted:true, deletedAt:new Date().toISOString(), deletedBy:(currentUser && currentUser.email) || '', history: arrayUnion(mrEvt('deleted')) });
 }
 
 function getMaxFollowupItemsForDate(dateObj){
@@ -8842,7 +8868,10 @@ function renderMaxFollowupDayDetail(){
     var chk = document.createElement('input'); chk.type='checkbox'; chk.className='fu-check';
     chk.checked = !!item.done;
     chk.addEventListener('change', function(){
-      updateDoc(doc(db,'maxReminders',item.id), { done: chk.checked });
+      var upd = chk.checked
+        ? { done:true, doneAt:new Date().toISOString(), doneDate:mrToday(), history: arrayUnion(mrEvt('done')) }
+        : { done:false, doneAt:null, doneDate:null, history: arrayUnion(mrEvt('undone')) };
+      updateDoc(doc(db,'maxReminders',item.id), upd);
     });
 
     var name = document.createElement('span'); name.className='fu-name'; name.textContent = item.name || '(без имени)';
@@ -8865,15 +8894,18 @@ function renderMaxFollowupDayDetail(){
       var newDate = prompt('Дата (ГГГГ-ММ-ДД):', item.date||'');
       if(newDate === null) return;
       if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate.trim())){ alert('Формат даты: ГГГГ-ММ-ДД'); return; }
-      updateDoc(doc(db,'maxReminders',item.id), {
-        name: newName.trim(), note: newNote.trim(), date: newDate.trim()
-      }).then(function(){ renderMaxFollowupDayDetail(); });
+      var editPatch = { name: newName.trim(), note: newNote.trim(), date: newDate.trim() };
+      if((item.date || '') !== newDate.trim()){
+        if(!item.origDate) editPatch.origDate = item.date;
+        editPatch.history = arrayUnion(mrEvt('date', { from: item.date || '', to: newDate.trim() }));
+      }
+      updateDoc(doc(db,'maxReminders',item.id), editPatch).then(function(){ renderMaxFollowupDayDetail(); });
     });
     var delBtn = document.createElement('button'); delBtn.innerHTML = ICON_X; delBtn.title='Удалить напоминание';
     delBtn.addEventListener('click', function(e){
       e.stopPropagation();
       if(confirm('Удалить напоминание про «'+(item.name||'')+'»?')){
-        deleteDoc(doc(db,'maxReminders',item.id));
+        softDeleteMaxReminder(item).then(function(){ renderMaxFollowupDayDetail(); });
       }
     });
     actions.appendChild(editBtn); actions.appendChild(delBtn);
@@ -8903,7 +8935,8 @@ function initMaxFollowup(){
     var pad2 = function(n){ return String(n).padStart(2,'0'); };
     var dateStr = maxFollowupSelectedDate.getFullYear()+'-'+pad2(maxFollowupSelectedDate.getMonth()+1)+'-'+pad2(maxFollowupSelectedDate.getDate());
     addDoc(collection(db,'maxReminders'), {
-      name: name, note: note, date: dateStr, done: false, authorEmail: currentUser.email, createdAt: serverTimestamp()
+      name: name, note: note, date: dateStr, origDate: dateStr, done: false, authorEmail: currentUser.email, createdAt: serverTimestamp(),
+      history: [mrEvt('created', { to: dateStr })]
     }).then(function(){
       el('max-followup-add-name').value=''; el('max-followup-add-note').value='';
       renderMaxFollowupDayDetail();
@@ -10031,7 +10064,9 @@ function kpiConf(){
     holidays: hol, deadlineDay: c.deadlineDay ? +c.deadlineDay : 10, remindDays: c.remindDays != null ? +c.remindDays : 3,
     bonus: kNum(c.bonus) != null ? kNum(c.bonus) : 200,
     lvMin: kNum(c.lvMin) != null ? kNum(c.lvMin) : 50, lvPlan: kNum(c.lvPlan) != null ? kNum(c.lvPlan) : 100, lvExcl: kNum(c.lvExcl) != null ? kNum(c.lvExcl) : 120,
-    gateAcc: c.gateAcc === undefined ? 80 : kNum(c.gateAcc)
+    gateAcc: c.gateAcc === undefined ? 80 : kNum(c.gateAcc),
+    firstProrate: c.firstProrate !== false,
+    fuDays: kNum(c.fuDays) != null ? kNum(c.fuDays) : 3, fuLimit: kNum(c.fuLimit) != null ? kNum(c.fuLimit) : 3
   };
 }
 function kHolSet(){ var o = {}; kpiConf().holidays.forEach(function(h){ o[h] = 1; }); return o; }
@@ -10042,18 +10077,35 @@ function kWork(a, b){
   for(var s = a; s <= b; s = kAdd(s,1)){ if(kIsWork(s, hs)) n++; }
   return n;
 }
+// Личные нерабочие дни сотрудника (отпуск, больничный): диапазоны в настройках и отметка «не работала» в журнале дня. Общие праздники не входят.
+function kAbsSet(){
+  var o = {}, c = kpiData || {};
+  (Array.isArray(c.absences) ? c.absences : []).forEach(function(tok){
+    var m = String(tok).match(/^(\d{4}-\d{2}-\d{2})(?:\.\.(\d{4}-\d{2}-\d{2}))?$/); if(!m) return;
+    var a = m[1], b = m[2] || m[1]; if(b < a) b = a;
+    for(var s = a, i = 0; s <= b && i < 400; s = kAdd(s,1), i++) o[s] = 1;
+  });
+  var days = c.days || {}; Object.keys(days).forEach(function(d){ if(days[d] && days[d].off) o[d] = 1; });
+  return o;
+}
+// Рабочие дни, которые сотрудник реально отработал (без выходных, общих праздников и личных отсутствий)
+function kWorked(a, b){
+  if(a > b) return 0; var hs = kHolSet(), as = kAbsSet(), n = 0;
+  for(var s = a; s <= b; s = kAdd(s,1)){ if(kIsWork(s, hs) && !as[s]) n++; }
+  return n;
+}
 function kMonthIdx(s){
   var st = kpiConf().startDate; if(!st) return 1;
   return (+s.slice(0,4) - +st.slice(0,4))*12 + (+s.slice(5,7) - +st.slice(5,7)) + 1;
 }
 // Доля «нормы месяца», которую охватывает период: считаем рабочие дни периода к рабочим дням месяца (месяц начала работы считается от даты старта)
 function kScale(f, t){
-  var st = kpiConf().startDate, sum = 0;
+  var cf = kpiConf(), st = cf.startDate, sum = 0;  // part: отработанные дни (без личных отсутствий), full: рабочие дни месяца
   var m = kMonthKey(f), endM = kMonthKey(t);
   while(m <= endM){
     var r = kMonthRange(m);
-    var full = kWork(kMax(r[0], st), r[1]);
-    var part = kWork(kMax(f, kMax(r[0], st)), kMin(t, r[1]));
+    var full = kWork(cf.firstProrate ? r[0] : kMax(r[0], st), r[1]);
+    var part = kWorked(kMax(f, kMax(r[0], st)), kMin(t, r[1]));
     if(full > 0) sum += part/full;
     var p = m.split('-'); var nm = new Date(+p[0], +p[1], 1); m = nm.getFullYear()+'-'+kPad(nm.getMonth()+1);
   }
@@ -10083,11 +10135,11 @@ function kValid(v){ return v !== undefined && v !== null && v !== '' && !isNaN(+
 
 /* --- SLA по трекеру: день → процесс → общий средний --- */
 function kpiSla(f, t){
-  var days = kpiData.days || {}, weeks = kpiData.weeks || {}, hs = kHolSet(), rows = [], pcts = [], clean = 0, checked = 0;
+  var days = kpiData.days || {}, weeks = kpiData.weeks || {}, hs = kHolSet(), ab = kAbsSet(), rows = [], pcts = [], clean = 0, checked = 0;
   KPI_SLA_DEFS.forEach(function(d0){
     var d = kpiSlaCfg(d0), vals = [];
     if(d.per === 'day'){
-      for(var s = f; s <= t; s = kAdd(s,1)){ if(!kIsWork(s, hs)) continue; var r = days[s]; if(r && kValid(r[d.field])) vals.push(+r[d.field]); }
+      for(var s = f; s <= t; s = kAdd(s,1)){ if(!kIsWork(s, hs) || ab[s]) continue; var dv = kDayVal(s, d.field); if(dv != null) vals.push(dv); }
     } else {
       kMondays(f, t).forEach(function(mon){ var r = weeks[mon]; if(r && kValid(r[d.field])) vals.push(+r[d.field]); });
     }
@@ -10097,8 +10149,8 @@ function kpiSla(f, t){
     if(d.on && avg != null) pcts.push(avg);
   });
   for(var s2 = f; s2 <= t; s2 = kAdd(s2,1)){
-    if(!kIsWork(s2, hs)) continue; var r2 = days[s2];
-    if(r2 && kValid(r2.u) && kValid(r2.o)){ checked++; if(+r2.u === 0 && +r2.o === 0) clean++; }
+    if(!kIsWork(s2, hs) || ab[s2]) continue; var du = kDayVal(s2, 'u'), dov = kDayVal(s2, 'o');
+    if(du != null && dov != null){ checked++; if(du === 0 && dov === 0) clean++; }
   }
   return { rows:rows, pct: pcts.length ? kSum(pcts)/pcts.length : null, clean:clean, checked:checked };
 }
@@ -10182,8 +10234,10 @@ function kpiRow(def, fact, scale){
   return { def:def, val:val, th:th, pct:pct, tier:kpiTier(def, val, th), base:fact.base, n:fact.n, low:low };
 }
 // Выплата: бонус делится между оплачиваемыми показателями по весам; уровень (Минимум/План/Отлично) даёт долю суммы
-function kpiPay(rows, facts){
-  var c = kpiConf(), paid = rows.filter(function(r){ return r.def.w > 0; }), W = kSum(paid.map(function(r){ return r.def.w; }));
+function kpiPay(rows, facts, share){
+  var c = Object.assign({}, kpiConf());
+  c.bonus = c.bonus*(share == null ? 1 : share); // бонус пропорционален отработанной части месяца
+  var paid = rows.filter(function(r){ return r.def.w > 0; }), W = kSum(paid.map(function(r){ return r.def.w; }));
   var lv = { excl:c.lvExcl, plan:c.lvPlan, min:c.lvMin, low:0 };
   var accv = facts.statusacc ? facts.statusacc.val : null;
   var gate = c.gateAcc != null && accv != null && accv < c.gateAcc;
@@ -10199,31 +10253,41 @@ function kpiPay(rows, facts){
   return { bonus:c.bonus, total:total, max:max, unrated:unrated, gate:gate, W:W };
 }
 function kUsd(x){ return '$'+kn(x); }
+// Доля месяца, которую сотрудник отработал (старт в середине месяца, отпуск, больничный); бонус умножается на неё, если включена пропорция
+function kEmpShare(f, t){
+  var c = kpiConf();
+  if(!c.firstProrate || !c.startDate || kMonthKey(f) !== kMonthKey(t)) return 1;
+  var r = kMonthRange(kMonthKey(t)), all = kWork(r[0], r[1]);
+  if(!all) return 1;
+  return Math.min(1, kWorked(kMax(r[0], c.startDate), r[1])/all);
+}
 function kpiModel(from, to){
   var cfg = kpiConf(), m = { from:from, to:to, cfg:cfg, ok:false };
   if(!cfg.startDate){ m.err = 'nostart'; return m; }
   var f = from < cfg.startDate ? cfg.startDate : from, t = to > kToday() ? kToday() : to;
   m.f = f; m.t = t;
   if(f > t){ m.err = 'empty'; return m; }
-  m.ok = true; m.idx = kMonthIdx(t); m.wd = kWork(f, t); m.scale = kScale(f, t);
+  m.ok = true; m.idx = kMonthIdx(t); m.wd = kWorked(f, t); m.absDays = kWork(f, t) - m.wd; m.scale = kScale(f, t);
   var defs = KPI_DEFS.map(kpiCfg);
   m.active = defs.filter(function(d){ return d.on && d.from <= m.idx; });
   m.later = defs.filter(function(d){ return d.on && d.from > m.idx; });
   var facts = kpiFacts(f, t);
   m.sla = facts._sla;
   m.rows = m.active.map(function(d){ return kpiRow(d, facts[d.key], m.scale); });
-  m.pay = kpiPay(m.rows, facts);
-  m.weeks = kWeeksOverlap(f, t).filter(function(mon){ return kWork(kMax(mon, f), kMin(kAdd(mon,6), t)) > 0; }).map(function(mon){
+  m.payShare = kEmpShare(f, t);
+  m.pay = kpiPay(m.rows, facts, m.payShare);
+  m.weeks = kWeeksOverlap(f, t).filter(function(mon){ return kWorked(kMax(mon, f), kMin(kAdd(mon,6), t)) > 0; }).map(function(mon){
     var wf = kMax(mon, f), wt = kMin(kAdd(mon,6), t), wsc = kScale(wf, wt), wfa = kpiFacts(wf, wt);
-    return { mon:mon, f:wf, t:wt, wd:kWork(wf, wt), scale:wsc,
+    return { mon:mon, f:wf, t:wt, wd:kWorked(wf, wt), scale:wsc,
       cells: m.active.map(function(d){
         if(d.key === 'statusacc' || d.key === 'complete') return { row:null };
         return { row: kpiRow(d, wfa[d.key], wsc) };
       }) };
   });
   m.daily = [];
-  var days = kpiData.days || {}, hs = kHolSet();
-  for(var s = f; s <= t; s = kAdd(s,1)){ if(kIsWork(s, hs)) m.daily.push({ date:s, u:(days[s] && days[s].u != null) ? days[s].u : '', o:(days[s] && days[s].o != null) ? days[s].o : '' }); }
+  var days = kpiData.days || {}, hs = kHolSet(), abs2 = kAbsSet();
+  for(var s = f; s <= t; s = kAdd(s,1)){ if(kIsWork(s, hs)) m.daily.push({ date:s, off:!!abs2[s], u:(days[s] && days[s].u != null) ? days[s].u : '', o:(days[s] && days[s].o != null) ? days[s].o : '', oa: (!abs2[s] && kFuAutoOn(s)) ? kFuMissedAt(s) : null }); }
+  m.fu = kpiFollowups(f, t); m.noTouch = kpiNoTouch(); m.fuLimit = kpiFuLimit(); m.fuStart = kFuJournalStart();
   return m;
 }
 
@@ -10247,6 +10311,93 @@ async function kpiResolveUid(email){
     var snap = await getDocs(query(collection(db,'users'), where('email','==',email)));
     return snap.empty ? '' : snap.docs[0].id;
   }catch(e){ console.error('kpi uid err', e); return ''; }
+}
+
+/* --- Follow-up: расчёты по журналу напоминаний (maxReminders: origDate, doneDate, history) --- */
+var KPI_TERMINAL = ['Not interested','Irrelevant','Call done'];
+function kFuEvents(r){ return Array.isArray(r.history) ? r.history.slice().sort(function(a,b){ return (a.t || '').localeCompare(b.t || ''); }) : []; }
+function kFuOrig(r){ return r.origDate || r.date || ''; }
+function kFuLead(r){ return r.leadId ? maxLeads.filter(function(l){ return l.id === r.leadId; })[0] : null; }
+function kFuName(r){ var l = kFuLead(r); return (l ? ((l.contactName ? l.contactName+', ' : '')+(l.companyName || '')) : (r.name || '')) || '(без имени)'; }
+// С какого дня ведётся журнал: самая ранняя запись у напоминания, созданного уже с историей
+function kFuJournalStart(){
+  var min = '';
+  maxRemindersAll.forEach(function(r){ var h = kFuEvents(r); if(h.length && h[0].d && (!min || h[0].d < min)) min = h[0].d; });
+  return min;
+}
+// Состояние напоминания на конец дня D, восстановленное по журналу (null, если его в тот день ещё не было)
+function kFuStateAt(r, D){
+  var h = kFuEvents(r); if(!h.length || !h[0].d || h[0].d > D) return null;
+  var date = kFuOrig(r), done = false, deleted = false;
+  h.forEach(function(e){
+    if(!e.d || e.d > D) return;
+    if(e.type === 'date') date = e.to; else if(e.type === 'done') done = true; else if(e.type === 'undone') done = false; else if(e.type === 'deleted') deleted = true;
+  });
+  return { date:date, done:done, deleted:deleted };
+}
+// Сколько follow-up не зачёркнуто на конец дня D (срок наступил, галочки нет)
+function kFuMissedAt(D){
+  var n = 0;
+  maxRemindersAll.forEach(function(r){ var s = kFuStateAt(r, D); if(s && !s.deleted && !s.done && s.date && s.date <= D) n++; });
+  return n;
+}
+function kFuAutoOn(D){ var js = kFuJournalStart(); return !!js && D >= js && D <= kToday(); }
+function kDayVal(s, field){
+  var r = (kpiData.days || {})[s], v = r ? r[field] : null;
+  if(kValid(v)) return +v;
+  if(field === 'o' && kFuAutoOn(s)) return kFuMissedAt(s);
+  return null;
+}
+// Итоги по follow-up, у которых исходная дата попала в период
+function kpiFollowups(f, t){
+  var today = kToday(), c = { total:0, ontime:0, late:0, missed:0, open:0, moved:0, deleted:0, nolog:0 }, rows = [];
+  maxRemindersAll.forEach(function(r){
+    var orig = kFuOrig(r); if(!orig || orig < f || orig > t) return;
+    var h = kFuEvents(r), moves = h.filter(function(e){ return e.type === 'date'; }), st;
+    if(r.deleted && !r.done) st = 'deleted';
+    else if(r.done) st = (!h.length || !r.doneDate) ? 'nolog' : (r.doneDate <= orig ? 'ontime' : 'late');
+    else st = (r.date && r.date < today) ? 'missed' : 'open';
+    c.total++; c[st]++; if(moves.length) c.moved++;
+    if(st === 'late' || st === 'missed' || st === 'deleted' || moves.length) rows.push({ r:r, st:st, moves:moves, orig:orig });
+  });
+  rows.sort(function(a,b){ return a.orig.localeCompare(b.orig); });
+  return { c:c, rows:rows };
+}
+function kLastMsg(l){ var last = ''; kEffMsgs(l).forEach(function(m){ if(m.date > last) last = m.date; }); return last; }
+// Лиды, по которым дольше N рабочих дней нет ни ответа, ни выполненного follow-up, ни запланированного следующего
+function kpiNoTouch(){
+  var cf = kpiConf(), today = kToday(), out = [];
+  maxLeads.forEach(function(l){
+    if(KPI_TERMINAL.indexOf(l.status) > -1) return;
+    var last = kLastMsg(l) || l.firstContactDate || '';
+    var rs = maxRemindersAll.filter(function(r){ return r.leadId === l.id && !r.deleted; });
+    rs.forEach(function(r){ if(r.done && r.doneDate && r.doneDate > last) last = r.doneDate; });
+    if(!last) return;
+    var plan = rs.filter(function(r){ return !r.done && r.date && r.date >= today; }).map(function(r){ return r.date; }).sort();
+    if(!plan.length){
+      var wd = kWork(kAdd(last,1), today);
+      if(wd > cf.fuDays) out.push({ l:l, last:last, why:'нет запланированного follow-up, раб. дн. без касания: '+wd });
+    } else {
+      var gap = kWork(kAdd(last,1), plan[0]);
+      if(gap > cf.fuDays) out.push({ l:l, last:last, why:'следующий follow-up '+kFmtD(plan[0])+', это через '+gap+' раб. дн. после последнего касания' });
+    }
+  });
+  out.sort(function(a,b){ return a.last.localeCompare(b.last); });
+  return out;
+}
+// Лимит follow-up без ответа (по умолчанию 3): сделанные после последнего ответа контакта + запланированные
+function kpiFuLimit(){
+  var cf = kpiConf(), today = kToday(), out = [];
+  maxLeads.forEach(function(l){
+    if(KPI_TERMINAL.indexOf(l.status) > -1) return;
+    var lastMsg = kLastMsg(l);
+    var rs = maxRemindersAll.filter(function(r){ return r.leadId === l.id && !r.deleted; });
+    var done = rs.filter(function(r){ return r.done && r.doneDate && r.doneDate > lastMsg; }).length;
+    var planned = rs.filter(function(r){ return !r.done && r.date && r.date >= today; }).length;
+    if(done + planned > cf.fuLimit) out.push({ l:l, done:done, planned:planned, why:'превышен лимит: сделано '+done+(planned ? ', ещё запланировано '+planned : '')+' (максимум '+cf.fuLimit+')' });
+    else if(done >= cf.fuLimit && !planned) out.push({ l:l, done:done, planned:planned, why:'сделано '+done+' follow-up без ответа: нужно решение (закрыть или сменить канал)' });
+  });
+  return out;
 }
 
 /* --- период --- */
@@ -10367,13 +10518,15 @@ function kpiSlaHtml(m){
   return h;
 }
 function kpiDailyHtml(m){
-  var days = m.daily.slice().reverse().slice(0, 45), h = '<div class="kpi-scroll"><table class="kpi-table kpi-daily"><thead><tr><th>Дата</th><th>День</th><th>Неотвеченных на конец рабочего дня</th><th>Не зачёркнутых follow-up</th><th>День</th></tr></thead><tbody>';
+  var days = m.daily.slice().reverse().slice(0, 45), h = '<div class="kpi-scroll"><table class="kpi-table kpi-daily"><thead><tr><th>Дата</th><th>День</th><th>Не работала</th><th>Неотвеченных на конец рабочего дня</th><th>Не зачёркнутых follow-up (из журнала, можно исправить)</th><th>День</th></tr></thead><tbody>';
   days.forEach(function(d){
-    var ok = kValid(d.u) && kValid(d.o) ? (+d.u === 0 && +d.o === 0 ? 'clean' : 'bad') : 'na';
-    h += '<tr><td>'+kFmtD(d.date)+'</td><td>'+KPI_WD[kD(d.date).getDay()]+'</td>'
+    var oe = kValid(d.o) ? +d.o : (d.oa != null ? d.oa : null);
+    var ok = d.off ? 'na' : (kValid(d.u) && oe != null ? (+d.u === 0 && oe === 0 ? 'clean' : 'bad') : 'na');
+    h += '<tr'+(d.off ? ' class="kpi-off"' : '')+'><td>'+kFmtD(d.date)+'</td><td>'+KPI_WD[kD(d.date).getDay()]+'</td>'
+      + '<td><input type="checkbox" data-f="dayoff:'+d.date+'" '+(d.off ? 'checked' : '')+' title="Отпуск, больничный или другой день без работы: день не считается, нормы уменьшаются"></td>'
       + '<td><input type="number" min="0" data-f="day:'+d.date+':u" data-kid="u-'+d.date+'" value="'+kE(d.u)+'"></td>'
-      + '<td><input type="number" min="0" data-f="day:'+d.date+':o" data-kid="o-'+d.date+'" value="'+kE(d.o)+'"></td>'
-      + '<td><span class="kpi-chip kpi-d-'+ok+'">'+(ok === 'clean' ? 'чистый' : ok === 'bad' ? 'есть хвосты' : 'не проверен')+'</span></td></tr>';
+      + '<td><input type="number" min="0" data-f="day:'+d.date+':o" data-kid="o-'+d.date+'" value="'+kE(d.o)+'"'+(d.oa != null ? ' placeholder="авто: '+d.oa+'"' : '')+'></td>'
+      + '<td><span class="kpi-chip kpi-d-'+ok+'">'+(d.off ? 'не работала' : ok === 'clean' ? 'чистый' : ok === 'bad' ? 'есть хвосты' : 'не проверен')+'</span></td></tr>';
   });
   h += '</tbody></table></div>';
   var mons = kMondays(m.f, m.t);
@@ -10385,6 +10538,44 @@ function kpiDailyHtml(m){
     });
     h += '</div>';
   }
+  return h;
+}
+function kpiFuHtml(m){
+  var c = m.fu.c, h = '';
+  if(!m.fuStart) h += '<div class="kpi-note kpi-warn">Журнал follow-up ещё не начат: он ведётся для напоминаний, созданных после обновления. Пока цифры ниже пустые, а в ежедневной проверке follow-up вносятся вручную.</div>';
+  else h += '<div class="kpi-note" style="margin:0 0 8px;">Журнал ведётся с '+kFmtDY(m.fuStart)+'. Напоминания, созданные раньше, в сроки не попадают (у них нет истории), в таблицах они помечены «без журнала».</div>';
+  h += '<div class="kpi-tiles">'
+    + '<div class="kpi-tile"><b>'+c.total+'</b><span>follow-up в периоде</span></div>'
+    + '<div class="kpi-tile kpi-t-excl"><b>'+c.ontime+'</b><span>вовремя</span></div>'
+    + '<div class="kpi-tile kpi-t-min"><b>'+c.late+'</b><span>с опозданием</span></div>'
+    + '<div class="kpi-tile kpi-t-low"><b>'+c.missed+'</b><span>не сделано</span></div>'
+    + '<div class="kpi-tile kpi-t-min"><b>'+c.moved+'</b><span>переносились</span></div>'
+    + '<div class="kpi-tile kpi-t-low"><b>'+c.deleted+'</b><span>удалено</span></div>'
+    + '<div class="kpi-tile"><b>'+c.open+'</b><span>впереди</span></div>'
+    + (c.nolog ? '<div class="kpi-tile kpi-t-nodata"><b>'+c.nolog+'</b><span>без журнала</span></div>' : '')
+    + '</div>';
+  if(m.fu.rows.length){
+    var ST = { late:'сделан с опозданием', missed:'не сделан', deleted:'удалён', ontime:'вовремя', open:'впереди', nolog:'без журнала' };
+    h += '<div class="kpi-sub">Что не по плану</div><div class="kpi-scroll"><table class="kpi-table"><thead><tr><th>Кому</th><th>Исходная дата</th><th>Сейчас</th><th>Итог</th><th>Переносы</th></tr></thead><tbody>';
+    m.fu.rows.forEach(function(x){
+      var mv = x.moves.map(function(e){ return kFmtD(e.from || x.orig)+' → '+kFmtD(e.to)+' ('+kE((e.by || '').split('@')[0])+', '+kFmtD(e.d || '')+')'; }).join('; ');
+      h += '<tr><td class="kpi-name">'+kE(kFuName(x.r))+'</td><td>'+kFmtDY(x.orig)+'</td><td>'+(x.r.deleted ? '—' : kFmtDY(x.r.date || ''))+'</td><td><span class="kpi-chip kpi-t-'+(x.st === 'late' ? 'min' : x.st === 'open' ? 'nodata' : 'low')+'">'+ST[x.st]+'</span></td><td class="kpi-base">'+(mv || '—')+'</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+  h += '<div class="kpi-sub">Лиды без касания больше '+m.cfg.fuDays+' раб. дн. ('+m.noTouch.length+')</div>';
+  if(m.noTouch.length){
+    h += '<div class="kpi-scroll"><table class="kpi-table"><thead><tr><th>Лид</th><th>Статус</th><th>Последнее касание</th><th>Почему в списке</th></tr></thead><tbody>';
+    m.noTouch.slice(0, 40).forEach(function(x){ h += '<tr><td class="kpi-name">'+kE((x.l.contactName ? x.l.contactName+', ' : '')+(x.l.companyName || ''))+'</td><td>'+kE(x.l.status || '')+'</td><td>'+kFmtDY(x.last)+'</td><td class="kpi-base">'+kE(x.why)+'</td></tr>'; });
+    h += '</tbody></table></div>';
+  } else h += '<div class="kpi-note">Таких лидов нет.</div>';
+  h += '<div class="kpi-sub">Лимит follow-up без ответа ('+m.fuLimit.length+')</div>';
+  if(m.fuLimit.length){
+    h += '<div class="kpi-scroll"><table class="kpi-table"><thead><tr><th>Лид</th><th>Статус</th><th>Что не так</th></tr></thead><tbody>';
+    m.fuLimit.slice(0, 40).forEach(function(x){ h += '<tr><td class="kpi-name">'+kE((x.l.contactName ? x.l.contactName+', ' : '')+(x.l.companyName || ''))+'</td><td>'+kE(x.l.status || '')+'</td><td class="kpi-base">'+kE(x.why)+'</td></tr>'; });
+    h += '</tbody></table></div>';
+  } else h += '<div class="kpi-note">Превышений лимита нет.</div>';
+  h += '<div class="kpi-note">Касание = ответ контакта или выполненный (зачёркнутый) follow-up. Закрытыми считаются лиды со статусами Not interested, Irrelevant, Call done. Перенос напоминания на другую дату фиксируется, «вовремя» считается от исходной даты.</div>';
   return h;
 }
 function kpiAuditHtml(m){
@@ -10408,7 +10599,11 @@ function kpiSettingsHtml(c){
     + '<label>На «Плане», %<input type="number" min="0" data-f="cfg:lvPlan" data-kid="s-lvplan" value="'+c.lvPlan+'"></label>'
     + '<label>На «Отлично», %<input type="number" min="0" data-f="cfg:lvExcl" data-kid="s-lvexcl" value="'+c.lvExcl+'"></label>'
     + '<label>Если верных статусов меньше, %, то живой диалог и R→I не засчитываются (пусто = не применять)<input type="number" min="0" max="100" data-f="cfg:gateAcc" data-kid="s-gate" value="'+(c.gateAcc == null ? '' : c.gateAcc)+'"></label>'
-    + '<label class="kpi-wide">Праздники и нерабочие дни (даты через запятую: 2026-11-04, 2026-12-31)<input type="text" data-f="cfg:holidays" data-kid="s-hol" value="'+kE(c.holidays.join(', '))+'"></label>'
+    + '<label>Follow-up: не больше раб. дней без касания<input type="number" min="1" max="20" data-f="cfg:fuDays" data-kid="s-fud" value="'+c.fuDays+'"></label>'
+    + '<label>Follow-up: максимум на лид без ответа<input type="number" min="1" max="10" data-f="cfg:fuLimit" data-kid="s-ful" value="'+c.fuLimit+'"></label>'
+    + '<label class="kpi-wide kpi-chk"><input type="checkbox" data-f="cfg:firstProrate" '+(c.firstProrate ? 'checked' : '')+'> Первый неполный месяц: нормы и бонус пропорциональны отработанным рабочим дням (при старте 18-го считается период с 18-го до конца месяца, нормы умножаются на долю его рабочих дней)</label>'
+    + '<label class="kpi-wide">Отпуск, больничный сотрудника: даты или диапазоны через запятую (2026-11-09..2026-11-13, 2026-12-02). Нормы уменьшаются пропорционально<input type="text" data-f="cfg:absences" data-kid="s-abs" value="'+kE((Array.isArray(kpiData.absences) ? kpiData.absences : []).join(', '))+'"></label>'
+    + '<label class="kpi-wide">Общие праздники компании (даты через запятую: 2026-11-04, 2026-12-31)<input type="text" data-f="cfg:holidays" data-kid="s-hol" value="'+kE(c.holidays.join(', '))+'"></label>'
     + '</div>';
   h += '<div class="kpi-sub">Показатели: пороги, включение, с какого месяца работы подключаются (1 = ИС)</div><div class="kpi-scroll"><table class="kpi-table kpi-set"><thead><tr><th>Показатель</th><th>Вкл.</th><th>С мес. №</th><th>Вес в бонусе</th><th>Минимум</th><th>План</th><th>Отлично</th><th>Ед.</th></tr></thead><tbody>';
   KPI_DEFS.forEach(function(d0){
@@ -10438,6 +10633,7 @@ function renderKpiTab(){
   var root = el('kpi-root'); if(!root) return;
   if(!isNastyaUser() || viewAsUid){ root.innerHTML = ''; return; }
   if(!unsubMaxLeads) subscribeMaxLeads();
+  if(typeof unsubMaxReminders !== 'undefined' && !unsubMaxReminders) subscribeMaxReminders();
   if(!unsubKpi) subscribeKpi();
   kpiInitView();
   var c = kpiConf(), rg = kpiRange(), h = '';
@@ -10470,8 +10666,9 @@ function renderKpiTab(){
     var done = kpiData.done && kpiData.done[dm];
     h += '<div class="kpi-info"><b>'+kE(phase)+'</b> · показателей: '+m.active.length
       + ' · учтено рабочих дней: '+m.wd+' (норма периода: '+Math.round(m.scale*100)+'% от месячной)'
+      + (m.absDays > 0 ? '<br>Не работала (отпуск, больничный): '+m.absDays+' раб. дн.: минимум, план и отлично уменьшены пропорционально' : '')
       + (m.later.length ? '<br>Подключатся позже: '+m.later.map(function(d){ return kE(d.name)+' (с '+d.from+'-го мес.)'; }).join('; ') : '')
-      + (m.f > rg.from ? '<br>Период начинается с даты старта: '+kFmtDY(m.f) : '')
+      + (m.f > rg.from ? '<br>Период начинается с даты старта: '+kFmtDY(m.f)+(m.payShare < 1 ? ' · бонус пропорционален отработанным дням месяца: '+Math.round(m.payShare*100)+'%' : '') : (m.payShare < 1 ? '<br>Бонус пропорционален отработанным дням месяца: '+Math.round(m.payShare*100)+'%' : ''))
       + (m.t < rg.to ? '<br>Период ещё идёт: расчёт до '+kFmtDY(m.t)+', нормы подогнаны под этот срок' : '')
       + '</div>';
     if(!maxLeads.length) h += '<div class="kpi-note">Лиды ещё загружаются или раздел «Лидогенерация» пуст: показатели по ответам пока нулевые.</div>';
@@ -10479,6 +10676,7 @@ function renderKpiTab(){
       + '<div class="kpi-note">Замечания: лиды берутся по дате первого ответа; в разделе «Лидогенерация» записи общие (нет поля «кто внёс»), поэтому считается всё, что внесено за период. Подсказка по каждому показателю: наведи на название.</div></div>';
     h += '<div class="kpi-card"><h3>Показатели по неделям</h3>'+kpiWeeksHtml(m)+'</div>';
     h += '<div class="kpi-card"><h3>SLA (по трекеру)</h3>'+kpiSlaHtml(m)+'</div>';
+    h += '<div class="kpi-card"><h3>Follow-up (журнал напоминаний)</h3>'+kpiFuHtml(m)+'</div>';
     h += '<div class="kpi-card"><h3>Ежедневная проверка</h3><div class="kpi-note" style="margin:0 0 8px;">Раз в день в одно и то же время (после конца рабочего дня): сколько ответов лидов в GetSales осталось без ответа и сколько follow-up в календаре не зачёркнуто. Пустое поле = день не проверен (в расчёт не идёт).</div>'+kpiDailyHtml(m)+'</div>';
     h += '<div class="kpi-card"><h3>Проверка статусов</h3>'+kpiAuditHtml(m)+'</div>';
     h += '<div class="kpi-card kpi-closebar"><div>'+(done ? 'Итоги за '+KPI_MONTHS[+dm.slice(5,7)-1]+' отмечены как подведённые.' : 'Итоги за '+KPI_MONTHS[+dm.slice(5,7)-1]+' ещё не подведены. Напоминание придёт за '+c.remindDays+' дн. до '+c.deadlineDay+'-го числа.')+'</div>'
@@ -10513,8 +10711,14 @@ function kpiCsv(m, rg, withPay){
   L.push(''); L.push(['SLA: процесс','Минимум','План','Отлично','Среднее значение','Проверено','SLA %'].join(';'));
   m.sla.rows.forEach(function(r){ L.push([r.d.name, r.d.min, r.d.plan, r.d.excl, r.mean == null ? '' : kn(r.mean), r.n, r.avg == null ? '' : Math.round(r.avg)].map(kCsvCell).join(';')); });
   L.push(['Средний SLA','','','','','', m.sla.pct == null ? '' : kn(m.sla.pct)].map(kCsvCell).join(';'));
+  var fc = m.fu.c;
+  L.push(''); L.push(['Follow-up (по исходной дате в периоде)','Всего','Вовремя','С опозданием','Не сделано','Переносились','Удалено','Впереди'].join(';'));
+  L.push(['', fc.total, fc.ontime, fc.late, fc.missed, fc.moved, fc.deleted, fc.open].join(';'));
+  m.fu.rows.forEach(function(x){ L.push([kFuName(x.r), kFmtDY(x.orig), x.r.deleted ? 'удалён' : kFmtDY(x.r.date || ''), x.st, x.moves.map(function(e){ return (e.from || '')+'→'+e.to; }).join(' | ')].map(kCsvCell).join(';')); });
+  L.push(''); L.push(['Лиды без касания > '+m.cfg.fuDays+' раб. дн.','Статус','Последнее касание','Почему'].join(';'));
+  m.noTouch.forEach(function(x){ L.push([(x.l.contactName ? x.l.contactName+', ' : '')+(x.l.companyName || ''), x.l.status || '', kFmtDY(x.last), x.why].map(kCsvCell).join(';')); });
   L.push(''); L.push(['Дата','Неотвеченных на конец дня','Не зачёркнутых follow-up'].join(';'));
-  m.daily.forEach(function(d){ L.push([kFmtDY(d.date), d.u, d.o].map(kCsvCell).join(';')); });
+  m.daily.forEach(function(d){ L.push([kFmtDY(d.date), d.u, d.o !== '' ? d.o : (d.oa != null ? d.oa : '')].map(kCsvCell).join(';')); });
   return '﻿'+L.join('\r\n');
 }
 function kpiReportHtml(m, rg, withPay){
@@ -10532,8 +10736,12 @@ function kpiReportHtml(m, rg, withPay){
   m.sla.rows.forEach(function(r){ h += '<tr><td>'+kE(r.d.name)+'</td><td>≤ '+kn(r.d.min)+'</td><td>≤ '+kn(r.d.plan)+'</td><td>≤ '+kn(r.d.excl)+'</td><td>'+(r.mean == null ? '—' : kn(r.mean))+'</td><td>'+r.n+'</td><td>'+(r.avg == null ? '—' : Math.round(r.avg)+'%')+'</td></tr>'; });
   h += '<tr><td colspan="6"><b>Средний SLA</b></td><td><b>'+(m.sla.pct == null ? '—' : kn(m.sla.pct)+'%')+'</b></td></tr></table>';
   h += '<div class="note">Значение не хуже «Отлично» = 95%, «План» = 90%, «Минимум» = 85%, хуже = 0%. Чистых дней: '+m.sla.clean+' из '+m.sla.checked+'.</div>';
+  var fc2 = m.fu.c;
+  h += '<h2>Follow-up</h2><table><tr><th>Всего</th><th>Вовремя</th><th>С опозданием</th><th>Не сделано</th><th>Переносились</th><th>Удалено</th><th>Впереди</th></tr><tr><td>'+fc2.total+'</td><td>'+fc2.ontime+'</td><td>'+fc2.late+'</td><td>'+fc2.missed+'</td><td>'+fc2.moved+'</td><td>'+fc2.deleted+'</td><td>'+fc2.open+'</td></tr></table>';
+  if(m.fu.rows.length){ h += '<div class="note">Не по плану:</div><table><tr><th>Кому</th><th>Исходная дата</th><th>Сейчас</th><th>Переносы</th></tr>'+m.fu.rows.map(function(x){ return '<tr><td>'+kE(kFuName(x.r))+'</td><td>'+kFmtDY(x.orig)+'</td><td>'+(x.r.deleted ? 'удалён' : kFmtDY(x.r.date || ''))+'</td><td>'+kE(x.moves.map(function(e){ return kFmtD(e.from || x.orig)+' → '+kFmtD(e.to); }).join('; ') || '—')+'</td></tr>'; }).join('')+'</table>'; }
+  if(m.noTouch.length){ h += '<div class="note">Лиды без касания больше '+m.cfg.fuDays+' раб. дн.: '+m.noTouch.length+'</div><table><tr><th>Лид</th><th>Последнее касание</th><th>Почему</th></tr>'+m.noTouch.slice(0,40).map(function(x){ return '<tr><td>'+kE((x.l.contactName ? x.l.contactName+', ' : '')+(x.l.companyName || ''))+'</td><td>'+kFmtDY(x.last)+'</td><td>'+kE(x.why)+'</td></tr>'; }).join('')+'</table>'; }
   h += '<h2>Ежедневная проверка</h2><table><tr><th>Дата</th><th>Неотвеченных на конец дня</th><th>Не зачёркнутых follow-up</th></tr>';
-  m.daily.forEach(function(d){ h += '<tr><td>'+kFmtDY(d.date)+'</td><td>'+kE(d.u === '' ? '—' : d.u)+'</td><td>'+kE(d.o === '' ? '—' : d.o)+'</td></tr>'; });
+  m.daily.forEach(function(d){ var ov = d.o !== '' ? d.o : (d.oa != null ? d.oa : ''); h += '<tr><td>'+kFmtDY(d.date)+'</td><td>'+kE(d.u === '' ? '—' : d.u)+'</td><td>'+kE(ov === '' ? '—' : ov)+'</td></tr>'; });
   return h + '</table></body></html>';
 }
 
@@ -10545,7 +10753,10 @@ function kpiOnChange(e){
   if(p[0] === 'view'){ kpiInitView(); kpiView[p[1]] = v; renderKpiTab(); return; }
   if(p[0] === 'cfg'){
     var key = p[1];
+    if(key === 'absences'){ kpiSave({ absences: (v || '').split(/[\s,;]+/).filter(function(x){ return /^\d{4}-\d{2}-\d{2}(\.\.\d{4}-\d{2}-\d{2})?$/.test(x); }) }); return; }
     if(key === 'holidays'){ kpiSave({ holidays: kpiParseHolidays(v) }); return; }
+    if(key === 'firstProrate'){ kpiSave({ firstProrate: !!v }); return; }
+    if(key === 'fuDays' || key === 'fuLimit'){ var of = {}; of[key] = kNum(v) == null ? 3 : kNum(v); kpiSave(of); return; }
     if(key === 'bonus' || key === 'lvMin' || key === 'lvPlan' || key === 'lvExcl' || key === 'gateAcc'){ var on2 = {}; on2[key] = kNum(v); kpiSave(on2); return; }
     if(key === 'deadlineDay' || key === 'remindDays'){ kpiSave((function(){ var o = {}; o[key] = kNum(v) == null ? (key === 'deadlineDay' ? 10 : 3) : kNum(v); return o; })()); return; }
     if(key === 'sdrEmail'){ var em = (v || '').trim().toLowerCase(); kpiResolveUid(em).then(function(uid){ kpiStats = {}; kpiSave({ sdrEmail: em, statsUid: uid }); }); return; }
@@ -10556,6 +10767,7 @@ function kpiOnChange(e){
     if(fld === 'from' && val == null) val = 1;
     patch[grp] = {}; patch[grp][p[1]] = {}; patch[grp][p[1]][fld] = val; kpiSave(patch); return;
   }
+  if(p[0] === 'dayoff'){ var po = { days:{} }; po.days[p[1]] = { off: !!v }; kpiSave(po); return; }
   if(p[0] === 'day'){ var pd = { days:{} }; pd.days[p[1]] = {}; pd.days[p[1]][p[2]] = kNum(v); kpiSave(pd); return; }
   if(p[0] === 'week'){ var pw = { weeks:{} }; pw.weeks[p[1]] = {}; pw.weeks[p[1]][p[2]] = kNum(v); kpiSave(pw); return; }
   if(p[0] === 'aud'){ var pa = { audits:{} }; pa.audits[p[1]] = {}; pa.audits[p[1]][p[2]] = kNum(v); kpiSave(pa); return; }
