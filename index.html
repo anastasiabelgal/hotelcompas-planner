@@ -1424,7 +1424,7 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 11l5 5 5-5M5 21h14"></path></svg>
         <span style="font-size:11.5px;font-weight:600;">Установить</span>
       </button>
-      <button class="switch-btn hidden" id="view-rita-btn" title="Посмотреть данные Риты (только чтение)">Данные Риты</button>
+      <button class="switch-btn hidden" id="view-rita-btn" title="Посмотреть планер сотрудника (только чтение)">Данные сотрудника</button>
       <div class="theme-toggle" id="theme-toggle">
         <button data-theme-choice="light"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8l1.8-1.8M18 6l1.8-1.8"></path></svg>Свет</button>
         <button data-theme-choice="dark"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"></path></svg>Тёмная</button>
@@ -2212,7 +2212,11 @@ const RITA_EMAILS = ["r.vizuete@hotelcompas.com"];
 const BLOCKED_EMAILS = ["r.vizuete@hotelcompas.com"];
 function isBlockedEmail(email){ return BLOCKED_EMAILS.indexOf((email || '').toLowerCase()) > -1; }
 function isRitaUser(){ return false; }
-function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser(); }
+// SDR: обычный рабочий аккаунт с доступом к Лидогенерации; Настя может открыть её планер в режиме просмотра
+const SDR_EMAILS = ["e.velishaeva@hotelcompas.com"];
+function isSdrUser(){ return !!(currentUser && currentUser.email && SDR_EMAILS.indexOf(currentUser.email.toLowerCase()) > -1); }
+function canSeeMaxTab(){ return isMaxUser() || isNastyaUser() || isRitaUser() || isSdrUser(); }
+let viewAsIsRita = false; // true: просмотр архива Риты (rita_*), false: планер SDR (обычные коллекции)
 function isAllowedEmail(email){
   var e = (email || '').toLowerCase();
   if(isBlockedEmail(e)) return false;
@@ -2222,7 +2226,7 @@ function isAllowedEmail(email){
 let viewAsUid = null;
 function ownerUid(){ return viewAsUid || currentUser.uid; }
 // У Риты (и у Насти в режиме просмотра Риты) свои копии общих разделов: Лиды, Список, Чат, Звонки, Конкуренты, Отчётность, Доступы
-function sc(name){ return (viewAsUid || isRitaUser()) ? 'rita_' + name : name; }
+function sc(name){ return ((viewAsUid && viewAsIsRita) || isRitaUser()) ? 'rita_' + name : name; }
 
 const PRIORITIES = [
   { key:'low', label:'Низкий' }, { key:'medium', label:'Средний' },
@@ -2601,17 +2605,17 @@ function applyRoleVisibility(){
   }
 
   // Рита и Настя в режиме просмотра Риты: все вкладки, кроме Личного (у Риты свои пустые данные)
-  var ritaWorkspace = !!viewAsUid || isRitaUser();
+  var ritaWorkspace = (!!viewAsUid && viewAsIsRita) || isRitaUser();
   var nameBtn = el('edit-name-btn'); if(nameBtn) nameBtn.style.display = isRitaUser() ? 'none' : '';
   var viewBtn = el('view-rita-btn');
   if(viewBtn){
     viewBtn.classList.toggle('hidden', !isNastyaUser());
-    viewBtn.textContent = viewAsUid ? 'Мои данные' : 'Данные Риты';
+    viewBtn.textContent = viewAsUid ? 'Мои данные' : 'Данные сотрудника';
   }
   var viewBanner = el('viewas-banner');
   if(viewBanner){
     viewBanner.classList.toggle('hidden', !viewAsUid);
-    viewBanner.textContent = 'Режим просмотра: данные Риты, только чтение. Лидогенерация общая. Изменения не сохраняются.';
+    viewBanner.textContent = 'Режим просмотра: ' + (viewAsIsRita ? 'данные Риты' : 'планер Эвелины') + ', только чтение. Лидогенерация общая. Изменения не сохраняются.';
   }
   var noteLine = document.querySelector('#board-screen .note-line');
   if(noteLine) noteLine.style.display = isRitaUser() ? 'none' : '';
@@ -2629,7 +2633,7 @@ function applyRoleVisibility(){
 /* ---------- Режим просмотра данных Риты (только для Насти) ---------- */
 function onBlockedWrite(){
   var b = el('viewas-banner');
-  if(b){ b.textContent = 'Только чтение: данные Риты изменить нельзя. Страница обновится.'; b.classList.remove('hidden'); }
+  if(b){ b.textContent = 'Только чтение: чужие данные изменить нельзя. Страница обновится.'; b.classList.remove('hidden'); }
   if(readOnlyNoticeTimer) clearTimeout(readOnlyNoticeTimer);
   readOnlyNoticeTimer = setTimeout(function(){ location.reload(); }, 1500); // откатываем правки, не ушедшие в базу
 }
@@ -2638,9 +2642,13 @@ async function restoreViewAs(){
   try{ want = isNastyaUser() && sessionStorage.getItem('viewAsRita') === '1'; }catch(e){}
   if(!want) return;
   try{
-    var snap = await getDocs(query(collection(db,'users'), where('email','in',RITA_EMAILS)));
+    var snap = await getDocs(query(collection(db,'users'), where('email','in',RITA_EMAILS.concat(SDR_EMAILS))));
     var pick = pickRitaDoc(snap.docs, sessionStorage.getItem('viewAsRitaEmail'));
-    if(pick){ viewAsUid = pick.id; readOnlyView = true; return; }
+    if(pick){
+      viewAsUid = pick.id; readOnlyView = true;
+      viewAsIsRita = RITA_EMAILS.indexOf((pick.data().email || '').toLowerCase()) > -1;
+      return;
+    }
   }catch(e){}
   try{ sessionStorage.removeItem('viewAsRita'); }catch(e){}
 }
@@ -2656,12 +2664,13 @@ function pickRitaDoc(docs, wantedEmail){
 async function toggleViewRita(){
   if(!isNastyaUser()) return;
   if(!viewAsUid){
-    var snap = await getDocs(query(collection(db,'users'), where('email','in',RITA_EMAILS)));
-    if(snap.empty){ alert('Рита ещё не зарегистрировалась в доске'); return; }
+    var snap = await getDocs(query(collection(db,'users'), where('email','in',SDR_EMAILS.concat(RITA_EMAILS))));
+    if(snap.empty){ alert('Сотрудники ещё не зарегистрировались в доске'); return; }
     var emails = snap.docs.map(function(d){ return (d.data().email || '').toLowerCase(); });
+    emails.sort(function(a, b){ return (SDR_EMAILS.indexOf(b) > -1) - (SDR_EMAILS.indexOf(a) > -1); }); // сначала действующие сотрудники
     var chosen = emails[0];
     if(emails.length > 1){
-      var ans = prompt('У Риты несколько аккаунтов. Чей показать? Введи номер:\n' + emails.map(function(e, i){ return (i+1) + ' - ' + e; }).join('\n'), '1');
+      var ans = prompt('Чей планер показать? Введи номер:\n' + emails.map(function(e, i){ return (i+1) + ' - ' + e + (RITA_EMAILS.indexOf(e) > -1 ? ' (архив)' : ''); }).join('\n'), '1');
       if(ans === null) return;
       chosen = emails[(parseInt(ans, 10) || 1) - 1] || emails[0];
     }
@@ -5377,7 +5386,7 @@ var PROJ_STATUS_MAP = {hypothesis:'Гипотеза',progress:'В работе',
 var PROJ_STATUS_ORDER = ['hypothesis','progress','stable','blocked'];
 
 async function seedDefaultProjectsIfEmpty(){
-  if(viewAsUid || isRitaUser()) return; // Рите - пустой интерфейс, без наших проектов
+  if((viewAsUid && viewAsIsRita) || isRitaUser()) return; // Рите - пустой интерфейс, без наших проектов
   var existing = await getDocs(query(collection(db,'projectZones'), where('ownerId','==',ownerUid())));
   if(!existing.empty) return; // уже есть данные, миграция не нужна
   for(var zi=0; zi<DEFAULT_ZONES.length; zi++){
@@ -5897,7 +5906,7 @@ var competitorsData = { sections: [] };
 var competitorsEditMode = {}; // {sectionId: true/false}
 
 async function seedCompetitorsIfEmpty(){
-  if(viewAsUid || isRitaUser()) return; // Рите - пустой раздел, без наших конкурентов
+  if((viewAsUid && viewAsIsRita) || isRitaUser()) return; // Рите - пустой раздел, без наших конкурентов
   var snap = await getDoc(doc(db,sc('settings'),'competitors'));
   if(snap.exists()) return;
   await setDoc(doc(db,sc('settings'),'competitors'), { sections: DEFAULT_COMPETITOR_SECTIONS });
