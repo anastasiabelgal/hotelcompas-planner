@@ -20,10 +20,11 @@ service cloud.firestore {
     // Кто вообще может пользоваться своими личными данными
     function isMember() { return isHotelCompasUser(); }
 
-    // Раздел Лидогенерация (бывший "Макс"): Макс, Настя
+    // Раздел Лидогенерация (бывший "Макс"): Макс, Настя, Эвелина (SDR)
     function isLeadgenUser() {
       return isNastya() ||
-        (isHotelCompasUser() && request.auth.token.email.lower() == 'm.oxentyuk@hotelcompas.com');
+        (isHotelCompasUser() && request.auth.token.email.lower() in
+          ['m.oxentyuk@hotelcompas.com', 'e.velishaeva@hotelcompas.com']);
     }
 
     // Личные записи с полем ownerId
