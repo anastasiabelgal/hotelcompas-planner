@@ -7742,6 +7742,14 @@ function statsDocIdFor(weekKey, funnel){ return statsBase()+'_'+statsSuffix(week
 // Старые данные лежали в личных документах uid_*: пока общего документа нет, берём их.
 // Эвелина до объединения вносила цифры в свои документы; Настя видит их и сразу копирует в общий документ.
 var statsSdrUids = null;
+// Общие документы team_* закрыты правилами Firestore, пока их не опубликовали: показываем подсказку, а не «пустую» статистику
+var statsRulesFlag = false;
+function statsRulesMissing(err){
+  console.error('team stats denied', err);
+  statsRulesFlag = true;
+  var note = el('autostats-funnel-note');
+  if(note) note.textContent = 'Нет доступа к общей статистике: опубликуйте обновлённые правила Firestore (общие документы team_*).';
+}
 async function statsLegacyIds(){
   if(viewAsUid || !currentUser) return [];
   if(!isNastyaUser()) return [currentUser.uid];
@@ -7755,7 +7763,13 @@ async function statsLegacyIds(){
   return statsSdrUids.concat([currentUser.uid]);
 }
 async function statsFetch(sharedId, suffix){
-  var snap = await getDoc(doc(db,'weeklyAutomationStats',sharedId));
+  var snap;
+  try{ snap = await getDoc(doc(db,'weeklyAutomationStats',sharedId)); }
+  catch(e){
+    if(!(e && e.code === 'permission-denied') || sharedId.indexOf('team_') !== 0) throw e;
+    statsRulesMissing(e);
+    snap = { exists: function(){ return false; }, data: function(){ return undefined; } };
+  }
   if(snap.exists() || !suffix || sharedId.indexOf('team_') !== 0) return snap;
   var ids = await statsLegacyIds();
   for(var i = 0; i < ids.length; i++){
@@ -7788,10 +7802,18 @@ function renderAutostatsFunnelSelect(){
   var add = document.createElement('option'); add.value='__new__'; add.textContent='+ Новая воронка…'; sel.appendChild(add);
   sel.value = autostatsFunnel;
   var note = el('autostats-funnel-note');
+  if(note && statsRulesFlag) return;
   if(note) note.textContent = autostatsFunnel ? 'Цифры воронки «'+autostatsFunnel+'» вносятся отдельно от общей цифры.' : '';
 }
 function emptyAccountStats(){
   var o = {}; AUTOSTATS_FIELDS.forEach(function(f){ o[f[0]] = 0; }); return o;
+}
+function applyAutostatsData(data){
+  autostatsData = data || { weekStart: wpDateKey(autostatsMonday), perAccount:{}, contactsAdded:0 };
+  if(!autostatsData.perAccount) autostatsData.perAccount = {};
+  if(autostatsData.contactsAdded === undefined) autostatsData.contactsAdded = 0;
+  AUTOMATION_ACCOUNTS.forEach(function(acc){ if(!autostatsData.perAccount[acc]) autostatsData.perAccount[acc] = emptyAccountStats(); });
+  if(personalSubtab === 'weekplan' || document.getElementById('max-dashboard')){ renderAutostatsTable(); loadAutostatsChart(); }
 }
 function subscribeAutostats(){
   if(unsubAutostats){ unsubAutostats(); unsubAutostats=null; }
@@ -7802,18 +7824,20 @@ function subscribeAutostats(){
     }).catch(function(err){ console.error('funnels load err', err); });
   }
   unsubAutostats = onSnapshot(doc(db,'weeklyAutomationStats',autostatsDocId()), function(snap){
-    var apply = function(data){
-      autostatsData = data || { weekStart: wpDateKey(autostatsMonday), perAccount:{}, contactsAdded:0 };
-      if(!autostatsData.perAccount) autostatsData.perAccount = {};
-      if(autostatsData.contactsAdded === undefined) autostatsData.contactsAdded = 0;
-      AUTOMATION_ACCOUNTS.forEach(function(acc){ if(!autostatsData.perAccount[acc]) autostatsData.perAccount[acc] = emptyAccountStats(); });
-      if(personalSubtab === 'weekplan' || document.getElementById('max-dashboard')){ renderAutostatsTable(); loadAutostatsChart(); }
-    };
-    if(snap.exists()){ apply(snap.data()); return; }
+    if(snap.exists()){ applyAutostatsData(snap.data()); return; }
     var wk = autostatsDocId();
-    statsFetch(wk, statsSuffix(wpDateKey(autostatsMonday), autostatsFunnel)).then(function(old){ if(wk === autostatsDocId()) apply(old.exists() ? old.data() : null); })
-      .catch(function(){ apply(null); });
-  }, function(err){ console.error('autostats err', err); });
+    statsFetch(wk, statsSuffix(wpDateKey(autostatsMonday), autostatsFunnel)).then(function(old){ if(wk === autostatsDocId()) applyAutostatsData(old.exists() ? old.data() : null); })
+      .catch(function(){ applyAutostatsData(null); });
+  }, function(err){
+    console.error('autostats err', err);
+    if(err && err.code === 'permission-denied' && statsBase() === 'team'){
+      statsRulesMissing(err);
+      var wk = autostatsDocId();
+      statsFetch(wk, statsSuffix(wpDateKey(autostatsMonday), autostatsFunnel)).then(function(old){
+        applyAutostatsData(wk === autostatsDocId() && old.exists() ? old.data() : null);
+      }).catch(function(){ applyAutostatsData(null); });
+    }
+  });
 }
 function saveAutostats(){
   autostatsData.weekStart = wpDateKey(autostatsMonday);
