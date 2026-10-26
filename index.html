@@ -7739,12 +7739,36 @@ var autostatsFunnelsLoaded = false;
 function statsBase(){ return (viewAsUid && viewAsIsRita) ? viewAsUid : 'team'; }
 function statsSuffix(weekKey, funnel){ return weekKey+(funnel ? '__'+String(funnel).replace(/\//g,'-') : ''); }
 function statsDocIdFor(weekKey, funnel){ return statsBase()+'_'+statsSuffix(weekKey, funnel); }
-// Старые данные Насти лежали в документах uid_*: пока общего документа нет, Настя видит свои старые цифры
-function statsLegacyId(suffix){ return (isNastyaUser() && !viewAsUid) ? currentUser.uid+'_'+suffix : ''; }
-async function statsFetch(sharedId, legacyId){
+// Старые данные лежали в личных документах uid_*: пока общего документа нет, берём их.
+// Эвелина до объединения вносила цифры в свои документы; Настя видит их и сразу копирует в общий документ.
+var statsSdrUids = null;
+async function statsLegacyIds(){
+  if(viewAsUid || !currentUser) return [];
+  if(!isNastyaUser()) return [currentUser.uid];
+  if(!statsSdrUids){
+    statsSdrUids = [];
+    try{
+      var us = await getDocs(query(collection(db,'users'), where('email','in',SDR_EMAILS)));
+      us.forEach(function(d){ statsSdrUids.push(d.id); });
+    }catch(e){ console.error('sdr uid err', e); }
+  }
+  return statsSdrUids.concat([currentUser.uid]);
+}
+async function statsFetch(sharedId, suffix){
   var snap = await getDoc(doc(db,'weeklyAutomationStats',sharedId));
-  if(!snap.exists() && legacyId && legacyId !== sharedId){
-    try{ var old = await getDoc(doc(db,'weeklyAutomationStats',legacyId)); if(old.exists()) return old; }catch(e){ console.error('legacy stats err', e); }
+  if(snap.exists() || !suffix || sharedId.indexOf('team_') !== 0) return snap;
+  var ids = await statsLegacyIds();
+  for(var i = 0; i < ids.length; i++){
+    try{
+      var old = await getDoc(doc(db,'weeklyAutomationStats',ids[i]+'_'+suffix));
+      if(old.exists()){
+        if(isNastyaUser()){ // переносим в общий документ, чтобы видели все
+          var copy = Object.assign({}, old.data(), { ownerId: currentUser.uid, migratedFrom: ids[i] });
+          setDoc(doc(db,'weeklyAutomationStats',sharedId), copy).catch(function(e){ console.error('stats migrate err', e); });
+        }
+        return old;
+      }
+    }catch(e){ console.error('legacy stats err', e); }
   }
   return snap;
 }
@@ -7773,7 +7797,7 @@ function subscribeAutostats(){
   if(unsubAutostats){ unsubAutostats(); unsubAutostats=null; }
   if(!autostatsFunnelsLoaded){
     autostatsFunnelsLoaded = true;
-    statsFetch(statsBase()+'_funnels', statsLegacyId('funnels')).then(function(fs){
+    statsFetch(statsBase()+'_funnels', 'funnels').then(function(fs){
       if(fs.exists() && Array.isArray(fs.data().names)){ autostatsExtraFunnels = fs.data().names; renderAutostatsFunnelSelect(); }
     }).catch(function(err){ console.error('funnels load err', err); });
   }
@@ -7785,12 +7809,10 @@ function subscribeAutostats(){
       AUTOMATION_ACCOUNTS.forEach(function(acc){ if(!autostatsData.perAccount[acc]) autostatsData.perAccount[acc] = emptyAccountStats(); });
       if(personalSubtab === 'weekplan' || document.getElementById('max-dashboard')){ renderAutostatsTable(); loadAutostatsChart(); }
     };
-    var legacy = snap.exists() ? '' : statsLegacyId(statsSuffix(wpDateKey(autostatsMonday), autostatsFunnel));
-    if(legacy){
-      var wk = autostatsDocId();
-      getDoc(doc(db,'weeklyAutomationStats',legacy)).then(function(old){ if(wk === autostatsDocId()) apply(old.exists() ? old.data() : null); })
-        .catch(function(){ apply(null); });
-    } else apply(snap.exists() ? snap.data() : null);
+    if(snap.exists()){ apply(snap.data()); return; }
+    var wk = autostatsDocId();
+    statsFetch(wk, statsSuffix(wpDateKey(autostatsMonday), autostatsFunnel)).then(function(old){ if(wk === autostatsDocId()) apply(old.exists() ? old.data() : null); })
+      .catch(function(){ apply(null); });
   }, function(err){ console.error('autostats err', err); });
 }
 function saveAutostats(){
@@ -7899,7 +7921,7 @@ async function fetchWeeklyPoints(anchorMonday, n, funnel){
     var sums = {};
     AUTOSTATS_TREND_SERIES.forEach(function(sr){ sums[sr.key] = 0; });
     try{
-      var snap = await statsFetch(statsDocIdFor(weeks[j], funnel), statsLegacyId(statsSuffix(weeks[j], funnel)));
+      var snap = await statsFetch(statsDocIdFor(weeks[j], funnel), statsSuffix(weeks[j], funnel));
       if(snap.exists()){
         var data = snap.data();
         AUTOMATION_ACCOUNTS.forEach(function(acc){
@@ -9289,7 +9311,7 @@ async function fetchAutostatsForRange(fromStr, toStr, funnel){
   var contactsAddedTotal = 0;
   for(var i=0;i<mondays.length;i++){
     try{
-      var snap = await statsFetch(statsDocIdFor(mondays[i], funnel), statsLegacyId(statsSuffix(mondays[i], funnel)));
+      var snap = await statsFetch(statsDocIdFor(mondays[i], funnel), statsSuffix(mondays[i], funnel));
       if(snap.exists()){
         var data = snap.data();
         contactsAddedTotal += Number(data.contactsAdded)||0;
@@ -10548,7 +10570,7 @@ function kpiEnsureStats(f, t){
   if(!need.length) return;
   need.forEach(function(x){ kpiStatsLoading[x[0]] = true; });
   Promise.all(need.map(function(x){
-    return statsFetch('team_'+x[1], x[0]).then(function(snap){
+    return statsFetch('team_'+x[1], x[1]).then(function(snap){
       kpiStats[x[0]] = snap.exists() ? (Number(snap.data().contactsAdded) || 0) : null;
     }).catch(function(err){ console.error('kpi stats err', err); kpiStatsErr = true; kpiStats[x[0]] = null; })
       .then(function(){ delete kpiStatsLoading[x[0]]; });
@@ -10673,7 +10695,7 @@ async function kpiHistContacts(){
   for(var j = 0; j < keys.length; j++){
     if(st && keys[j][1] < kMonday(st)) continue;
     try{
-      var snap = await statsFetch('team_'+keys[j][1], keys[j][0]);
+      var snap = await statsFetch('team_'+keys[j][1], keys[j][1]);
       if(snap.exists() && Number(snap.data().contactsAdded) > 0) vals.push(Number(snap.data().contactsAdded));
     }catch(e){ console.error(e); }
   }
