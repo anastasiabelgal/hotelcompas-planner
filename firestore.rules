@@ -148,8 +148,10 @@ service cloud.firestore {
       allow write: if isMember() && budgetId.matches(request.auth.uid + '_.*');
     }
 
-    // Еженедельная статистика автоматизации (id = uid_дата): свою пишет сам, Настя читает чужую (данные Риты)
+    // Еженедельная статистика автоматизации: общие документы team_* ведут Настя, Макс и Эвелина вместе;
+    // старые документы uid_* остаются: свои пишет сам, Настя читает чужие (данные Риты)
     match /weeklyAutomationStats/{statsId} {
+      allow read, write: if isLeadgenUser() && statsId.matches('team_.*');
       allow read: if isMember() && statsId.matches(request.auth.uid + '_.*') || isNastya();
       allow write: if isMember() && statsId.matches(request.auth.uid + '_.*');
     }

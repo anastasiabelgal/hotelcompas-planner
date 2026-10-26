@@ -7735,7 +7735,19 @@ var unsubAutostats = null;
 var autostatsFunnel = '';
 var autostatsExtraFunnels = [];      // воронки, добавленные вручную (ещё без лидов), хранятся в документе uid_funnels
 var autostatsFunnelsLoaded = false;
-function statsDocIdFor(weekKey, funnel){ return ownerUid()+'_'+weekKey+(funnel ? '__'+String(funnel).replace(/\//g,'-') : ''); }
+// Статистика автоматизации общая у команды (документы team_*): что вносит один, видят все. Архив Риты читается по её uid.
+function statsBase(){ return (viewAsUid && viewAsIsRita) ? viewAsUid : 'team'; }
+function statsSuffix(weekKey, funnel){ return weekKey+(funnel ? '__'+String(funnel).replace(/\//g,'-') : ''); }
+function statsDocIdFor(weekKey, funnel){ return statsBase()+'_'+statsSuffix(weekKey, funnel); }
+// Старые данные Насти лежали в документах uid_*: пока общего документа нет, Настя видит свои старые цифры
+function statsLegacyId(suffix){ return (isNastyaUser() && !viewAsUid) ? currentUser.uid+'_'+suffix : ''; }
+async function statsFetch(sharedId, legacyId){
+  var snap = await getDoc(doc(db,'weeklyAutomationStats',sharedId));
+  if(!snap.exists() && legacyId && legacyId !== sharedId){
+    try{ var old = await getDoc(doc(db,'weeklyAutomationStats',legacyId)); if(old.exists()) return old; }catch(e){ console.error('legacy stats err', e); }
+  }
+  return snap;
+}
 function autostatsDocId(){ return statsDocIdFor(wpDateKey(autostatsMonday), autostatsFunnel); }
 function autostatsFunnelNames(){
   var set = {};
@@ -7761,20 +7773,30 @@ function subscribeAutostats(){
   if(unsubAutostats){ unsubAutostats(); unsubAutostats=null; }
   if(!autostatsFunnelsLoaded){
     autostatsFunnelsLoaded = true;
-    getDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_funnels')).then(function(fs){
+    statsFetch(statsBase()+'_funnels', statsLegacyId('funnels')).then(function(fs){
       if(fs.exists() && Array.isArray(fs.data().names)){ autostatsExtraFunnels = fs.data().names; renderAutostatsFunnelSelect(); }
     }).catch(function(err){ console.error('funnels load err', err); });
   }
   unsubAutostats = onSnapshot(doc(db,'weeklyAutomationStats',autostatsDocId()), function(snap){
-    autostatsData = snap.exists() ? snap.data() : { weekStart: wpDateKey(autostatsMonday), perAccount:{}, contactsAdded:0 };
-    if(autostatsData.contactsAdded === undefined) autostatsData.contactsAdded = 0;
-    AUTOMATION_ACCOUNTS.forEach(function(acc){ if(!autostatsData.perAccount[acc]) autostatsData.perAccount[acc] = emptyAccountStats(); });
-    if(personalSubtab === 'weekplan' || document.getElementById('max-dashboard')){ renderAutostatsTable(); loadAutostatsChart(); }
+    var apply = function(data){
+      autostatsData = data || { weekStart: wpDateKey(autostatsMonday), perAccount:{}, contactsAdded:0 };
+      if(!autostatsData.perAccount) autostatsData.perAccount = {};
+      if(autostatsData.contactsAdded === undefined) autostatsData.contactsAdded = 0;
+      AUTOMATION_ACCOUNTS.forEach(function(acc){ if(!autostatsData.perAccount[acc]) autostatsData.perAccount[acc] = emptyAccountStats(); });
+      if(personalSubtab === 'weekplan' || document.getElementById('max-dashboard')){ renderAutostatsTable(); loadAutostatsChart(); }
+    };
+    var legacy = snap.exists() ? '' : statsLegacyId(statsSuffix(wpDateKey(autostatsMonday), autostatsFunnel));
+    if(legacy){
+      var wk = autostatsDocId();
+      getDoc(doc(db,'weeklyAutomationStats',legacy)).then(function(old){ if(wk === autostatsDocId()) apply(old.exists() ? old.data() : null); })
+        .catch(function(){ apply(null); });
+    } else apply(snap.exists() ? snap.data() : null);
   }, function(err){ console.error('autostats err', err); });
 }
 function saveAutostats(){
   autostatsData.weekStart = wpDateKey(autostatsMonday);
   autostatsData.ownerId = currentUser.uid;
+  autostatsData.updatedBy = currentUser.email || '';
   setDoc(doc(db,'weeklyAutomationStats',autostatsDocId()), autostatsData);
 }
 
@@ -7877,7 +7899,7 @@ async function fetchWeeklyPoints(anchorMonday, n, funnel){
     var sums = {};
     AUTOSTATS_TREND_SERIES.forEach(function(sr){ sums[sr.key] = 0; });
     try{
-      var snap = await getDoc(doc(db,'weeklyAutomationStats',statsDocIdFor(weeks[j], funnel)));
+      var snap = await statsFetch(statsDocIdFor(weeks[j], funnel), statsLegacyId(statsSuffix(weeks[j], funnel)));
       if(snap.exists()){
         var data = snap.data();
         AUTOMATION_ACCOUNTS.forEach(function(acc){
@@ -8000,7 +8022,7 @@ function initAutostats(){
       if(!name){ renderAutostatsFunnelSelect(); return; }
       if(autostatsExtraFunnels.indexOf(name) === -1){
         autostatsExtraFunnels = autostatsExtraFunnels.concat([name]);
-        setDoc(doc(db,'weeklyAutomationStats',ownerUid()+'_funnels'), { names: autostatsExtraFunnels, ownerId: currentUser.uid });
+        setDoc(doc(db,'weeklyAutomationStats',statsBase()+'_funnels'), { names: autostatsExtraFunnels, ownerId: currentUser.uid });
       }
       v = name;
     }
@@ -9267,7 +9289,7 @@ async function fetchAutostatsForRange(fromStr, toStr, funnel){
   var contactsAddedTotal = 0;
   for(var i=0;i<mondays.length;i++){
     try{
-      var snap = await getDoc(doc(db,'weeklyAutomationStats',statsDocIdFor(mondays[i], funnel)));
+      var snap = await statsFetch(statsDocIdFor(mondays[i], funnel), statsLegacyId(statsSuffix(mondays[i], funnel)));
       if(snap.exists()){
         var data = snap.data();
         contactsAddedTotal += Number(data.contactsAdded)||0;
@@ -10526,7 +10548,7 @@ function kpiEnsureStats(f, t){
   if(!need.length) return;
   need.forEach(function(x){ kpiStatsLoading[x[0]] = true; });
   Promise.all(need.map(function(x){
-    return getDoc(doc(db,'weeklyAutomationStats', x[0])).then(function(snap){
+    return statsFetch('team_'+x[1], x[0]).then(function(snap){
       kpiStats[x[0]] = snap.exists() ? (Number(snap.data().contactsAdded) || 0) : null;
     }).catch(function(err){ console.error('kpi stats err', err); kpiStatsErr = true; kpiStats[x[0]] = null; })
       .then(function(){ delete kpiStatsLoading[x[0]]; });
@@ -10651,7 +10673,7 @@ async function kpiHistContacts(){
   for(var j = 0; j < keys.length; j++){
     if(st && keys[j][1] < kMonday(st)) continue;
     try{
-      var snap = await getDoc(doc(db,'weeklyAutomationStats', keys[j][0]));
+      var snap = await statsFetch('team_'+keys[j][1], keys[j][0]);
       if(snap.exists() && Number(snap.data().contactsAdded) > 0) vals.push(Number(snap.data().contactsAdded));
     }catch(e){ console.error(e); }
   }
